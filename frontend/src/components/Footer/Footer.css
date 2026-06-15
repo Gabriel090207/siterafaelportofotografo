@@ -1,0 +1,169 @@
+.footer {
+  background: #050505;
+
+  padding-top: 90px;
+
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: "";
+
+  position: absolute;
+
+  width: 500px;
+  height: 500px;
+
+  top: -250px;
+  right: -150px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,140,0,.15) 0%,
+      transparent 70%
+    );
+
+  filter: blur(90px);
+
+  pointer-events: none;
+}
+
+.footer-container {
+  width: min(1380px, 92%);
+
+  margin: 0 auto;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 140px;
+}
+
+.footer-brand {
+  max-width: 420px;
+}
+
+.footer-brand img {
+  width: 250px;
+
+  margin-bottom: 10px;
+}
+
+.footer-brand p {
+  color: rgba(255,255,255,.65);
+
+  font-size: 15px;
+
+  line-height: 1.8;
+}
+
+.footer-links {
+  display: flex;
+
+  gap: 180px;
+
+  justify-content: flex-start;
+}
+
+.footer-column {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.footer-column h4 {
+  color: #ff9300;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  margin-bottom: 12px;
+}
+
+.footer-column a {
+  color: rgba(255,255,255,.68);
+
+  text-decoration: none;
+
+  font-size: 15px;
+
+  transition: .3s ease;
+}
+
+.footer-column a:hover {
+  color: #ff9300;
+}
+
+.footer-bottom {
+  margin-top: 70px;
+
+  border-top: 1px solid rgba(255,255,255,.06);
+
+  padding: 28px 0;
+
+  text-align: center;
+}
+
+.footer-bottom p {
+  color: rgba(255,255,255,.45);
+
+  font-size: 14px;
+}
+
+@media (max-width: 1000px) {
+  .footer {
+    padding-top: 70px;
+  }
+
+  .footer-container {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 40px;
+  }
+
+  .footer-brand {
+    max-width: 100%;
+  }
+
+  .footer-brand img {
+    width: 220px;
+  }
+
+  .footer-brand p {
+    text-align: left;
+  }
+
+  .footer-links {
+    width: 100%;
+
+    flex-direction: column;
+
+    gap: 40px;
+
+    justify-content: flex-start;
+
+    align-items: flex-start;
+  }
+
+  .footer-column {
+    align-items: flex-start;
+  }
+
+  .footer-column h4,
+  .footer-column a {
+    text-align: left;
+  }
+
+  .footer-bottom {
+    margin-top: 50px;
+  }
+
+ 
+}

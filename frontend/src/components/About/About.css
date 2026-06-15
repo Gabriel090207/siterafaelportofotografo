@@ -1,0 +1,232 @@
+.about {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 120px 0;
+
+  min-height: 100px;
+}
+
+.about-background {
+  position: absolute;
+  inset: 0;
+
+  background-size: cover;
+  background-position: center;
+
+  transform: scale(1.05);
+}
+
+.about-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.80) 0%,
+      rgba(0,0,0,.55) 35%,
+      rgba(0,0,0,.30) 70%,
+      rgba(0,0,0,.18) 100%
+    );
+}
+
+.about-container {
+  position: relative;
+  z-index: 2;
+
+  width: min(1280px, 92%);
+
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 480px 1fr;
+
+  gap: 90px;
+
+  align-items: center;
+}
+
+/* CARD LOGO */
+
+.about-logo-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 50px;
+
+  min-height: 300px;
+
+  border-radius: 42px;
+
+  background: rgba(0,0,0,.35);
+
+  border: 1px solid rgba(255,255,255,.08);
+
+  backdrop-filter: blur(12px);
+}
+
+.about-logo-card img {
+  width: 100%;
+  max-width: 460px;
+
+  object-fit: contain;
+}
+
+/* CONTENT */
+
+.about-content h2 {
+  color: white;
+
+  font-size: 62px;
+  line-height: .92;
+
+  font-weight: 800;
+
+  max-width: 900px;
+
+  margin-bottom: 34px;
+}
+
+.about-description {
+  max-width: 900px;
+
+  color: rgba(255,255,255,.82);
+
+  font-size: 17px;
+  line-height: 1.7;
+
+  margin-bottom: 22px;
+}
+
+.about-buttons {
+  display: flex;
+  gap: 16px;
+
+  margin-top: 40px;
+}
+
+/* BOTÃO LARANJA */
+
+.about-primary-btn {
+  height: 48px;
+
+  padding: 0 22px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    135deg,
+    #ff9300,
+    #f27900
+  );
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: .3s ease;
+
+  box-shadow:
+    0 15px 35px rgba(255,147,0,.25);
+}
+
+.about-primary-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* IGUAL AO BOTÃO BRANCO DA SECTION FILMES */
+
+.about-secondary-btn {
+  height: 48px;
+
+  padding: 0 22px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: white;
+
+  color: #111;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: .3s ease;
+}
+
+.about-secondary-btn:hover {
+  transform: translateY(-2px);
+}
+
+
+@media (max-width: 992px) {
+  .about {
+    padding: 80px 0;
+  }
+
+  .about-container {
+    grid-template-columns: 1fr;
+
+    gap: 32px;
+  }
+
+  .about-content {
+    order: 1;
+  }
+
+  .about-logo-card {
+    order: 2;
+
+    padding: 30px;
+
+    min-height: 220px;
+  }
+
+  .about-logo-card img {
+    max-width: 280px;
+  }
+
+  .about-content h2 {
+    font-size: 42px;
+
+    line-height: 1;
+  }
+
+  .about-description {
+    max-width: 100%;
+
+    font-size: 16px;
+  }
+
+  .about-buttons {
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-top: 30px;
+  }
+
+  .about-primary-btn,
+  .about-secondary-btn {
+    width: 100%;
+  }
+
+  .about-overlay {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(0,0,0,.85) 0%,
+        rgba(0,0,0,.70) 40%,
+        rgba(0,0,0,.50) 100%
+      );
+  }
+}
