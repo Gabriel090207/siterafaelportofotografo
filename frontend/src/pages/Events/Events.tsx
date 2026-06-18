@@ -1,67 +1,21 @@
 import "./Events.css";
 
-import { useState, useEffect } from "react";
+
 
 import { Link } from "react-router-dom";
 
-import {
-  FiGrid,
-  FiVideo,
-  FiImage,
-  FiSearch,
-  FiHeart,
-  FiArrowUp,
-  FiArrowLeft,
-  FiArrowRight,
-} from "react-icons/fi";
+
 
 function Events() {
 
-const images = [
-  "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-   "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-];
-
-const [currentImage, setCurrentImage] = useState(0);
-
-const [previewStart, setPreviewStart] = useState(0);
-
-const [isHovered, setIsHovered] = useState(false);
 
 
 
-const nextPreview = () => {
-  if (previewStart < images.length - 5) {
-    setPreviewStart(prev => prev + 1);
-  }
-};
 
-const prevPreview = () => {
-  if (previewStart > 0) {
-    setPreviewStart(prev => prev - 1);
-  }
-};
 
-useEffect(() => {
-  if (!isHovered) {
-    setCurrentImage(0);
-    return;
-  }
 
-  const interval = setInterval(() => {
-    setCurrentImage((prev) =>
-      prev === images.length - 1 ? 0 : prev + 1
-    );
-  }, 4500);
 
-  return () => clearInterval(interval);
-}, [isHovered]);
+
 
   return (
     <main className="events">
@@ -271,9 +225,13 @@ useEffect(() => {
           </span>
         </div>
 
-        <button className="event-card-button">
-          Ver Álbum
-        </button>
+        <Link
+  to="/evento"
+  className="event-card-button"
+>
+  Ver Álbum
+</Link>
+
 
       </div>
 
@@ -310,9 +268,13 @@ useEffect(() => {
           </span>
         </div>
 
-        <button className="event-card-button">
-          Ver Álbum
-        </button>
+        <Link
+  to="/evento"
+  className="event-card-button"
+>
+  Ver Álbum
+</Link>
+
 
       </div>
 
@@ -349,9 +311,13 @@ useEffect(() => {
           </span>
         </div>
 
-        <button className="event-card-button">
-          Ver Álbum
-        </button>
+        <Link
+  to="/evento"
+  className="event-card-button"
+>
+  Ver Álbum
+</Link>
+
 
       </div>
 
@@ -388,9 +354,13 @@ useEffect(() => {
           </span>
         </div>
 
-        <button className="event-card-button">
-          Ver Álbum
-        </button>
+         <Link
+  to="/evento"
+  className="event-card-button"
+>
+  Ver Álbum
+</Link>
+
 
       </div>
 
@@ -427,9 +397,13 @@ useEffect(() => {
           </span>
         </div>
 
-        <button className="event-card-button">
-          Ver Álbum
-        </button>
+        <Link
+  to="/evento"
+  className="event-card-button"
+>
+  Ver Álbum
+</Link>
+
 
       </div>
 
