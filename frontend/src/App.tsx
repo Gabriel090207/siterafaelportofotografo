@@ -1,15 +1,16 @@
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
+
 import { WhatsappButton } from "./components/WhatsappButton/WhatsappButton";
 
-import Home from "./pages/Home/Home";
+import { AppRoutes } from "./routes/AppRoutes";
 
 function App() {
   return (
     <>
       <Header />
 
-      <Home />
+      <AppRoutes />
 
       <Footer />
 

@@ -57,9 +57,7 @@
   --transition-default: 0.3s ease;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+
 
 body {
   font-family: var(--font-body);
@@ -73,3 +71,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

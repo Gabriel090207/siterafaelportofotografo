@@ -55,3 +55,13 @@
     font-size: 30px;
   }
 }
+
+body.menu-open .whatsapp-button {
+  opacity: 0;
+
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transform: scale(0.8);
+}
