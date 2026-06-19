@@ -30,7 +30,7 @@ function Events() {
 
          <div className="events-hero-content">
 
-  <h1>Eventos</h1>
+  <h1>Casamentos</h1>
 
   <p className="events-description">
     Casamentos, 15 anos, ensaios, formaturas e eventos
@@ -43,85 +43,7 @@ function Events() {
 
         </section>
 
-        <section className="events-categories">
-  <button className="event-category active">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Todos" />
-  </div>
-  <span>Todos</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Casamentos" />
-  </div>
-  <span>Casamentos</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="15 Anos" />
-  </div>
-  <span>15 Anos</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Pré Wedding" />
-  </div>
-  <span>Pré Wedding</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Book de 15 Anos" />
-  </div>
-  <span>Book de 15 Anos</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Infantil" />
-  </div>
-  <span>Infantil</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Book de Gestante" />
-  </div>
-  <span>Book de Gestante</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Aniversários" />
-  </div>
-  <span>Aniversários</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Ensaio Fotográfico" />
-  </div>
-  <span>Ensaio Fotográfico</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Corporativos" />
-  </div>
-  <span>Corporativos</span>
-</button>
-
-<button className="event-category">
-  <div className="event-category-image">
-    <img src="/favicon.png" alt="Formaturas" />
-  </div>
-  <span>Formaturas</span>
-</button>
-</section>
-
+       
 
 <section className="featured-event">
 

@@ -6,7 +6,7 @@ import {
   useRef
 } from "react";
 
-
+import { useNavigate } from "react-router-dom";
 
 import {
   FiGrid,
@@ -29,7 +29,7 @@ import {
 
 function Events() {
 
-
+const navigate = useNavigate();
 
 const geralImages = [
   "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
@@ -362,6 +362,15 @@ useEffect(() => {
       <div className="event-container">
 
         <section className="event-hero">
+
+           <button
+    className="event-back-button"
+    onClick={() => navigate(-1)}
+  >
+    <FiArrowLeft />
+    <span>Voltar</span>
+  </button>
+
 
        
           <div className="event-eyebrow">
