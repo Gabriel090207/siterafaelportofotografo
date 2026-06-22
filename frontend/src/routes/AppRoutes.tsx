@@ -5,6 +5,7 @@ import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
 import Home from "../pages/Home/Home";
 import Events from "../pages/Events/Events";
 import Event from "../pages/Event/Event";
+import About from "../pages/About/About";
 
 export function AppRoutes() {
 
@@ -27,6 +28,11 @@ export function AppRoutes() {
       <Route
         path="/evento"
         element={<Event />}
+      />
+
+      <Route
+        path="/sobre"
+        element={<About />}
       />
     </Routes>
         </>
