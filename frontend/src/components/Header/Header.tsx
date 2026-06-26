@@ -139,13 +139,17 @@ useEffect(() => {
 </div>
   </div>
 
-  <a href="#">Serviços</a>
+  <Link to="/servicos">
+  Serviços
+</Link>
   <a href="#">Depoimentos</a>
   <a href="#">Promoções</a>
   <Link to="/sobre">
   Sobre
 </Link>
-  <a href="#">Contato</a>
+  <Link to="/contato">
+  Contato
+</Link>
 </nav>
 
           <div className="navbar-actions">
@@ -222,7 +226,10 @@ useEffect(() => {
   </div>
 </div>
 
-  <a href="#">Serviços</a>
+  <Link to="/servicos"
+   onClick={() => setMenuOpen(false)}>
+  Serviços
+</Link>
   <a href="#">Depoimentos</a>
   <a href="#">Promoções</a>
  <Link
@@ -231,7 +238,10 @@ useEffect(() => {
 >
   Sobre
 </Link>
-  <a href="#">Contato</a>
+  <Link to="/contato"
+   onClick={() => setMenuOpen(false)}>
+  Contato
+</Link>
 </nav>
 
   <div className="mobile-actions">
