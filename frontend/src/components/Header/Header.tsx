@@ -153,9 +153,14 @@ useEffect(() => {
 </nav>
 
           <div className="navbar-actions">
-  <button className="btn-client">
-    Área do Cliente
-  </button>
+ <Link
+  to="/cliente"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="btn-client"
+>
+  Área do Cliente
+</Link>
 
   <button className="btn-budget">
     Pedir orçamento
@@ -245,10 +250,15 @@ useEffect(() => {
 </nav>
 
   <div className="mobile-actions">
-  <button className="mobile-btn-client">
-    Área do Cliente
-  </button>
-
+<Link
+  to="/cliente"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="mobile-btn-client"
+  onClick={() => setMenuOpen(false)}
+>
+  Área do Cliente
+</Link>
   <button className="mobile-btn-budget">
     Pedir orçamento
   </button>

@@ -982,13 +982,24 @@
 }
 
 .event-card-content p {
+
   color: var(--color-text-light);
 
   font-size: 13px;
 
   line-height: 1.8;
-}
 
+  display: -webkit-box;
+
+  -webkit-line-clamp: 2;
+
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+}
 
 /* ===================================
    RESPONSIVO - EVENTO DESTAQUE

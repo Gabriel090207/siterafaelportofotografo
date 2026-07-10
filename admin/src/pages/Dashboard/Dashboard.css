@@ -1,0 +1,356 @@
+.dashboard{
+
+    display:flex;
+    flex-direction:column;
+
+    gap:35px;
+
+}
+
+.dashboard__header{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+}
+
+.dashboard__header h2{
+
+    font-family:var(--font-title);
+
+    font-size:2rem;
+
+    margin-bottom:10px;
+
+}
+
+.dashboard__header p{
+
+    color:var(--color-text-light);
+
+}
+
+.dashboard__date{
+
+    display:flex;
+    align-items:center;
+
+    gap:10px;
+
+    background:var(--color-white);
+
+    padding:14px 20px;
+
+    border-radius:var(--radius-md);
+
+    border:1px solid var(--color-border);
+
+}
+
+.dashboard__date svg{
+
+    color:var(--color-orange);
+
+}
+
+
+.dashboard__stats {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 24px;
+
+}
+
+.dashboard__card {
+
+    background: var(--color-white);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-md);
+
+    padding: 26px;
+
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    transition: var(--transition-default);
+
+}
+
+.dashboard__card:hover {
+
+    transform: translateY(-6px);
+
+    box-shadow: var(--shadow-md);
+
+}
+
+.dashboard__card-header {
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+}
+
+.dashboard__card-icon {
+
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 14px;
+
+    background: rgba(255, 130, 0, .08);
+
+}
+
+.dashboard__card-icon svg {
+
+    color: var(--color-orange);
+
+}
+
+.dashboard__card-header span {
+
+    font-size: 1.1rem;
+
+    font-weight: 600;
+
+    color: var(--color-text-light);
+
+}
+
+.dashboard__card h3 {
+
+    font-family: var(--font-title);
+
+    font-size: 2.5rem;
+
+    font-weight: 700;
+
+    color: var(--color-text);
+
+    line-height: 1;
+
+}
+
+.dashboard__grid{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:22px;
+
+}
+
+.dashboard__panel{
+
+    background:var(--color-white);
+
+    border-radius:var(--radius-md);
+
+    border:1px solid var(--color-border);
+
+    padding:25px;
+
+}
+
+.dashboard__panel-header{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:25px;
+
+}
+
+.dashboard__panel-header h3{
+
+    font-family:var(--font-title);
+
+}
+
+.dashboard__panel-header button{
+
+    display:flex;
+    align-items:center;
+
+    gap:8px;
+
+    background:none;
+
+    border:none;
+
+    cursor:pointer;
+
+    color:var(--color-orange);
+
+    font-weight:600;
+
+}
+
+.dashboard__panel ul{
+
+    list-style:none;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.dashboard__panel li{
+
+    padding-bottom:16px;
+
+    border-bottom:1px solid var(--color-border);
+
+}
+
+.dashboard__activity{
+
+    background:var(--color-white);
+
+    border-radius:var(--radius-md);
+
+    border:1px solid var(--color-border);
+
+    padding:25px;
+
+}
+
+.dashboard__activity h3{
+
+    font-family:var(--font-title);
+
+    margin-bottom:25px;
+
+}
+
+.dashboard__activity ul{
+
+    list-style:none;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.dashboard__activity li{
+
+    padding-bottom:16px;
+
+    border-bottom:1px solid var(--color-border);
+
+}
+
+
+@media (max-width: 1024px){
+
+    .dashboard__header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:20px;
+
+    }
+
+    .dashboard__date{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+    .dashboard__stats{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+    .dashboard__grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+
+@media (max-width: 768px){
+
+    .dashboard{
+
+        gap:24px;
+
+    }
+
+    .dashboard__header h2{
+
+        font-size:2rem;
+
+    }
+
+    .dashboard__stats{
+
+        grid-template-columns:1fr;
+
+        gap:16px;
+
+    }
+
+    .dashboard__card{
+
+        min-height:120px;
+
+        padding:20px;
+
+    }
+
+    .dashboard__card-header{
+
+        gap:12px;
+
+    }
+
+    .dashboard__card-icon{
+
+        width:40px;
+        height:40px;
+
+    }
+
+    .dashboard__card-header span{
+
+        font-size:1rem;
+
+    }
+
+    .dashboard__card h3{
+
+        font-size:2.2rem;
+
+    }
+
+}

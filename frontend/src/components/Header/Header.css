@@ -206,6 +206,15 @@
   cursor: pointer;
 
   transition: var(--transition-default);
+
+
+  display: flex;
+
+align-items: center;
+
+justify-content: center;
+
+text-decoration: none;
 }
 
 .btn-client:hover {
@@ -443,6 +452,14 @@ padding-left: 10px;
   font-weight: 900;
 
   cursor: pointer;
+
+  display: flex;
+
+align-items: center;
+
+justify-content: center;
+
+text-decoration: none;
 }
 
 .mobile-btn-budget {

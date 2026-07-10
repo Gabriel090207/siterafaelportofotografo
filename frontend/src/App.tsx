@@ -5,16 +5,26 @@ import { WhatsappButton } from "./components/WhatsappButton/WhatsappButton";
 
 import { AppRoutes } from "./routes/AppRoutes";
 
+import { useLocation } from "react-router-dom";
+
 function App() {
+
+  const location = useLocation();
+
+  const isClientArea =
+    location.pathname.startsWith("/cliente");
+
   return (
     <>
-      <Header />
+
+      {!isClientArea && <Header />}
 
       <AppRoutes />
 
-      <Footer />
+      {!isClientArea && <Footer />}
 
-      <WhatsappButton />
+      {!isClientArea && <WhatsappButton />}
+
     </>
   );
 }

@@ -1,0 +1,19 @@
+# Ambiente Virtual
+venv/
+
+# Variáveis de ambiente
+.env
+
+# Firebase
+app/firebase/chave-firebase.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store

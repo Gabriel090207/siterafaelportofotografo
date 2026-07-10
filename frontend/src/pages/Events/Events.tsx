@@ -1,21 +1,43 @@
 import "./Events.css";
 
-
+import {
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 import { Link } from "react-router-dom";
 
+import { subscribeAlbums } from "../../firebase/albums";
 
 
 function Events() {
 
+const [albums, setAlbums] = useState<any[]>([]);
 
+useEffect(() => {
 
+    const unsubscribe = subscribeAlbums(setAlbums);
 
+    return unsubscribe;
 
+}, []);
 
+const events = useMemo(() => {
 
+    return albums.filter(
 
+        album => album.status === "published"
 
+    );
+
+}, [albums]);
+
+const featuredAlbum = events[0];
+
+const otherAlbums = events.slice(1);
+
+console.log(events);
 
   return (
     <main className="events">
@@ -30,7 +52,9 @@ function Events() {
 
          <div className="events-hero-content">
 
-  <h1>Casamentos</h1>
+  <h1>
+  {featuredAlbum?.category ?? "Eventos"}
+</h1>
 
   <p className="events-description">
     Casamentos, 15 anos, ensaios, formaturas e eventos
@@ -50,32 +74,26 @@ function Events() {
   <div className="featured-event-card">
 
     <img
-      src="https://images.unsplash.com/photo-1519741497674-611481863552"
-      alt="Ana e Lucas"
-    />
+  src={featuredAlbum?.coverPhoto?.preview}
+  alt={featuredAlbum?.name}
+/>
 
     <div className="featured-event-overlay">
 
-      <span className="featured-event-label">
-        EVENTO EM DESTAQUE
-      </span>
+     <span className="featured-event-label">
+  {featuredAlbum?.category ?? "Evento em Destaque"}
+</span>
 
       <h2>
-        Ana & Lucas
-      </h2>
+  {featuredAlbum?.name}
+</h2>
 
       <p>
-        Um casamento marcado por emoção,
-        elegância e momentos inesquecíveis.
-        Entre familiares, amigos e uma
-        celebração única, cada detalhe foi
-        registrado para transformar memórias
-        em uma história que poderá ser
-        revivida para sempre.
-      </p>
+  {featuredAlbum?.description}
+</p>
 
-      <Link
-  to="/evento"
+     <Link
+  to={`/evento/${featuredAlbum?.id}`}
   className="featured-event-button"
 >
   Ver Álbum
@@ -93,262 +111,64 @@ function Events() {
 
   <div className="events-grid">
 
-    <article className="event-card">
+   {otherAlbums.map((album) => (
 
-      <div className="event-card-header">
+    <article
+        key={album.id}
+        className="event-card"
+    >
 
-        <div>
-          <h3>Ana & Lucas</h3>
+        <div className="event-card-header">
 
-          <span>
-            Casamento • Londrina
-          </span>
+            <div>
+
+                <h3>
+
+                    {album.name}
+
+                </h3>
+
+                <span>
+
+                    {album.category} • {album.clientName}
+
+                </span>
+
+            </div>
+
+            <Link
+                to={`/evento/${album.id}`}
+                className="event-card-button"
+            >
+
+                Ver Álbum
+
+            </Link>
+
         </div>
 
-       <Link
-  to="/evento"
-  className="event-card-button"
->
-  Ver Álbum
-</Link>
+        <div className="event-card-image">
 
-      </div>
+            <img
+                src={album.coverPhoto?.preview}
+                alt={album.name}
+            />
 
-      <div className="event-card-image">
+        </div>
 
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt=""
-        />
+        <div className="event-card-content">
 
-      </div>
+            <p>
 
-      <div className="event-card-content">
+                {album.description}
 
-        <p>
-          Um casamento emocionante,
-          registrado com sensibilidade
-          e atenção aos detalhes.
-        </p>
+            </p>
 
-      </div>
+        </div>
 
     </article>
 
-    <article className="event-card">
-
-      <div className="event-card-header">
-
-        <div>
-          <h3>Ana & Lucas</h3>
-
-          <span>
-            Casamento • Londrina
-          </span>
-        </div>
-
-        <Link
-  to="/evento"
-  className="event-card-button"
->
-  Ver Álbum
-</Link>
-
-
-      </div>
-
-      <div className="event-card-image">
-
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt=""
-        />
-
-      </div>
-
-      <div className="event-card-content">
-
-        <p>
-          Um casamento emocionante,
-          registrado com sensibilidade
-          e atenção aos detalhes.
-        </p>
-
-      </div>
-
-    </article>
-
-    <article className="event-card">
-
-      <div className="event-card-header">
-
-        <div>
-          <h3>Ana & Lucas</h3>
-
-          <span>
-            Casamento • Londrina
-          </span>
-        </div>
-
-        <Link
-  to="/evento"
-  className="event-card-button"
->
-  Ver Álbum
-</Link>
-
-
-      </div>
-
-      <div className="event-card-image">
-
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt=""
-        />
-
-      </div>
-
-      <div className="event-card-content">
-
-        <p>
-          Um casamento emocionante,
-          registrado com sensibilidade
-          e atenção aos detalhes.
-        </p>
-
-      </div>
-
-    </article>
-
-    <article className="event-card">
-
-      <div className="event-card-header">
-
-        <div>
-          <h3>Ana & Lucas</h3>
-
-          <span>
-            Casamento • Londrina
-          </span>
-        </div>
-
-        <Link
-  to="/evento"
-  className="event-card-button"
->
-  Ver Álbum
-</Link>
-
-
-      </div>
-
-      <div className="event-card-image">
-
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt=""
-        />
-
-      </div>
-
-      <div className="event-card-content">
-
-        <p>
-          Um casamento emocionante,
-          registrado com sensibilidade
-          e atenção aos detalhes.
-        </p>
-
-      </div>
-
-    </article>
-
-    <article className="event-card">
-
-      <div className="event-card-header">
-
-        <div>
-          <h3>Ana & Lucas</h3>
-
-          <span>
-            Casamento • Londrina
-          </span>
-        </div>
-
-         <Link
-  to="/evento"
-  className="event-card-button"
->
-  Ver Álbum
-</Link>
-
-
-      </div>
-
-      <div className="event-card-image">
-
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt=""
-        />
-
-      </div>
-
-      <div className="event-card-content">
-
-        <p>
-          Um casamento emocionante,
-          registrado com sensibilidade
-          e atenção aos detalhes.
-        </p>
-
-      </div>
-
-    </article>
-
-    <article className="event-card">
-
-      <div className="event-card-header">
-
-        <div>
-          <h3>Ana & Lucas</h3>
-
-          <span>
-            Casamento • Londrina
-          </span>
-        </div>
-
-        <Link
-  to="/evento"
-  className="event-card-button"
->
-  Ver Álbum
-</Link>
-
-
-      </div>
-
-      <div className="event-card-image">
-
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt=""
-        />
-
-      </div>
-
-      <div className="event-card-content">
-
-        <p>
-          Um casamento emocionante,
-          registrado com sensibilidade
-          e atenção aos detalhes.
-        </p>
-
-      </div>
-
-    </article>
+))}
 
   </div>
 

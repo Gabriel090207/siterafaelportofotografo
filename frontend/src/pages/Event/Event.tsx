@@ -3,10 +3,20 @@ import "./Event.css";
 import {
   useState,
   useEffect,
-  useRef
+  useRef,
 } from "react";
 
-import { useNavigate } from "react-router-dom";
+import {
+    useNavigate,
+    useParams,
+} from "react-router-dom";
+
+import {
+    doc,
+    onSnapshot,
+} from "firebase/firestore";
+
+import db from "../../firebase/firestore";
 
 import {
   FiGrid,
@@ -31,86 +41,98 @@ function Events() {
 
 const navigate = useNavigate();
 
-const geralImages = [
-  "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-   "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-];
+const { id } = useParams();
 
-const makingoffImages = [
-  "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-   "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-];
+const [album, setAlbum] = useState<any>(null);
 
 
-const decoracaoImages = [
-  "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-   "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
-  "https://images.unsplash.com/photo-1520854221256-17451cc331bf",
-  "https://images.unsplash.com/photo-1519741497674-611481863552",
-  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
-];
+useEffect(() => {
 
+    if (!id) return;
+
+    const unsubscribe = onSnapshot(
+
+        doc(db, "albums", id),
+
+        (snapshot) => {
+
+            if (snapshot.exists()) {
+
+                setAlbum({
+
+                    id: snapshot.id,
+
+                    ...snapshot.data(),
+
+                });
+
+            }
+
+        }
+
+    );
+
+    return unsubscribe;
+
+}, [id]);
+
+const geralImages =
+    album?.photos?.map(
+        (photo: any) => photo.preview
+    ) ?? [];
 
 const contentData = {
-  geral: {
-  title: "Fotos Gerais",
-  description: "Confira os registros do evento",
-  images: geralImages,
-},
 
-  video: {
-    title: "Vídeo do Evento",
-    description: "Assista ao vídeo completo",
-  },
+    geral: {
 
-makingoff: {
-  title: "Making Off",
-  description: "Bastidores do evento",
-  images: makingoffImages,
-},
+        title: "Fotos Gerais",
 
-decoracao: {
-  title: "Decoração",
-  description: "Detalhes da decoração",
-  images: decoracaoImages,
-},
+        description: "Confira todos os registros do evento",
+
+        images: geralImages,
+
+    },
+
+    ...(album?.categories ?? []).reduce(
+
+        (acc: any, category: any) => {
+
+            acc[category.id] = {
+
+                title: category.name,
+
+                description: category.name,
+
+                images: category.photos.map(
+
+                    (photo: any) => photo.preview
+
+                ),
+
+            };
+
+            return acc;
+
+        },
+
+        {}
+
+    ),
+
 };
 
-
 const [activeContent, setActiveContent] =
-  useState<
-    "geral" |
-    "video" |
-    "makingoff" |
-    "decoracao"
-  >("geral");
+    useState("geral");
 
 const currentContent =
-  contentData[
-    activeContent as keyof typeof contentData
-  ];
-
-
+    contentData[
+        activeContent as keyof typeof contentData
+    ] ??
+    contentData.geral;
 
 const [currentImage, setCurrentImage] = useState(0);
 
-const currentImages =
-  "images" in currentContent
+const currentImages: string[] = Array.isArray(currentContent.images)
     ? currentContent.images
     : [];
 
@@ -355,7 +377,13 @@ useEffect(() => {
 ]);
 
 
-
+const totalPhotos =
+    (album?.photos?.length ?? 0) +
+    (album?.categories ?? []).reduce(
+        (total: number, category: any) =>
+            total + (category.photos?.length ?? 0),
+        0
+    );
 
   return (
     <main className="event">
@@ -375,27 +403,25 @@ useEffect(() => {
        
           <div className="event-eyebrow">
   <span></span>
-  <p>CASAMENTO</p>
+ <p>
+
+  {album?.category}
+
+</p>
 </div>
 
 <div className="event-hero-content">
 
-  <h1>Ana & Lucas</h1>
+ <h1>
 
- <p className="event-description">
-  Ana e Lucas celebraram um dos momentos mais
-  importantes de suas vidas em uma cerimônia
-  marcada por emoção, elegância e significado.
-  Entre sorrisos, abraços, lágrimas de felicidade
-  e uma energia única compartilhada por familiares
-  e amigos, cada instante foi registrado com
-  sensibilidade para preservar não apenas imagens,
-  mas memórias que permanecerão vivas por toda a
-  vida. Este álbum reúne os principais momentos
-  desse dia inesquecível, desde os preparativos
-  até a celebração, revelando detalhes, conexões
-  e sentimentos que fizeram desta história algo
-  verdadeiramente especial.
+  {album?.name}
+
+</h1>
+
+<p className="event-description">
+
+  {album?.description}
+
 </p>
 
 </div>
@@ -411,7 +437,9 @@ useEffect(() => {
 
     <div>
       <strong>Local</strong>
-      <span>Recanto das Flores • Londrina</span>
+      <span>
+    {album?.eventLocation || "Local não informado"}
+</span>
     </div>
 
   </div>
@@ -422,7 +450,18 @@ useEffect(() => {
 
     <div>
       <strong>Data</strong>
-      <span>15 de Junho de 2026</span>
+    <span>
+    {album?.eventDate
+        ? new Date(album.eventDate).toLocaleDateString(
+              "pt-BR",
+              {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+              }
+          )
+        : "Data não informada"}
+</span>
     </div>
 
   </div>
@@ -433,7 +472,9 @@ useEffect(() => {
 
     <div>
       <strong>Horário</strong>
-      <span>16h às 23h</span>
+      <span>
+    {album?.eventTime || "Horário não informado"}
+</span>
     </div>
 
   </div>
@@ -443,8 +484,11 @@ useEffect(() => {
     <FiCamera />
 
     <div>
-      <strong>Fotos</strong>
-      <span>1.284 registros</span>
+     <strong>Fotos</strong>
+
+<span>
+    {totalPhotos} registros
+</span>
     </div>
 
   </div>
@@ -727,7 +771,8 @@ onLoadedMetadata={() => {
 
 
 
-{activeContent !== "video" && (
+{album?.videos?.length > 0 &&
+ activeContent !== "video" && (
   <div className="video-category">
 
     <span className="video-sidebar-label">
@@ -768,58 +813,54 @@ onLoadedMetadata={() => {
           setActiveContent("geral")
         }
       >
-        <img
-          src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc"
-          alt="Geral"
-        />
+       <img
+  src={album?.coverPhoto?.preview}
+  alt={album?.name}
+/>
       </button>
 
     </div>
   )}
 
-  {activeContent !== "makingoff" && (
-    <div className="video-category">
 
-      <span className="video-sidebar-label">
-        MAKING OFF
-      </span>
+{(album?.categories ?? []).map((category: any) => {
 
-      <button
-        className="video-category-card"
-        onClick={() =>
-          setActiveContent("makingoff")
-        }
-      >
-        <img
-          src="https://images.unsplash.com/photo-1520854221256-17451cc331bf"
-          alt="Making Off"
-        />
-      </button>
+    if (activeContent === category.id) return null;
 
-    </div>
-  )}
+    return (
 
-  {activeContent !== "decoracao" && (
-    <div className="video-category">
+        <div
+            key={category.id}
+            className="video-category"
+        >
 
-      <span className="video-sidebar-label">
-        DECORAÇÃO
-      </span>
+            <span className="video-sidebar-label">
 
-      <button
-        className="video-category-card"
-        onClick={() =>
-          setActiveContent("decoracao")
-        }
-      >
-        <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552"
-          alt="Decoração"
-        />
-      </button>
+                {category.name.toUpperCase()}
 
-    </div>
-  )}
+            </span>
+
+            <button
+                className="video-category-card"
+                onClick={() =>
+                    setActiveContent(category.id)
+                }
+            >
+
+                <img
+                    src={
+                        category.photos?.[0]?.preview
+                    }
+                    alt={category.name}
+                />
+
+            </button>
+
+        </div>
+
+    );
+
+})}
 
 </aside>
 
