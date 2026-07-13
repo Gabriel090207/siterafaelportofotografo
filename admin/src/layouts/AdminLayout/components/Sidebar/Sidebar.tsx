@@ -79,6 +79,23 @@ const Sidebar = ({
 
                 </NavLink>
 
+
+                <NavLink
+    to="/feed"
+    onClick={onClose}
+    className={({ isActive }) =>
+        isActive
+            ? "sidebar__item sidebar__item--active"
+            : "sidebar__item"
+    }
+>
+
+    <Images size={20} />
+
+    <span>Feed</span>
+
+</NavLink>
+
                 <NavLink
                     to="/settings"
                     onClick={onClose}

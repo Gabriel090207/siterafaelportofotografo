@@ -11,12 +11,12 @@ import {
 
 import db from "./firestore";
 
-import type { Album } from "../../types/album";
+import type { AlbumClient } from "../../types/albumClient";
 
 export const createAlbumDocument = async () => {
 
     const docRef = await addDoc(
-        collection(db, "albums"),
+        collection(db, "AlbumClient"),
         {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -30,13 +30,13 @@ export const createAlbumDocument = async () => {
 export const updateAlbum = async (
     albumId: string,
     album: Omit<
-        Album,
+        AlbumClient,
         "id" | "createdAt" | "updatedAt"
     >
 ) => {
 
     await updateDoc(
-        doc(db, "albums", albumId),
+        doc(db, "AlbumClient", albumId),
         {
             ...album,
             updatedAt: serverTimestamp(),
@@ -46,11 +46,11 @@ export const updateAlbum = async (
 };
 
 export const subscribeAlbums = (
-    callback: (albums: Album[]) => void
+    callback: (albums: AlbumClient[]) => void
 ) => {
 
     const q = query(
-        collection(db, "albums"),
+        collection(db, "AlbumClient"),
         orderBy("createdAt", "desc")
     );
 
@@ -63,7 +63,7 @@ export const subscribeAlbums = (
                 id: doc.id,
 
                 ...(doc.data() as Omit<
-                    Album,
+                    AlbumClient,
                     "id"
                 >),
 

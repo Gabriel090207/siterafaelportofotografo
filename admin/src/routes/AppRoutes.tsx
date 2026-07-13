@@ -6,12 +6,15 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import Login from "../pages/Login/Login";
 import Dashboard from "../pages/Dashboard/Dashboard";
 
-
 import Clients from "../pages/Clients/Clients";
 import ClientForm from "../pages/ClientForm/ClientForm";
 
 import Albums from "../pages/Albums/Albums";
 import AlbumForm from "../pages/AlbumForm/AlbumForm";
+
+import Feed from "../pages/Feed/Feed";
+import FeedForm from "../pages/FeedForm/FeedForm";
+import FeedCategory from "../pages/FeedCategory/FeedCategory";
 
 const AppRoutes = () => {
     return (
@@ -45,6 +48,47 @@ const AppRoutes = () => {
             />
 
             <Route
+                path="/clients/new"
+                element={
+                    <AdminLayout>
+                        <ClientForm />
+                    </AdminLayout>
+                }
+            />
+
+            {/* Módulo Feed */}
+
+            <Route
+                path="/feed"
+                element={
+                    <AdminLayout>
+                        <Feed />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/feed/new"
+                element={
+                    <AdminLayout>
+                        <FeedForm />
+                    </AdminLayout>
+                }
+            />
+
+
+            <Route
+                path="/feed/:category"
+                element={
+                    <AdminLayout>
+                        <FeedCategory />
+                    </AdminLayout>
+                }
+            />
+
+            {/* Futuro módulo Álbum do Cliente */}
+
+            <Route
                 path="/albums"
                 element={
                     <AdminLayout>
@@ -62,14 +106,7 @@ const AppRoutes = () => {
                 }
             />
 
-            <Route
-                path="/clients/new"
-                element={
-                    <AdminLayout>
-                        <ClientForm />
-                    </AdminLayout>
-                }
-            />
+
 
         </Routes>
     );

@@ -1,14 +1,13 @@
-export type AlbumStatus =
+export type AlbumClientStatus =
     | "published"
     | "draft"
     | "hidden";
 
-export type AlbumPhotoSource =
+export type AlbumClientFileSource =
     | "computer"
     | "drive";
 
-export interface AlbumPhoto {
-
+export interface AlbumClientPhoto {
     id: string;
 
     name: string;
@@ -23,12 +22,10 @@ export interface AlbumPhoto {
 
     storagePath?: string;
 
-    source: AlbumPhotoSource;
-
+    source: AlbumClientFileSource;
 }
 
-export interface AlbumVideo {
-
+export interface AlbumClientVideo {
     id: string;
 
     name: string;
@@ -43,22 +40,10 @@ export interface AlbumVideo {
 
     storagePath?: string;
 
-    source: AlbumPhotoSource;
-
+    source: AlbumClientFileSource;
 }
 
-export interface AlbumCategory {
-
-    id: string;
-
-    name: string;
-
-    photos: AlbumPhoto[];
-
-}
-
-export interface Album {
-
+export interface AlbumClient {
     id?: string;
 
     clientId: string;
@@ -69,29 +54,27 @@ export interface Album {
 
     description: string;
 
-    category: string;
-
     eventDate?: string;
 
     eventTime?: string;
 
     eventLocation?: string;
 
-    status: AlbumStatus;
+    status: AlbumClientStatus;
 
-    hasVideo: boolean;
+    coverPhoto?: AlbumClientPhoto;
 
-    coverPhoto?: AlbumPhoto;
+    watermarkedPhotos: AlbumClientPhoto[];
 
-    photos: AlbumPhoto[];
+    highQualityPhotos: AlbumClientPhoto[];
 
-    videos: AlbumVideo[];
+    watermarkedVideos: AlbumClientVideo[];
 
-    categories: AlbumCategory[];
+    highQualityVideos: AlbumClientVideo[];
+
+    highQualityDownloadDays: number | null;
 
     createdAt?: Date;
 
     updatedAt?: Date;
-
 }
-

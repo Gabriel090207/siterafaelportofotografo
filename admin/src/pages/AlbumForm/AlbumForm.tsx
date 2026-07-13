@@ -9,22 +9,17 @@ import {
 import {
     createAlbumDocument,
     updateAlbum,
-} from "../../services/firebase/album";
+} from "../../services/firebase/albumClient";
 
 import {
-    uploadAlbumFile,
+    uploadAlbumClientFile,
 } from "../../services/firebase/storageService";
 
 import type {
-    Album,
-    AlbumPhoto,
-} from "../../types/album";
-
-import type { Client } from "../../types/client";
-
-import {
-    subscribeClients,
-} from "../../services/firebase/clients";
+    AlbumClient,
+    AlbumClientPhoto,
+    AlbumClientVideo,
+} from "../../types/albumClient";
 
 import {
     ArrowLeft,
@@ -32,7 +27,7 @@ import {
     HardDrive,
     MonitorUp,
     Save,
-    Trash2,
+   
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -42,111 +37,80 @@ import {
     requestAccessToken,
 } from "../../services/google/picker";
 
+
+import {
+    subscribeClients,
+} from "../../services/firebase/clients";
+
+import type { Client } from "../../types/client";
+
 const STORAGE_KEY = "album-form";
 
 const AlbumForm = () => {
+
+const [clients, setClients] =
+    useState<Client[]>([]);
+
+useEffect(() => {
+
+    const unsubscribe =
+        subscribeClients(setClients);
+
+    return unsubscribe;
+
+}, []);
 
 
 const navigate = useNavigate();
 
 
-const [album, setAlbum] = useState<Album>({
-    clientId: "",
-    clientName: "",
+const [album, setAlbum] = useState<AlbumClient>({
 
     name: "",
     description: "",
 
-    category: "",
+    clientId: "",
+
+    clientName: "",
 
     status: "published",
 
-    hasVideo: false,
-
     coverPhoto: undefined,
 
-    photos: [],
+    watermarkedPhotos: [],
 
-    videos: [],
+    highQualityPhotos: [],
 
-    categories: [],
+    watermarkedVideos: [],
+
+    highQualityVideos: [],
+
+    highQualityDownloadDays: null,
 });
-
-const [clients, setClients] = useState<Client[]>([]);
-
-const maxCategories = album.hasVideo ? 2 : 3;
-
-
-const photosInputRef = useRef<HTMLInputElement>(null);
-const videoInputRef = useRef<HTMLInputElement>(null);
-
 
 const coverInputRef =
     useRef<HTMLInputElement>(null);
 
 
+const watermarkedPhotosInputRef =
+    useRef<HTMLInputElement>(null);
+
+
+const highQualityPhotosInputRef =
+    useRef<HTMLInputElement>(null);
+
+
+const watermarkedVideoInputRef =
+    useRef<HTMLInputElement>(null);
+
+
+const highQualityVideoInputRef =
+    useRef<HTMLInputElement>(null);
+
 const [isSaving, setIsSaving] = useState(false);
 
 
-const handleAddCategory = () => {
 
-    if (album.categories.length >= maxCategories) return;
-
-    setAlbum((current) => ({
-
-        ...current,
-
-        categories: [
-
-            ...current.categories,
-
-            {
-
-                id: crypto.randomUUID(),
-
-                name: "",
-
-                photos: [],
-
-            },
-
-        ],
-
-    }));
-
-};
-
-const handlePhotosUpload = (
-    event: React.ChangeEvent<HTMLInputElement>
-) => {
-
-    const files = Array.from(event.target.files || []);
-
-    const uploadedPhotos: AlbumPhoto[] = files.map((file) => ({
-
-    id: crypto.randomUUID(),
-
-    file,
-
-    preview: URL.createObjectURL(file),
-
-    name: file.name,
-
-    size: file.size,
-
-    source: "computer",
-
-}));
-
- setAlbum((current) => ({
-    ...current,
-    photos: [
-        ...current.photos,
-        ...uploadedPhotos,
-    ],
-}));
-
-};
 
 const handleCreateAlbum = async () => {
 
@@ -174,15 +138,11 @@ const handleCreateAlbum = async () => {
         ) {
 
             const result =
-                await uploadAlbumFile(
-
-                    albumFolder,
-
-                    "Capa/capa.jpg",
-
-                    albumToSave.coverPhoto.file
-
-                );
+                await uploadAlbumClientFile(
+    albumFolder,
+    "Cover/capa.jpg",
+    albumToSave.coverPhoto.file
+);
 
             albumToSave.coverPhoto = {
 
@@ -198,115 +158,113 @@ const handleCreateAlbum = async () => {
 
         }
 
-        // 3 - fotos gerais
 
-        for (const photo of albumToSave.photos) {
+        // 3 - Fotos com marca d'água
 
-            if (
-                photo.source === "computer" &&
-                photo.file
-            ) {
+for (const photo of albumToSave.watermarkedPhotos) {
+
+    if (!photo.file) continue;
+
+    const result =
+        await uploadAlbumClientFile(
+
+            albumFolder,
+
+            `WatermarkedPhotos/${photo.name}`,
+
+            photo.file
+
+        );
+
+    photo.preview = result.url;
+
+    photo.storagePath = result.storagePath;
+
+    delete photo.file;
+
+}
 
 
-                const result =
-                    await uploadAlbumFile(
+// 4 - Fotos em alta qualidade
 
-                        albumFolder,
+for (const photo of albumToSave.highQualityPhotos) {
 
-                        `Fotos/${photo.name}`,
+    if (!photo.file) continue;
 
-                        photo.file
+    const result =
+        await uploadAlbumClientFile(
 
-                    );
+            albumFolder,
 
-                console.log("Upload Foto:", result);
+            `HighQualityPhotos/${photo.name}`,
 
-                photo.preview = result.url;
+            photo.file
 
-                photo.storagePath =
-                    result.storagePath;
+        );
 
-                delete photo.file;
+    photo.preview = result.url;
 
-            }
+    photo.storagePath = result.storagePath;
 
-        }
+    delete photo.file;
 
-        // 4 - vídeos
+}
 
-        for (const video of albumToSave.videos) {
 
-            if (
-                video.source === "computer" &&
-                video.file
-            ) {
+// 5 - Vídeos com marca d'água
 
-               
+for (const video of albumToSave.watermarkedVideos) {
 
-                const result =
-                    await uploadAlbumFile(
+    if (!video.file) continue;
 
-                        albumFolder,
+    const result =
+        await uploadAlbumClientFile(
 
-                        `Video/${video.name}`,
+            albumFolder,
 
-                        video.file
+            `WatermarkedVideos/${video.name}`,
 
-                    );
+            video.file
 
-                console.log("Upload Vídeo:", result);
+        );
 
-                video.preview = result.url;
+    video.preview = result.url;
 
-                video.storagePath =
-                    result.storagePath;
+    video.storagePath = result.storagePath;
 
-                delete video.file;
+    delete video.file;
 
-            }
+}
 
-        }
 
-        // 5 - categorias
 
-        for (const category of albumToSave.categories) {
+// 6 - Vídeos em alta qualidade
 
-            for (const photo of category.photos) {
+for (const video of albumToSave.highQualityVideos) {
 
-                if (
-                    photo.source === "computer" &&
-                    photo.file
-                ) {
+    if (!video.file) continue;
 
-                   
+    const result =
+        await uploadAlbumClientFile(
 
-                    const result =
-                        await uploadAlbumFile(
+            albumFolder,
 
-                            albumFolder,
+            `HighQualityVideos/${video.name}`,
 
-                            `Categorias/${category.name}/${photo.name}`,
+            video.file
 
-                            photo.file
+        );
 
-                        );
+    video.preview = result.url;
 
-                    console.log("Upload Categoria:", result);
+    video.storagePath = result.storagePath;
 
-                    photo.preview = result.url;
+    delete video.file;
 
-                    photo.storagePath =
-                        result.storagePath;
+}
 
-                    delete photo.file;
 
-                }
-
-            }
-
-        }
-
-        // 6 - salva documento final
+        // 7 - salva documento final
 
         await updateAlbum(
 
@@ -334,92 +292,6 @@ const handleCreateAlbum = async () => {
 
 };
 
-const handleVideoUpload = (
-    event: React.ChangeEvent<HTMLInputElement>
-) => {
-
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    setAlbum((current) => ({
-
-        ...current,
-
-        videos: [
-            {
-                id: crypto.randomUUID(),
-
-                file,
-
-                name: file.name,
-
-                size: file.size,
-
-                preview: URL.createObjectURL(file),
-
-                source: "computer",
-            },
-        ],
-
-    }));
-
-};
-
-
-const handleCategoryPhotosUpload = (
-    categoryId: string,
-    event: React.ChangeEvent<HTMLInputElement>
-) => {
-
-    const files = Array.from(
-        event.target.files || []
-    );
-
-    const uploadedPhotos: AlbumPhoto[] = files.map((file) => ({
-
-        id: crypto.randomUUID(),
-
-        file,
-
-        preview: URL.createObjectURL(file),
-
-        name: file.name,
-
-        size: file.size,
-
-        source: "computer",
-
-    }));
-
-    setAlbum((current) => ({
-
-        ...current,
-
-        categories: current.categories.map((category) =>
-
-            category.id === categoryId
-                ? {
-
-                    ...category,
-
-                    photos: [
-
-                        ...category.photos,
-
-                        ...uploadedPhotos,
-
-                    ],
-
-                }
-                : category
-
-        ),
-
-    }));
-
-};
-
 
 const handleCoverUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -429,7 +301,7 @@ const handleCoverUpload = (
 
     if (!file) return;
 
-    const coverPhoto: AlbumPhoto = {
+    const coverPhoto: AlbumClientPhoto = {
 
         id: crypto.randomUUID(),
 
@@ -455,16 +327,131 @@ const handleCoverUpload = (
 
 };
 
-useEffect(() => {
+const handleWatermarkedPhotosUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+) => {
 
-    const unsubscribe = subscribeClients(
-        setClients
+    const files = Array.from(
+        event.target.files || []
     );
 
-    return unsubscribe;
+    const uploadedPhotos: AlbumClientPhoto[] =
+        files.map((file) => ({
 
-}, []);
+            id: crypto.randomUUID(),
 
+            file,
+
+            preview: URL.createObjectURL(file),
+
+            name: file.name,
+
+            size: file.size,
+
+            source: "computer",
+
+        }));
+
+    setAlbum((current) => ({
+
+        ...current,
+
+        watermarkedPhotos: [
+
+            ...current.watermarkedPhotos,
+
+            ...uploadedPhotos,
+
+        ],
+
+    }));
+
+};
+
+
+const handleHighQualityPhotosUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+) => {
+
+    const files = Array.from(
+        event.target.files || []
+    );
+
+    const uploadedPhotos: AlbumClientPhoto[] =
+        files.map((file) => ({
+
+            id: crypto.randomUUID(),
+
+            file,
+
+            preview: URL.createObjectURL(file),
+
+            name: file.name,
+
+            size: file.size,
+
+            source: "computer",
+
+        }));
+
+    setAlbum((current) => ({
+
+        ...current,
+
+        highQualityPhotos: [
+
+            ...current.highQualityPhotos,
+
+            ...uploadedPhotos,
+
+        ],
+
+    }));
+
+};
+
+
+
+const handleWatermarkedVideoUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+) => {
+
+    const files = Array.from(
+        event.target.files || []
+    );
+
+    const uploadedVideos: AlbumClientVideo[] =
+        files.map((file) => ({
+
+            id: crypto.randomUUID(),
+
+            file,
+
+            preview: URL.createObjectURL(file),
+
+            name: file.name,
+
+            size: file.size,
+
+            source: "computer",
+
+        }));
+
+    setAlbum((current) => ({
+
+        ...current,
+
+        watermarkedVideos: [
+
+            ...current.watermarkedVideos,
+
+            ...uploadedVideos,
+
+        ],
+
+    }));
+
+};
 
 useEffect(() => {
 
@@ -491,6 +478,47 @@ useEffect(() => {
 }, []);
 
 
+const handleHighQualityVideoUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+) => {
+
+    const files = Array.from(
+        event.target.files || []
+    );
+
+    const uploadedVideos: AlbumClientVideo[] =
+        files.map((file) => ({
+
+            id: crypto.randomUUID(),
+
+            file,
+
+            preview: URL.createObjectURL(file),
+
+            name: file.name,
+
+            size: file.size,
+
+            source: "computer",
+
+        }));
+
+    setAlbum((current) => ({
+
+        ...current,
+
+        highQualityVideos: [
+
+            ...current.highQualityVideos,
+
+            ...uploadedVideos,
+
+        ],
+
+    }));
+
+};
+
 useEffect(() => {
 
     const albumToSave = structuredClone(album);
@@ -501,28 +529,6 @@ useEffect(() => {
 
     }
 
-    albumToSave.photos.forEach(photo => {
-
-        delete photo.file;
-
-    });
-
-    albumToSave.videos.forEach(video => {
-
-        delete video.file;
-
-    });
-
-    albumToSave.categories.forEach(category => {
-
-        category.photos.forEach(photo => {
-
-            delete photo.file;
-
-        });
-
-    });
-
     localStorage.setItem(
 
         STORAGE_KEY,
@@ -532,6 +538,7 @@ useEffect(() => {
     );
 
 }, [album]);
+
 
     return (
 
@@ -586,36 +593,50 @@ useEffect(() => {
 
                     </div>
 
-                    <div className="album-form__field">
+                   
 
-                        <label>Cliente</label>
+<div
+    className="album-form__field"
+    style={{ gridColumn: "1 / -1" }}
+>
 
-                       <select
+
+    <div
+    className="album-form__field"
+    style={{ gridColumn: "1 / -1" }}
+>
+
+    <label>Cliente</label>
+
+   <select
     value={album.clientId}
     onChange={(event) => {
 
-    const client = clients.find(
-        (item) => item.id === event.target.value
-    );
+        const client = clients.find(
+            (item) =>
+                item.id === event.target.value
+        );
 
-    setAlbum((current) => ({
+        setAlbum((current) => ({
 
-        ...current,
+            ...current,
 
-        clientId: event.target.value,
+            clientId: client?.id ?? "",
 
-        clientName: client?.name ?? "",
+            clientName: client?.name ?? "",
 
-    }));
+        }));
 
-}}
+    }}
 >
 
     <option value="">
-        Selecionar Cliente
+
+        Selecione um cliente
+
     </option>
 
-    {clients.map(client => (
+    {clients.map((client) => (
 
         <option
             key={client.id}
@@ -630,74 +651,7 @@ useEffect(() => {
 
 </select>
 
-
-
-
-
-                    </div>
-
-<div
-    className="album-form__field"
-    style={{ gridColumn: "1 / -1" }}
->
-
-    <label>Categoria do Álbum</label>
-
-    <select
-        value={album.category ?? ""}
-        onChange={(event) =>
-            setAlbum((current) => ({
-                ...current,
-                category: event.target.value,
-            }))
-        }
-    >
-
-        <option value="">
-            Selecione uma categoria
-        </option>
-
-        <option value="Casamentos">
-            Casamentos
-        </option>
-
-        <option value="15 Anos">
-            15 Anos
-        </option>
-
-        <option value="Pré Wedding">
-            Pré Wedding
-        </option>
-
-        <option value="Book de 15 Anos">
-            Book de 15 Anos
-        </option>
-
-        <option value="Infantil">
-            Infantil
-        </option>
-
-        <option value="Book de Gestante">
-            Book de Gestante
-        </option>
-
-        <option value="Aniversários">
-            Aniversários
-        </option>
-
-        <option value="Ensaio Fotográfico">
-            Ensaio Fotográfico
-        </option>
-
-        <option value="Corporativos">
-            Corporativos
-        </option>
-
-        <option value="Formaturas">
-            Formaturas
-        </option>
-
-    </select>
+</div>
 
 </div>
                     
@@ -782,427 +736,94 @@ useEffect(() => {
 
             </div>
 
-            <div className="album-form__card">
-
-                <h3>Adicionar Fotos</h3>
-
-                <div className="album-form__upload">
-
-                    <>
-    <input
-        ref={photosInputRef}
-        type="file"
-        multiple
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={handlePhotosUpload}
-    />
-
-    <button
-        type="button"
-        onClick={() => photosInputRef.current?.click()}
-    >
-
-        <MonitorUp size={28} />
-
-        <span>Do Computador</span>
-
-    </button>
-</>
-<button
-    type="button"
-    onClick={async () => {
-
-    console.log("0 - clicou");
-
-    try {
-
-       await initializeGoogleAuth((result) => {
-
-   setAlbum((current) => ({
-
-    ...current,
-
-    photos: [
-
-        ...current.photos,
-
-        {
-            id: crypto.randomUUID(),
-
-            preview: result.storage.url,
-
-            name: result.file.name,
-
-            size: Number(result.file.size),
-
-            driveId: result.file.id,
-
-            storagePath: result.storage.path,
-
-            source: "drive",
-        },
-
-    ],
-
-}));
-
-});
-
-console.log("4 - auth inicializada");
-
-requestAccessToken();
-
-        console.log("5 - token solicitado");
-
-    } catch (error) {
-
-        console.error(error);
-
-    }
-
-}}
->
-
-    <HardDrive size={28} />
-
-    <span>Google Drive</span>
-
-</button>
-
-                </div>
-
-              
-
-<div className="album-form__upload-info">
-
-   {album.photos.length === 0
-    ? "Nenhuma foto adicionada."
-    : `${album.photos.length} foto${album.photos.length > 1 ? "s" : ""} adicionada${album.photos.length > 1 ? "s" : ""}.`
-}
-
-</div>
-
-{album.photos.length > 0 && (
-
-    <div className="album-form__photos">
-
-        {album.photos.map((photo) => (
-
-            <div
-                key={photo.id}
-                className="album-form__photo"
-            >
-
-                <button
-                    type="button"
-                    className="album-form__photo-remove"
-                    onClick={() =>
-    setAlbum((current) => ({
-        ...current,
-        photos: current.photos.filter(
-            (item) => item.id !== photo.id
-        ),
-    }))
-}
-                >
-
-                    ×
-
-                </button>
-
-                <img
-                    src={photo.preview}
-                    alt={photo.name}
-                />
-
-
-                
-
-                <span>
-
-                    {photo.name}
-
-                </span>
-
-            </div>
-
-        ))}
-
-    </div>
-
-)}
-
-            </div>
 
 
             <div className="album-form__card">
 
-    <div className="album-form__video-header">
+    <h3>Fotos com marca d'água</h3>
 
-        <div>
-            <h3>Vídeo</h3>
+    <div className="album-form__upload">
 
-            <p>
-                Ative esta opção caso o álbum também possua vídeo.
-            </p>
-        </div>
-
-        <label className="album-form__switch">
-
-            <input
-                type="checkbox"
-                checked={album.hasVideo}
-                onChange={(event) =>
-    setAlbum((current) => ({
-        ...current,
-        hasVideo: event.target.checked,
-    }))
-}
-            />
-
-            <span></span>
-
-        </label>
-
-    </div>
-
-  {album.hasVideo && (
-
-    <>
-
-        <div className="album-form__video-options">
-
-            <input
-                ref={videoInputRef}
-                type="file"
-                accept="video/*"
-                style={{ display: "none" }}
-                onChange={handleVideoUpload}
-            />
-
-            <button
-                type="button"
-                onClick={() => videoInputRef.current?.click()}
-            >
-
-                <MonitorUp size={28} />
-
-                <span>Do Computador</span>
-
-            </button>
-
-            <button
-                type="button"
-            >
-
-                <HardDrive size={28} />
-
-                <span>Google Drive</span>
-
-            </button>
-
-        </div>
-
-        <div className="album-form__upload-info">
-
-            {album.videos.length === 0
-                ? "Nenhum vídeo adicionado."
-                : `${album.videos.length} vídeo${album.videos.length > 1 ? "s" : ""} adicionado${album.videos.length > 1 ? "s" : ""}.`
-            }
-
-        </div>
-
-        {album.videos.length > 0 && (
-
-            <div className="album-form__photos">
-
-                {album.videos.map((video) => (
-
-                    <div
-                        key={video.id}
-                        className="album-form__photo"
-                    >
-
-                        <button
-                            type="button"
-                            className="album-form__photo-remove"
-                            onClick={() =>
-                                setAlbum((current) => ({
-                                    ...current,
-                                    videos: [],
-                                }))
-                            }
-                        >
-
-                            ×
-
-                        </button>
-
-                        <video
-                            src={video.preview}
-                            controls
-                        />
-
-                        <span>
-
-                            {video.name}
-
-                        </span>
-
-                    </div>
-
-                ))}
-
-            </div>
-
-        )}
-
-    </>
-
-)}
-</div>
-
-
-
-
-<div className="album-form__card">
-
-    <div className="album-form__categories-header">
-
-        <div>
-
-            <h3>Categorias</h3>
-
-            <p>
-                Organize as fotografias do álbum em categorias.
-            </p>
-
-        </div>
+        <input
+            ref={watermarkedPhotosInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleWatermarkedPhotosUpload}
+        />
 
         <button
-            className="album-form__add-category"
-            onClick={handleAddCategory}
-            disabled={album.categories.length >= maxCategories}
+            type="button"
+            onClick={() =>
+                watermarkedPhotosInputRef.current?.click()
+            }
         >
 
-            + Adicionar Categoria
+            <MonitorUp size={28} />
+
+            <span>Do Computador</span>
 
         </button>
 
-    </div>
+        <button
+            type="button"
+            onClick={async () => {
 
-    {album.categories.length === 0 && (
+                try {
 
-        <div className="album-form__empty">
+                    await initializeGoogleAuth(
+                        (result) => {
 
-            Nenhuma categoria adicionada.
+                            setAlbum((current) => ({
 
-        </div>
+                                ...current,
 
-    )}
+                                watermarkedPhotos: [
 
-    {album.categories.map((category, index) => (
+                                    ...current.watermarkedPhotos,
 
-        <div
-    key={index}
-    className="album-form__category-card"
->
+                                    {
 
-    <div className="album-form__category-top">
+                                        id: crypto.randomUUID(),
 
-    <h4>
+                                        preview:
+                                            result.storage.url,
 
-        Categoria {index + 1}
+                                        name:
+                                            result.file.name,
 
-    </h4>
+                                        size: Number(
+                                            result.file.size
+                                        ),
 
-    <button
-        className="album-form__remove-category"
-        onClick={() => {
+                                        driveId:
+                                            result.file.id,
 
-            setAlbum((current) => ({
-    ...current,
-    categories: current.categories.filter((_, i) => i !== index),
-}));
+                                        storagePath:
+                                            result.storage.path,
 
-        }}
-    >
+                                        source: "drive",
 
-        <Trash2 size={18} />
+                                    },
 
-    </button>
+                                ],
 
-</div>
+                            }));
 
-    <div className="album-form__field">
+                        }
+                    );
 
-        <label>Nome da categoria</label>
+                    requestAccessToken();
 
-        <input
-            type="text"
-            placeholder="Ex.: Cerimônia"
-            value={category.name}
-            onChange={(event) => {
+                } catch (error) {
 
-                setAlbum((current) => ({
+                    console.error(error);
 
-    ...current,
-
-    categories: current.categories.map((item, i) =>
-
-        i === index
-            ? {
-                  ...item,
-                  name: event.target.value,
-              }
-            : item
-
-    ),
-
-}));
+                }
 
             }}
-        />
-
-    </div>
-
-    <div className="album-form__category-upload">
-
-       <input
-    type="file"
-    accept="image/*"
-    multiple
-    style={{ display: "none" }}
-    id={`category-upload-${category.id}`}
-    onChange={(event) =>
-        handleCategoryPhotosUpload(
-            category.id,
-            event
-        )
-    }
-/>
-
-<button
-    type="button"
-    onClick={() =>
-
-        document
-            .getElementById(
-                `category-upload-${category.id}`
-            )
-            ?.click()
-
-    }
->
-
-    <MonitorUp size={28} />
-
-    <span>Do Computador</span>
-
-</button>
-
-        <button>
+        >
 
             <HardDrive size={28} />
 
@@ -1212,83 +833,608 @@ requestAccessToken();
 
     </div>
 
-   <div className="album-form__category-info">
+    <div className="album-form__upload-info">
 
-    {category.photos.length === 0
-        ? "Nenhuma foto adicionada."
-        : `${category.photos.length} foto${category.photos.length > 1 ? "s" : ""} adicionada${category.photos.length > 1 ? "s" : ""}.`
-    }
+        {album.watermarkedPhotos.length === 0
 
-</div>
+            ? "Nenhuma foto adicionada."
 
-{category.photos.length > 0 && (
+            : `${album.watermarkedPhotos.length} foto${album.watermarkedPhotos.length > 1 ? "s" : ""} adicionada${album.watermarkedPhotos.length > 1 ? "s" : ""}.`
 
-    <div className="album-form__photos">
-
-        {category.photos.map((photo) => (
-
-            <div
-                key={photo.id}
-                className="album-form__photo"
-            >
-
-                <button
-                    type="button"
-                    className="album-form__photo-remove"
-                    onClick={() =>
-                        setAlbum((current) => ({
-
-                            ...current,
-
-                            categories: current.categories.map((item) =>
-
-                                item.id === category.id
-                                    ? {
-
-                                        ...item,
-
-                                        photos: item.photos.filter(
-                                            (p) => p.id !== photo.id
-                                        ),
-
-                                    }
-                                    : item
-
-                            ),
-
-                        }))
-                    }
-                >
-
-                    ×
-
-                </button>
-
-                <img
-                    src={photo.preview}
-                    alt={photo.name}
-                />
-
-
-                <span>
-
-                    {photo.name}
-
-                </span>
-
-            </div>
-
-        ))}
+        }
 
     </div>
 
-)}
+    {album.watermarkedPhotos.length > 0 && (
+
+        <div className="album-form__photos">
+
+            {album.watermarkedPhotos.map((photo) => (
+
+                <div
+                    key={photo.id}
+                    className="album-form__photo"
+                >
+
+                    <button
+                        type="button"
+                        className="album-form__photo-remove"
+                        onClick={() =>
+
+                            setAlbum((current) => ({
+
+                                ...current,
+
+                                watermarkedPhotos:
+
+                                    current.watermarkedPhotos.filter(
+                                        (item) =>
+                                            item.id !== photo.id
+                                    ),
+
+                            }))
+
+                        }
+                    >
+
+                        ×
+
+                    </button>
+
+                    <img
+                        src={photo.preview}
+                        alt={photo.name}
+                    />
+
+                    <span>
+
+                        {photo.name}
+
+                    </span>
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
 
 </div>
 
-    ))}
+
+<div className="album-form__card">
+
+    <h3>Fotos em alta qualidade</h3>
+
+    <div className="album-form__upload">
+
+        <input
+            ref={highQualityPhotosInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleHighQualityPhotosUpload}
+        />
+
+        <button
+            type="button"
+            onClick={() =>
+                highQualityPhotosInputRef.current?.click()
+            }
+        >
+
+            <MonitorUp size={28} />
+
+            <span>Do Computador</span>
+
+        </button>
+
+        <button
+            type="button"
+            onClick={async () => {
+
+                try {
+
+                    await initializeGoogleAuth(
+                        (result) => {
+
+                            setAlbum((current) => ({
+
+                                ...current,
+
+                                highQualityPhotos: [
+
+                                    ...current.highQualityPhotos,
+
+                                    {
+
+                                        id: crypto.randomUUID(),
+
+                                        preview:
+                                            result.storage.url,
+
+                                        name:
+                                            result.file.name,
+
+                                        size: Number(
+                                            result.file.size
+                                        ),
+
+                                        driveId:
+                                            result.file.id,
+
+                                        storagePath:
+                                            result.storage.path,
+
+                                        source: "drive",
+
+                                    },
+
+                                ],
+
+                            }));
+
+                        }
+                    );
+
+                    requestAccessToken();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                }
+
+            }}
+        >
+
+            <HardDrive size={28} />
+
+            <span>Google Drive</span>
+
+        </button>
+
+    </div>
+
+    <div className="album-form__upload-info">
+
+        {album.highQualityPhotos.length === 0
+
+            ? "Nenhuma foto adicionada."
+
+            : `${album.highQualityPhotos.length} foto${album.highQualityPhotos.length > 1 ? "s" : ""} adicionada${album.highQualityPhotos.length > 1 ? "s" : ""}.`
+
+        }
+
+    </div>
+
+    {album.highQualityPhotos.length > 0 && (
+
+        <div className="album-form__photos">
+
+            {album.highQualityPhotos.map((photo) => (
+
+                <div
+                    key={photo.id}
+                    className="album-form__photo"
+                >
+
+                    <button
+                        type="button"
+                        className="album-form__photo-remove"
+                        onClick={() =>
+
+                            setAlbum((current) => ({
+
+                                ...current,
+
+                                highQualityPhotos:
+                                    current.highQualityPhotos.filter(
+                                        (item) =>
+                                            item.id !== photo.id
+                                    ),
+
+                            }))
+
+                        }
+                    >
+
+                        ×
+
+                    </button>
+
+                    <img
+                        src={photo.preview}
+                        alt={photo.name}
+                    />
+
+                    <span>
+
+                        {photo.name}
+
+                    </span>
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
 
 </div>
+           
+
+
+           <div className="album-form__card">
+
+    <h3>Vídeo com marca d'água</h3>
+
+    <div className="album-form__upload">
+
+        <input
+            ref={watermarkedVideoInputRef}
+            type="file"
+            multiple
+            accept="video/*"
+            style={{ display: "none" }}
+            onChange={handleWatermarkedVideoUpload}
+        />
+
+        <button
+            type="button"
+            onClick={() =>
+                watermarkedVideoInputRef.current?.click()
+            }
+        >
+
+            <MonitorUp size={28} />
+
+            <span>Do Computador</span>
+
+        </button>
+
+        <button
+            type="button"
+        >
+
+            <HardDrive size={28} />
+
+            <span>Google Drive</span>
+
+        </button>
+
+    </div>
+
+    <div className="album-form__upload-info">
+
+        {album.watermarkedVideos.length === 0
+
+            ? "Nenhum vídeo adicionado."
+
+            : `${album.watermarkedVideos.length} vídeo${album.watermarkedVideos.length > 1 ? "s" : ""} adicionado${album.watermarkedVideos.length > 1 ? "s" : ""}.`
+
+        }
+
+    </div>
+
+    {album.watermarkedVideos.length > 0 && (
+
+        <div className="album-form__photos">
+
+            {album.watermarkedVideos.map((video) => (
+
+                <div
+                    key={video.id}
+                    className="album-form__photo"
+                >
+
+                    <button
+                        type="button"
+                        className="album-form__photo-remove"
+                        onClick={() =>
+
+                            setAlbum((current) => ({
+
+                                ...current,
+
+                                watermarkedVideos:
+                                    current.watermarkedVideos.filter(
+                                        (item) =>
+                                            item.id !== video.id
+                                    ),
+
+                            }))
+
+                        }
+                    >
+
+                        ×
+
+                    </button>
+
+                    <video
+                        src={video.preview}
+                        controls
+                    />
+
+                    <span>
+
+                        {video.name}
+
+                    </span>
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
+
+</div>
+
+
+<div className="album-form__card">
+
+    <h3>Vídeo em alta qualidade</h3>
+
+    <div className="album-form__upload">
+
+        <input
+            ref={highQualityVideoInputRef}
+            type="file"
+            accept="video/*"
+            style={{ display: "none" }}
+            onChange={handleHighQualityVideoUpload}
+        />
+
+        <button
+            type="button"
+            onClick={() =>
+                highQualityVideoInputRef.current?.click()
+            }
+        >
+
+            <MonitorUp size={28} />
+
+            <span>Do Computador</span>
+
+        </button>
+
+        <button
+            type="button"
+            onClick={async () => {
+
+                try {
+
+                    await initializeGoogleAuth(
+                        (result) => {
+
+                            setAlbum((current) => ({
+
+                                ...current,
+
+                                highQualityVideos: [
+
+                                    ...current.highQualityVideos,
+
+                                    {
+
+                                        id: crypto.randomUUID(),
+
+                                        preview:
+                                            result.storage.url,
+
+                                        name:
+                                            result.file.name,
+
+                                        size: Number(
+                                            result.file.size
+                                        ),
+
+                                        driveId:
+                                            result.file.id,
+
+                                        storagePath:
+                                            result.storage.path,
+
+                                        source: "drive",
+
+                                    },
+
+                                ],
+
+                            }));
+
+                        }
+                    );
+
+                    requestAccessToken();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                }
+
+            }}
+        >
+
+            <HardDrive size={28} />
+
+            <span>Google Drive</span>
+
+        </button>
+
+    </div>
+
+    <div className="album-form__upload-info">
+
+        {album.highQualityVideos.length === 0
+
+            ? "Nenhum vídeo adicionado."
+
+            : `${album.highQualityVideos.length} vídeo${album.highQualityVideos.length > 1 ? "s" : ""} adicionado${album.highQualityVideos.length > 1 ? "s" : ""}.`
+
+        }
+
+    </div>
+
+    {album.highQualityVideos.length > 0 && (
+
+        <div className="album-form__photos">
+
+            {album.highQualityVideos.map((video) => (
+
+                <div
+                    key={video.id}
+                    className="album-form__photo"
+                >
+
+                    <button
+                        type="button"
+                        className="album-form__photo-remove"
+                        onClick={() =>
+                            setAlbum((current) => ({
+
+                                ...current,
+
+                                highQualityVideos:
+                                    current.highQualityVideos.filter(
+                                        (item) =>
+                                            item.id !== video.id
+                                    ),
+
+                            }))
+                        }
+                    >
+
+                        ×
+
+                    </button>
+
+                    <video
+                        src={video.preview}
+                        controls
+                    />
+
+                    <span>
+
+                        {video.name}
+
+                    </span>
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
+
+</div>
+
+
+<div className="album-form__card">
+
+    <h3>Download das Fotos em Alta Qualidade</h3>
+
+    <div className="album-form__grid">
+
+        <div className="album-form__field">
+
+            <label>
+
+                Prazo para download
+
+            </label>
+
+            <select
+                value={
+                    album.highQualityDownloadDays ?? ""
+                }
+                onChange={(event) =>
+                    setAlbum((current) => ({
+
+                        ...current,
+
+                        highQualityDownloadDays:
+
+                            event.target.value === ""
+
+                                ? null
+
+                                : Number(event.target.value),
+
+                    }))
+                }
+            >
+
+                <option value="">
+
+                    Sem prazo
+
+                </option>
+
+                <option value="7">
+
+                    7 dias
+
+                </option>
+
+                <option value="15">
+
+                    15 dias
+
+                </option>
+
+                <option value="30">
+
+                    30 dias
+
+                </option>
+
+                <option value="60">
+
+                    60 dias
+
+                </option>
+
+                <option value="90">
+
+                    90 dias
+
+                </option>
+
+                <option value="180">
+
+                    180 dias
+
+                </option>
+
+                <option value="365">
+
+                    365 dias
+
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <p className="album-form__helper">
+
+        Após esse período, os downloads em alta qualidade serão bloqueados automaticamente. As fotos com marca d'água continuarão disponíveis normalmente.
+
+    </p>
+
+</div>
+
 
             <div className="album-form__card">
 

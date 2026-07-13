@@ -1,4 +1,4 @@
-import "./Albums.css";
+import "./FeedCategory.css";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -10,15 +10,25 @@ import {
     Images,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import {
+    useNavigate,
+    useParams,
+} from "react-router-dom";
 
-import { subscribeAlbums } from "../../services/firebase/albumFeed";
+import { subscribeAlbumsByCategory } from "../../services/firebase/albumFeed";
 
 import type { Album } from "../../types/albumFeed";
 
-const Albums = () => {
+import {
+    feedCategoryNames,
+} from "../../data/feedCategories";
+
+const FeedCategory = () => {
 
     const navigate = useNavigate();
+
+    const { category } = useParams();
+
 
     const [albums, setAlbums] = useState<Album[]>([]);
 
@@ -26,17 +36,26 @@ const Albums = () => {
 
     useEffect(() => {
 
-        const unsubscribe = subscribeAlbums(setAlbums);
+    if (!category) return;
 
-        return unsubscribe;
+    const categoryName = feedCategoryNames[category];
 
-    }, []);
+    if (!categoryName) return;
+
+    const unsubscribe = subscribeAlbumsByCategory(
+        categoryName,
+        setAlbums
+    );
+
+    return unsubscribe;
+
+}, [category]);
 
     const filteredAlbums = useMemo(() => {
 
     const value = search.toLowerCase();
 
-   return albums.filter((album) =>
+    return albums.filter((album) =>
 
     (album.name ?? "").toLowerCase().includes(value)
 
@@ -52,20 +71,23 @@ const Albums = () => {
 
                 <div>
 
-                    <h2>Álbuns</h2>
+                    <h2>
+
+    Feed - {feedCategoryNames[category ?? ""] ?? "Categoria"}
+</h2>
 
                     <p>
 
-                        Gerencie todos os álbuns dos seus clientes.
+    Gerencie os trabalhos publicados no feed do site.
 
-                    </p>
+</p>
 
                 </div>
 
                 <button
                     className="albums__new"
                     onClick={() =>
-                        navigate("/albums/new")
+                        navigate("/feed/new")
                     }
                 >
 
@@ -73,7 +95,7 @@ const Albums = () => {
 
                     <span>
 
-                        Novo Álbum
+                        Novo Feed
 
                     </span>
 
@@ -87,7 +109,7 @@ const Albums = () => {
 
                 <input
                     type="text"
-                    placeholder="Pesquisar álbum..."
+                    placeholder="Pesquisar feed..."
                     value={search}
                     onChange={(event) =>
                         setSearch(event.target.value)
@@ -102,7 +124,7 @@ const Albums = () => {
 
                     <div className="albums__empty">
 
-                        Nenhum álbum encontrado.
+                        Nenhum Feed encontrado.
 
                     </div>
 
@@ -151,7 +173,7 @@ const Albums = () => {
 
                                 </h3>
 
-                               
+                              
 
                                 <span>
 
@@ -237,4 +259,4 @@ const Albums = () => {
 
 };
 
-export default Albums;
+export default FeedCategory;
