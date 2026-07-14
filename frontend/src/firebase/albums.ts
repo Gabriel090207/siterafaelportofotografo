@@ -3,6 +3,7 @@ import {
     onSnapshot,
     orderBy,
     query,
+    where,
 } from "firebase/firestore";
 
 import db from "./firestore";
@@ -12,7 +13,7 @@ export const subscribeAlbums = (
 ) => {
 
     const q = query(
-        collection(db, "albums"),
+        collection(db, "AlbumClient"),
         orderBy("createdAt", "desc")
     );
 
@@ -34,9 +35,6 @@ export const subscribeAlbums = (
 
 };
 
-import {
-    where,
-} from "firebase/firestore";
 
 export const subscribeClientAlbums = (
     clientId: string,
@@ -44,7 +42,7 @@ export const subscribeClientAlbums = (
 ) => {
 
     const q = query(
-        collection(db, "albums"),
+        collection(db, "AlbumClient"),
         where("clientId", "==", clientId)
     );
 

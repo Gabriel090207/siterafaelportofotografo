@@ -11,6 +11,7 @@ import {
     Calendar,
     MapPin,
     Images,
+    Video,
 } from "lucide-react";
 
 import ClientHeader from "../../components/ClientHeader/ClientHeader";
@@ -23,16 +24,18 @@ function ClientDashboard() {
         localStorage.getItem("client") ?? "{}"
     );
 
-    const [albums, setAlbums] = useState<any[]>([]);
+    const [albums, setAlbums] =
+        useState<any[]>([]);
 
     useEffect(() => {
 
         if (!client.id) return;
 
-        const unsubscribe = subscribeClientAlbums(
-            client.id,
-            setAlbums
-        );
+        const unsubscribe =
+            subscribeClientAlbums(
+                client.id,
+                setAlbums
+            );
 
         return unsubscribe;
 
@@ -83,20 +86,10 @@ function ClientDashboard() {
                         albums.map((album) => {
 
                             const totalPhotos =
+                                album.watermarkedPhotos?.length ?? 0;
 
-                                (album.photos?.length ?? 0) +
-
-                                (album.categories ?? []).reduce(
-
-                                    (total: number, category: any) =>
-
-                                        total +
-
-                                        (category.photos?.length ?? 0),
-
-                                    0
-
-                                );
+                            const totalVideos =
+                                album.watermarkedVideos?.length ?? 0;
 
                             return (
 
@@ -107,20 +100,22 @@ function ClientDashboard() {
 
                                     <div className="client-album-card__image">
 
-                                        <img
-                                            src={album.coverPhoto?.preview}
-                                            alt={album.name}
-                                        />
+                                        {album.coverPhoto?.preview ? (
+
+                                            <img
+                                                src={album.coverPhoto.preview}
+                                                alt={album.name}
+                                            />
+
+                                        ) : (
+
+                                            <Images size={40} />
+
+                                        )}
 
                                     </div>
 
                                     <div className="client-album-card__content">
-
-                                        <span className="client-album-card__category">
-
-                                            {album.category}
-
-                                        </span>
 
                                         <h2>
 
@@ -162,6 +157,14 @@ function ClientDashboard() {
                                                 <Images size={16} />
 
                                                 {totalPhotos} Foto{totalPhotos !== 1 ? "s" : ""}
+
+                                            </span>
+
+                                            <span>
+
+                                                <Video size={16} />
+
+                                                {totalVideos} Vídeo{totalVideos !== 1 ? "s" : ""}
 
                                             </span>
 

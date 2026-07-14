@@ -12,21 +12,24 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import { subscribeAlbums } from "../../services/firebase/albumFeed";
+import { subscribeAlbums } from "../../services/firebase/albumClient";
 
-import type { Album } from "../../types/albumFeed";
+import type { AlbumClient } from "../../types/albumClient";
 
 const Albums = () => {
 
     const navigate = useNavigate();
 
-    const [albums, setAlbums] = useState<Album[]>([]);
+    const [albums, setAlbums] =
+        useState<AlbumClient[]>([]);
 
-    const [search, setSearch] = useState("");
+    const [search, setSearch] =
+        useState("");
 
     useEffect(() => {
 
-        const unsubscribe = subscribeAlbums(setAlbums);
+        const unsubscribe =
+            subscribeAlbums(setAlbums);
 
         return unsubscribe;
 
@@ -34,15 +37,22 @@ const Albums = () => {
 
     const filteredAlbums = useMemo(() => {
 
-    const value = search.toLowerCase();
+        const value =
+            search.toLowerCase();
 
-   return albums.filter((album) =>
+        return albums.filter((album) =>
 
-    (album.name ?? "").toLowerCase().includes(value)
+            (album.name ?? "")
+                .toLowerCase()
+                .includes(value) ||
 
-);
+            (album.clientName ?? "")
+                .toLowerCase()
+                .includes(value)
 
-}, [albums, search]);
+        );
+
+    }, [albums, search]);
 
     return (
 
@@ -90,7 +100,9 @@ const Albums = () => {
                     placeholder="Pesquisar álbum..."
                     value={search}
                     onChange={(event) =>
-                        setSearch(event.target.value)
+                        setSearch(
+                            event.target.value
+                        )
                     }
                 />
 
@@ -120,8 +132,12 @@ const Albums = () => {
                                 {album.coverPhoto ? (
 
                                     <img
-                                        src={album.coverPhoto.preview}
-                                        alt={album.name}
+                                        src={
+                                            album.coverPhoto.preview
+                                        }
+                                        alt={
+                                            album.name
+                                        }
                                     />
 
                                 ) : (
@@ -134,60 +150,27 @@ const Albums = () => {
 
                             <div className="album-card__content">
 
-
-
-{album.category && (
-
-    <span className="album-card__category">
-
-        {album.category}
-
-    </span>
-
-)}
                                 <h3>
 
                                     {album.name}
 
                                 </h3>
 
-                               
+                                <p>
+
+                                    {album.clientName}
+
+                                </p>
 
                                 <span>
 
-    {(() => {
+                                    {album.watermarkedPhotos.length} Foto{album.watermarkedPhotos.length !== 1 ? "s" : ""}
 
-        const uniquePhotos = new Map();
+                                    {" • "}
 
-        (album.photos ?? []).forEach(photo => {
+                                    {album.watermarkedVideos.length} Vídeo{album.watermarkedVideos.length !== 1 ? "s" : ""}
 
-            uniquePhotos.set(
-                photo.storagePath ?? photo.preview,
-                photo
-            );
-
-        });
-
-        (album.categories ?? []).forEach(category => {
-
-            (category.photos ?? []).forEach(photo => {
-
-                uniquePhotos.set(
-                    photo.storagePath ?? photo.preview,
-                    photo
-                );
-
-            });
-
-        });
-
-        const total = uniquePhotos.size;
-
-        return `${total} Foto${total !== 1 ? "s" : ""}`;
-
-    })()}
-
-</span>
+                                </span>
 
                             </div>
 
