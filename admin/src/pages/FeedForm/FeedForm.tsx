@@ -34,9 +34,23 @@ import { useNavigate } from "react-router-dom";
 import {
     initializeGoogleAuth,
     requestAccessToken,
+    getAccessToken,
 } from "../../services/google/picker";
 
-const STORAGE_KEY = "album-form";
+import {
+    copyDriveFile,
+    uploadFeedFileToDrive,
+    copyPickerFileToDrive,
+} from "../../services/api/google";
+
+import LoadingModal from "../../components/LoadingModal/LoadingModal";
+import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
+
+import {
+    feedCategories,
+} from "../../data/feedCategories";
+
+const STORAGE_KEY = "feed-form";
 
 const FeedForm = () => {
 
@@ -64,8 +78,6 @@ const [album, setAlbum] = useState<Album>({
     categories: [],
 });
 
-
-
 const maxCategories = album.hasVideo ? 2 : 3;
 
 
@@ -76,10 +88,168 @@ const videoInputRef = useRef<HTMLInputElement>(null);
 const coverInputRef =
     useRef<HTMLInputElement>(null);
 
-
-
 const [isSaving, setIsSaving] = useState(false);
 
+const [showSaveToDriveModal, setShowSaveToDriveModal] =
+    useState(false);
+
+const [loadingModal, setLoadingModal] =
+    useState({
+
+        open: false,
+
+        success: false,
+
+        progress: 0,
+
+       title: "Criando evento",
+
+        message: "Preparando...",
+
+    });
+
+useEffect(() => {
+
+    localStorage.removeItem(
+        STORAGE_KEY
+    );
+
+}, []);
+
+const updateLoading = (
+    progress: number,
+    message: string,
+) => {
+
+    setLoadingModal((current) => ({
+
+        ...current,
+
+        progress,
+
+        message,
+
+    }));
+
+};
+
+type FeedFileItem =
+    | Album["photos"][number]
+    | Album["videos"][number];
+
+const processFeedFile = async (
+    item: FeedFileItem,
+    albumToSave: Album,
+    albumFolder: string,
+    destinationFolder: string,
+    saveToDrive: boolean,
+) => {
+
+    if (item.file) {
+
+       
+
+           if (saveToDrive) {
+
+    const driveResult =
+        await uploadFeedFileToDrive({
+
+            file: item.file,
+
+            albumCategory: album.category,
+
+            albumName: album.name,
+
+            folder: destinationFolder,
+
+        });
+
+        if (!albumToSave.driveFolderId) {
+
+    albumToSave.driveFolderId =
+        driveResult.driveFolderId;
+
+}
+
+item.driveFileId =
+    driveResult.driveFileId;
+
+}
+
+        const result =
+    await uploadAlbumFile(
+
+        album.category,
+
+        albumFolder,
+
+        `${destinationFolder}/${item.name}`,
+
+        item.file
+
+    );
+
+        item.preview = result.url;
+
+        item.storagePath = result.storagePath;
+
+        delete item.file;
+
+        return;
+
+    }
+
+    if (
+    item.source === "drive" &&
+    item.storagePath &&
+    item.driveId
+) {
+
+    if (saveToDrive) {
+
+        const token = getAccessToken();
+
+        if (token) {
+
+            const driveResult =
+
+            await copyPickerFileToDrive({
+
+                fileId: item.driveId,
+
+                accessToken: token,
+
+                albumCategory: album.category,
+
+                albumName: album.name,
+
+                folder: destinationFolder,
+
+            });
+
+           item.driveFileId =
+    driveResult.driveFileId;
+
+        }
+
+    }
+
+    const result =
+        await copyDriveFile({
+
+            sourcePath: item.storagePath,
+
+            destinationPath:
+    `AlbumFeed/${album.category}/${albumFolder}/${destinationFolder}/${item.name}`,
+        });
+
+    item.preview = result.url;
+
+    item.storagePath = result.path;
+
+}
+
+};
 
 const handleAddCategory = () => {
 
@@ -141,183 +311,304 @@ const handlePhotosUpload = (
 
 };
 
-const handleCreateAlbum = async () => {
+const handleCreateAlbum = () => {
+
+    setShowSaveToDriveModal(true);
+
+};
+
+
+const createAlbum = async (
+    saveToDrive: boolean,
+) => {
 
     if (isSaving) return;
 
     setIsSaving(true);
 
+    setLoadingModal({
+
+        open: true,
+
+        success: false,
+
+        progress: 0,
+
+        title: "Criando álbum",
+
+        message: "Preparando arquivos...",
+
+    });
+
     try {
 
-        // 1 - cria documento e obtém o id
+        updateLoading(
+            5,
+            "Criando documento do evento..."
+        );
+
+        // 1 - cria o documento e obtém o ID
 
         const albumId =
             await createAlbumDocument();
 
-        const albumToSave = structuredClone(album);
+        updateLoading(
+            15,
+            "Documento criado."
+        );
+
+        /*
+         * Fazemos uma cópia manual para preservar
+         * os objetos File escolhidos pelo usuário.
+         */
+
+        const albumToSave: Album = {
+
+            ...album,
+
+            coverPhoto: album.coverPhoto
+                ? {
+                    ...album.coverPhoto,
+                }
+                : undefined,
+
+            photos: album.photos.map((photo) => ({
+                ...photo,
+            })),
+
+            videos: album.videos.map((video) => ({
+                ...video,
+            })),
+
+            categories: album.categories.map(
+                (category) => ({
+
+                    ...category,
+
+                    photos: category.photos.map(
+                        (photo) => ({
+                            ...photo,
+                        })
+                    ),
+
+                })
+            ),
+
+        };
 
         const albumFolder = albumToSave.name
             .trim()
             .replace(/[\\/:*?"<>|]/g, "-");
 
-        // 2 - capa
+        
+            /*
+ * 2 - Capa
+ */
 
-        if (
-            albumToSave.coverPhoto?.file
-        ) {
+updateLoading(
+    20,
+    "Enviando capa..."
+);
 
-            const result =
-                await uploadAlbumFile(
+if (albumToSave.coverPhoto?.file) {
 
-                    albumFolder,
+    const coverFile =
+        albumToSave.coverPhoto.file;
 
-                    "Capa/capa.jpg",
+    if (saveToDrive) {
 
-                    albumToSave.coverPhoto.file
+    const driveResult =
+        await uploadFeedFileToDrive({
 
-                );
+            file: coverFile,
 
-            albumToSave.coverPhoto = {
+            albumCategory:
+                albumToSave.category,
 
-                ...albumToSave.coverPhoto,
+            albumName:
+                albumToSave.name,
 
-                preview: result.url,
+            folder: "Capa",
 
-                storagePath: result.storagePath,
+        });
 
-            };
+    if (!albumToSave.driveFolderId) {
 
-            delete albumToSave.coverPhoto.file;
+    albumToSave.driveFolderId =
+        driveResult.driveFolderId;
 
-        }
+}
 
-        // 3 - fotos gerais
+albumToSave.coverPhoto!.driveFileId =
+    driveResult.driveFileId;
 
-        for (const photo of albumToSave.photos) {
+}
 
-            if (
-                photo.source === "computer" &&
-                photo.file
-            ) {
+    const result =
+    await uploadAlbumFile(
 
+        albumToSave.category,
 
-                const result =
-                    await uploadAlbumFile(
+        albumFolder,
 
-                        albumFolder,
+        "Capa/capa.jpg",
 
-                        `Fotos/${photo.name}`,
+        coverFile
 
-                        photo.file
+    );
 
-                    );
+    albumToSave.coverPhoto = {
 
-                console.log("Upload Foto:", result);
+        ...albumToSave.coverPhoto,
 
-                photo.preview = result.url;
+        preview: result.url,
 
-                photo.storagePath =
-                    result.storagePath;
+        storagePath:
+            result.storagePath,
 
-                delete photo.file;
+    };
 
-            }
+    delete albumToSave.coverPhoto.file;
 
-        }
+}
+        /*
+ * 3 - Fotos
+ */
 
-        // 4 - vídeos
+updateLoading(
+    30,
+    "Enviando fotos..."
+);
 
-        for (const video of albumToSave.videos) {
+for (const photo of albumToSave.photos) {
 
-            if (
-                video.source === "computer" &&
-                video.file
-            ) {
+    await processFeedFile(
+    photo,
+    albumToSave,
+    albumFolder,
+    "Fotos",
+    saveToDrive
+);
 
-               
+}
+        /*
+ * 4 - Vídeos
+ */
 
-                const result =
-                    await uploadAlbumFile(
+updateLoading(
+    60,
+    "Enviando vídeos..."
+);
 
-                        albumFolder,
+for (const video of albumToSave.videos) {
 
-                        `Video/${video.name}`,
+    await processFeedFile(
+    video,
+    albumToSave,
+    albumFolder,
+    "Vídeos",
+    saveToDrive
+);
 
-                        video.file
+}
 
-                    );
+/*
+ * 5 - Fotos das categorias
+ */
 
-                console.log("Upload Vídeo:", result);
+updateLoading(
+    72,
+    "Enviando categorias..."
+);
 
-                video.preview = result.url;
+for (const category of albumToSave.categories) {
 
-                video.storagePath =
-                    result.storagePath;
+    const categoryName = category.name
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, "-");
 
-                delete video.file;
+    for (const photo of category.photos) {
 
-            }
+        await processFeedFile(
+    photo,
+    albumToSave,
+    albumFolder,
+    `Categorias/${categoryName}`,
+    saveToDrive
+);
+    }
 
-        }
+}
 
-        // 5 - categorias
+        /*
+         * 6 - salva o documento final
+         */
 
-        for (const category of albumToSave.categories) {
-
-            for (const photo of category.photos) {
-
-                if (
-                    photo.source === "computer" &&
-                    photo.file
-                ) {
-
-                   
-
-                    const result =
-                        await uploadAlbumFile(
-
-                            albumFolder,
-
-                            `Categorias/${category.name}/${photo.name}`,
-
-                            photo.file
-
-                        );
-
-                    console.log("Upload Categoria:", result);
-
-                    photo.preview = result.url;
-
-                    photo.storagePath =
-                        result.storagePath;
-
-                    delete photo.file;
-
-                }
-
-            }
-
-        }
-
-        // 6 - salva documento final
+        updateLoading(
+            93,
+            "Salvando informações do evento..."
+        );
 
         await updateAlbum(
-
             albumId,
-
             albumToSave
-
         );
 
         localStorage.removeItem(
             STORAGE_KEY
         );
 
-        navigate("/albums");
+        setLoadingModal((current) => ({
+
+            ...current,
+
+            success: true,
+
+            progress: 100,
+
+            message:
+                "Evento criado com sucesso!",
+
+        }));
+
+        await new Promise((resolve) =>
+            setTimeout(resolve, 900)
+        );
+
+        setLoadingModal((current) => ({
+
+            ...current,
+
+            open: false,
+
+        }));
+
+        await new Promise((resolve) =>
+            setTimeout(resolve, 350)
+        );
+
+      const category = feedCategories.find(
+    (item) => item.name === albumToSave.category
+);
+
+navigate(
+    `/feed/${category?.id ?? ""}`
+);
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Erro ao criar evento:",
+            error
+        );
+
+        setLoadingModal((current) => ({
+
+            ...current,
+
+            open: false,
+
+        }));
 
     } finally {
 
@@ -326,6 +617,8 @@ const handleCreateAlbum = async () => {
     }
 
 };
+
+
 
 const handleVideoUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -525,7 +818,7 @@ useEffect(() => {
 
     <button
         className="album-form__back"
-        onClick={() => navigate("/albums")}
+        onClick={() => navigate("/feed")}
     >
 
         <ArrowLeft size={18} />
@@ -536,10 +829,10 @@ useEffect(() => {
 
     <div className="album-form__title">
 
-        <h2>Novo Álbum</h2>
+        <h2>Novo Evento</h2>
 
         <p>
-            Crie um novo álbum para um cliente.
+            Cadastre um novo evento para o site.
         </p>
 
     </div>
@@ -552,9 +845,12 @@ useEffect(() => {
 
                 <div className="album-form__grid">
 
-                    <div className="album-form__field">
+                   <div
+    className="album-form__field"
+    style={{ gridColumn: "1 / -1" }}
+>
 
-                        <label>Nome do Álbum</label>
+                        <label>Nome do Evento</label>
 
                         <input
     type="text"
@@ -577,7 +873,7 @@ useEffect(() => {
     style={{ gridColumn: "1 / -1" }}
 >
 
-    <label>Categoria do Álbum</label>
+    <label>Categoria do Evento</label>
 
     <select
         value={album.category ?? ""}
@@ -704,7 +1000,7 @@ useEffect(() => {
                     <label>Descrição</label>
 
                     <textarea
-    placeholder="Descrição do álbum..."
+   placeholder="Descrição do evento..."
     value={album.description}
     onChange={(event) =>
         setAlbum((current) => ({
@@ -880,7 +1176,7 @@ requestAccessToken();
             <h3>Vídeo</h3>
 
             <p>
-                Ative esta opção caso o álbum também possua vídeo.
+                Ative esta opção caso o evento também possua vídeo.
             </p>
         </div>
 
@@ -928,15 +1224,70 @@ requestAccessToken();
 
             </button>
 
-            <button
-                type="button"
-            >
+           <button
+    type="button"
+    onClick={async () => {
 
-                <HardDrive size={28} />
+        try {
 
-                <span>Google Drive</span>
+            await initializeGoogleAuth(
+                (result) => {
 
-            </button>
+                    setAlbum((current) => ({
+
+                        ...current,
+
+                        videos: [
+
+                            ...current.videos,
+
+                            {
+
+                                id: crypto.randomUUID(),
+
+                                preview:
+                                    result.storage.url,
+
+                                name:
+                                    result.file.name,
+
+                                size: Number(
+                                    result.file.size
+                                ),
+
+                                driveId:
+                                    result.file.id,
+
+                                storagePath:
+                                    result.storage.path,
+
+                                source: "drive",
+
+                            },
+
+                        ],
+
+                    }));
+
+                }
+            );
+
+            requestAccessToken();
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    }}
+>
+
+    <HardDrive size={28} />
+
+    <span>Google Drive</span>
+
+</button>
 
         </div>
 
@@ -1011,7 +1362,7 @@ requestAccessToken();
             <h3>Categorias</h3>
 
             <p>
-                Organize as fotografias do álbum em categorias.
+               Organize as fotografias do evento em categorias.
             </p>
 
         </div>
@@ -1138,13 +1489,82 @@ requestAccessToken();
 
 </button>
 
-        <button>
+       <button
+    type="button"
+    onClick={async () => {
 
-            <HardDrive size={28} />
+        try {
 
-            <span>Google Drive</span>
+            await initializeGoogleAuth(
+                (result) => {
 
-        </button>
+                    setAlbum((current) => ({
+
+                        ...current,
+
+                        categories: current.categories.map((item) =>
+
+                            item.id === category.id
+                                ? {
+
+                                    ...item,
+
+                                    photos: [
+
+                                        ...item.photos,
+
+                                        {
+
+                                            id: crypto.randomUUID(),
+
+                                            preview:
+                                                result.storage.url,
+
+                                            name:
+                                                result.file.name,
+
+                                            size: Number(
+                                                result.file.size
+                                            ),
+
+                                            driveId:
+                                                result.file.id,
+
+                                            storagePath:
+                                                result.storage.path,
+
+                                            source: "drive",
+
+                                        },
+
+                                    ],
+
+                                }
+                                : item
+
+                        ),
+
+                    }));
+
+                }
+            );
+
+            requestAccessToken();
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    }}
+>
+
+    <HardDrive size={28} />
+
+    <span>Google Drive</span>
+
+</button>
 
     </div>
 
@@ -1267,7 +1687,7 @@ requestAccessToken();
 
                     <div className="album-form__field">
 
-    <label>Capa do Álbum</label>
+    <label>Capa do Evento</label>
 
      <button
         type="button"
@@ -1325,7 +1745,7 @@ requestAccessToken();
 
                 <button
                     className="album-form__cancel"
-                    onClick={() => navigate("/albums")}
+                    onClick={() => navigate("/feed")}
                 >
 
                     Cancelar
@@ -1343,12 +1763,45 @@ requestAccessToken();
 
 {isSaving
     ? "Criando..."
-    : "Criar Álbum"}
+    : "Criar Evento"}
 
                 </button>
 
             </div>
 
+
+
+<SaveToDriveModal
+    open={showSaveToDriveModal}
+    onCancel={() => {
+
+        setShowSaveToDriveModal(false);
+
+    }}
+    onNo={async () => {
+
+        setShowSaveToDriveModal(false);
+
+        await createAlbum(false);
+
+    }}
+    onYes={async () => {
+
+        setShowSaveToDriveModal(false);
+
+        await createAlbum(true);
+
+    }}
+/>
+
+
+<LoadingModal
+    open={loadingModal.open}
+    progress={loadingModal.progress}
+    title={loadingModal.title}
+    message={loadingModal.message}
+    success={loadingModal.success}
+/>
             
 
         </section>

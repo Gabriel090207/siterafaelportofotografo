@@ -11,10 +11,14 @@ import ClientForm from "../pages/ClientForm/ClientForm";
 
 import Albums from "../pages/Albums/Albums";
 import AlbumForm from "../pages/AlbumForm/AlbumForm";
+import EditAlbum from "../pages/EditAlbum/EditAlbum";
 
 import Feed from "../pages/Feed/Feed";
 import FeedForm from "../pages/FeedForm/FeedForm";
 import FeedCategory from "../pages/FeedCategory/FeedCategory";
+import FeedHidden from "../pages/FeedHidden/FeedHidden";
+import EditFeed from "../pages/EditFeed/EditFeed";
+
 
 const AppRoutes = () => {
     return (
@@ -78,12 +82,29 @@ const AppRoutes = () => {
 
 
             <Route
-                path="/feed/:category"
+                path="/feed/:categoryId/edit/:albumId"
+                element={
+                    <AdminLayout>
+                        <EditFeed />
+                    </AdminLayout>
+                }
+            />
+
+
+            <Route
+                path="/feed/:categoryId"
                 element={
                     <AdminLayout>
                         <FeedCategory />
                     </AdminLayout>
                 }
+            />
+
+            <Route
+                path="/feed/hidden"
+                element={<AdminLayout>
+                        <FeedHidden />
+                    </AdminLayout>}
             />
 
             {/* Futuro módulo Álbum do Cliente */}
@@ -102,6 +123,16 @@ const AppRoutes = () => {
                 element={
                     <AdminLayout>
                         <AlbumForm />
+                    </AdminLayout>
+                }
+            />
+
+
+            <Route
+                path="/albums/:id/edit"
+                element={
+                    <AdminLayout>
+                        <EditAlbum />
                     </AdminLayout>
                 }
             />

@@ -92,7 +92,7 @@ const Sidebar = ({
 
     <Images size={20} />
 
-    <span>Feed</span>
+    <span>Eventos</span>
 
 </NavLink>
 

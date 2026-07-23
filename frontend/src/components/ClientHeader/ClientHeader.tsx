@@ -110,23 +110,28 @@ const ClientHeader = () => {
 
                         <span>
 
-                            Favoritos
+                            Seleções
 
                         </span>
 
                     </Link>
 
-                    <Link to="#">
+                    <Link
+    to="/cliente/downloads"
+    className={
+        location.pathname === "/cliente/downloads"
+            ? "active"
+            : ""
+    }
+>
+    <Download size={18} />
 
-                        <Download size={18} />
+    <span>
+        Downloads
+    </span>
+</Link>
 
-                        <span>
-
-                            Downloads
-
-                        </span>
-
-                    </Link>
+                   
 
                 </nav>
 

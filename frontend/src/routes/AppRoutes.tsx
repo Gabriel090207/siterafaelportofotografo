@@ -11,6 +11,8 @@ import Contact from "../pages/Contact/Contact";
 
 import ClientLogin from "../pages/ClientLogin/ClientLogin";
 import ClientDashboard from "../pages/ClientDashboard/ClientDashboard";
+import ClientAlbum from "../pages/ClientAlbum/ClientAlbum";
+import ClientDownloads from "../pages/ClientDownloads/ClientDownloads";
 
 export function AppRoutes() {
 
@@ -59,6 +61,16 @@ export function AppRoutes() {
 <Route
     path="/cliente/dashboard"
     element={<ClientDashboard />}
+/>
+
+<Route
+    path="/cliente/album/:albumId"
+    element={<ClientAlbum />}
+/>
+
+<Route
+    path="/cliente/downloads"
+    element={<ClientDownloads />}
 />
 
     </Routes>

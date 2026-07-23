@@ -21,6 +21,8 @@ export interface AlbumPhoto {
 
     driveId?: string;
 
+    driveFileId?: string;
+
     storagePath?: string;
 
     source: AlbumPhotoSource;
@@ -40,6 +42,8 @@ export interface AlbumVideo {
     file?: File;
 
     driveId?: string;
+
+    driveFileId?: string;
 
     storagePath?: string;
 
@@ -61,7 +65,7 @@ export interface Album {
 
     id?: string;
 
-    
+    driveFolderId?: string;
 
     name: string;
 

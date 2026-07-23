@@ -18,7 +18,7 @@ import ClientHeader from "../../components/ClientHeader/ClientHeader";
 
 import { subscribeClientAlbums } from "../../firebase/albums";
 
-function ClientDashboard() {
+function ClientDashboard() { 
 
     const client = JSON.parse(
         localStorage.getItem("client") ?? "{}"
@@ -169,7 +169,7 @@ function ClientDashboard() {
                                             </span>
 
                                             <Link
-                                                to={`/evento/${album.id}`}
+                                                to={`/cliente/album/${album.id}`}
                                             >
 
                                                 Ver Álbum

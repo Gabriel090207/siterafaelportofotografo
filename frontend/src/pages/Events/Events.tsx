@@ -8,175 +8,209 @@ import {
 
 import { Link } from "react-router-dom";
 
-import { subscribeAlbums } from "../../firebase/albums";
-
+import { subscribeAlbums } from "../../firebase/feed";
 
 function Events() {
 
-const [albums, setAlbums] = useState<any[]>([]);
+    const [albums, setAlbums] = useState<any[]>([]);
 
-useEffect(() => {
+    useEffect(() => {
 
-    const unsubscribe = subscribeAlbums(setAlbums);
+        const unsubscribe =
+            subscribeAlbums(setAlbums);
 
-    return unsubscribe;
+        return unsubscribe;
 
-}, []);
+    }, []);
 
-const events = useMemo(() => {
+    const events = useMemo(() => {
 
-    return albums.filter(
+        return albums.filter(
+            album => album.status === "published"
+        );
 
-        album => album.status === "published"
+    }, [albums]);
 
-    );
+    const featuredAlbum = events[0];
 
-}, [albums]);
+    const otherAlbums = events.slice(1);
 
-const featuredAlbum = events[0];
+    return (
 
-const otherAlbums = events.slice(1);
+        <main className="events">
 
-console.log(events);
+            <div className="events-container">
 
-  return (
-    <main className="events">
-      <div className="events-container">
+                <section className="events-hero">
 
-        <section className="events-hero">
+                    <div className="events-eyebrow">
 
-          <div className="events-eyebrow">
-            <span></span>
-            <p>PORTFÓLIO DE EVENTOS</p>
-          </div>
+                        <span></span>
 
-         <div className="events-hero-content">
+                        <p>
 
-  <h1>
-  {featuredAlbum?.category ?? "Eventos"}
-</h1>
+                            PORTFÓLIO DE EVENTOS
 
-  <p className="events-description">
-    Casamentos, 15 anos, ensaios, formaturas e eventos
-    corporativos registrados com emoção, estética e
-    cuidado em cada detalhe.
-  </p>
+                        </p>
 
+                    </div>
 
-</div>
+                    <div className="events-hero-content">
 
-        </section>
+                        <h1>
 
-       
+                            {featuredAlbum
+                                ? featuredAlbum.category
+                                : "Eventos"}
 
-<section className="featured-event">
+                        </h1>
 
-  <div className="featured-event-card">
+                        <p className="events-description">
 
-    <img
-  src={featuredAlbum?.coverPhoto?.preview}
-  alt={featuredAlbum?.name}
-/>
+                            Casamentos, 15 anos, ensaios,
+                            formaturas e eventos corporativos
+                            registrados com emoção, estética
+                            e cuidado em cada detalhe.
 
-    <div className="featured-event-overlay">
+                        </p>
 
-     <span className="featured-event-label">
-  {featuredAlbum?.category ?? "Evento em Destaque"}
-</span>
+                    </div>
 
-      <h2>
-  {featuredAlbum?.name}
-</h2>
+                </section>
 
-      <p>
-  {featuredAlbum?.description}
-</p>
+                {featuredAlbum && (
 
-     <Link
-  to={`/evento/${featuredAlbum?.id}`}
-  className="featured-event-button"
->
-  Ver Álbum
-</Link>
+                    <section className="featured-event">
 
-    </div>
+                        <div className="featured-event-card">
 
-  </div>
+                            <img
+                                src={
+                                    featuredAlbum.coverPhoto?.preview
+                                }
+                                alt={
+                                    featuredAlbum.name
+                                }
+                            />
 
-</section>
+                            <div className="featured-event-overlay">
 
-<section className="events-grid-section">
+                                <span className="featured-event-label">
 
- 
+                                    {featuredAlbum.category}
 
-  <div className="events-grid">
+                                </span>
 
-   {otherAlbums.map((album) => (
+                                <h2>
 
-    <article
-        key={album.id}
-        className="event-card"
-    >
+                                    {featuredAlbum.name}
 
-        <div className="event-card-header">
+                                </h2>
 
-            <div>
+                                <p>
 
-                <h3>
+                                    {featuredAlbum.description}
 
-                    {album.name}
+                                </p>
 
-                </h3>
+                                <Link
+                                    to={`/evento/${featuredAlbum.id}`}
+                                    className="featured-event-button"
+                                >
 
-                <span>
+                                    Ver Álbum
 
-                    {album.category} • {album.clientName}
+                                </Link>
 
-                </span>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+                )}
+
+                <section className="events-grid-section">
+
+                    <div className="events-grid">
+
+                        {otherAlbums.map((album) => (
+
+                            <article
+                                key={album.id}
+                                className="event-card"
+                            >
+
+                                <div className="event-card-header">
+
+                                    <div>
+
+                                        <h3>
+
+                                            {album.name}
+
+                                        </h3>
+
+                                        <span>
+
+                                            {album.category}
+
+                                            {" • "}
+
+                                            {album.clientName}
+
+                                        </span>
+
+                                    </div>
+
+                                    <Link
+                                        to={`/evento/${album.id}`}
+                                        className="event-card-button"
+                                    >
+
+                                        Ver Álbum
+
+                                    </Link>
+
+                                </div>
+
+                                <div className="event-card-image">
+
+                                    <img
+                                        src={
+                                            album.coverPhoto?.preview
+                                        }
+                                        alt={
+                                            album.name
+                                        }
+                                    />
+
+                                </div>
+
+                                <div className="event-card-content">
+
+                                    <p>
+
+                                        {album.description}
+
+                                    </p>
+
+                                </div>
+
+                            </article>
+
+                        ))}
+
+                    </div>
+
+                </section>
 
             </div>
 
-            <Link
-                to={`/evento/${album.id}`}
-                className="event-card-button"
-            >
+        </main>
 
-                Ver Álbum
+    );
 
-            </Link>
-
-        </div>
-
-        <div className="event-card-image">
-
-            <img
-                src={album.coverPhoto?.preview}
-                alt={album.name}
-            />
-
-        </div>
-
-        <div className="event-card-content">
-
-            <p>
-
-                {album.description}
-
-            </p>
-
-        </div>
-
-    </article>
-
-))}
-
-  </div>
-
-</section>
-
-      </div>
-    </main>
-  );
 }
 
 export default Events;

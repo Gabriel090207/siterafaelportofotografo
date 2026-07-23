@@ -11,6 +11,10 @@ import logo from "../../../../assets/images/logo/logo.png";
 
 import { useAuth } from "../../../../contexts/AuthContext";
 
+import {
+    useToast,
+} from "../../../../contexts/ToastContext";
+
 interface HeaderProps {
     sidebarOpen: boolean;
     onToggleSidebar: () => void;
@@ -22,6 +26,8 @@ const Header = ({
 
     const { user, adminData, logout } = useAuth();
 
+    const { showToast } = useToast();
+
     const name =
         adminData?.name ||
         user?.displayName ||
@@ -29,6 +35,31 @@ const Header = ({
         "Administrador";
 
     const initial = name.charAt(0).toUpperCase();
+
+
+    const handleLogout = async () => {
+
+    try {
+
+        await logout();
+
+
+        showToast(
+            "Sessão encerrada com sucesso.",
+            "info"
+        );
+
+
+    } catch (error) {
+
+        showToast(
+            "Não foi possível sair da conta.",
+            "error"
+        );
+
+    }
+
+};
 
     return (
 
@@ -89,9 +120,9 @@ const Header = ({
                 </span>
 
                 <button
-                    onClick={logout}
-                    className="header__logout"
-                >
+    onClick={handleLogout}
+    className="header__logout"
+>
 
                     <LogOut size={16} />
 

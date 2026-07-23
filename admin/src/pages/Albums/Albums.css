@@ -10,8 +10,15 @@
 .albums__header {
 
     display: flex;
-    justify-content: space-between;
     align-items: center;
+
+    gap: 24px;
+
+}
+
+.albums__header > div {
+
+    flex: 1;
 
 }
 
@@ -147,6 +154,9 @@
 
     transition: var(--transition-default);
 
+    display: flex;
+    flex-direction: column;
+
 }
 
 .album-card:hover {
@@ -230,6 +240,8 @@
 
     gap: 8px;
 
+    flex: 1;
+
 }
 
 .album-card__content h3 {
@@ -271,6 +283,8 @@
     justify-content: space-between;
 
     padding: 0 22px 22px;
+
+    margin-top: auto;
 
 }
 
@@ -380,7 +394,7 @@
 
 }
 
-@media (max-width:900px){
+@media (max-width: 768px){
 
     .albums__header{
 

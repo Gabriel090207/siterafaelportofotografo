@@ -252,77 +252,219 @@
 
 }
 
+
+/* ===================================================
+   RESPONSIVIDADE
+=================================================== */
+
 @media (max-width:1100px){
+
+    .client-header{
+
+        height:90px;
+
+    }
 
     .client-header__container{
 
-        gap: 20px;
+        width:95%;
+
+        gap:22px;
+
+    }
+
+    .client-header__brand h2{
+
+        font-size:1.3rem;
 
     }
 
     .client-header__nav{
 
-        gap: 4px;
+        gap:6px;
 
     }
 
     .client-header__nav a{
 
-        padding: 0 14px;
+        padding:0 14px;
+
+        font-size:.88rem;
 
     }
 
 }
 
-@media (max-width:900px){
+@media (max-width:768px){
 
     .client-header{
 
-        height: auto;
-
-        position: relative;
+        height:90px;
 
     }
 
     .client-header__container{
 
-        width: 92%;
+        width:92%;
 
-        padding: 18px 0;
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        height: auto;
-
-        gap: 22px;
+        gap:16px;
 
     }
+
+    /* Esconde apenas o menu */
 
     .client-header__nav{
 
-        width: 100%;
-
-        justify-content: flex-start;
-
-        overflow-x: auto;
-
-        padding-bottom: 6px;
+        display:none;
 
     }
 
-    .client-header__nav::-webkit-scrollbar{
+    .client-header__brand{
 
-        display: none;
+        flex:1;
+
+        gap:12px;
+
+    }
+
+    .client-header__logo{
+
+        width:46px;
+
+        height:46px;
+
+        border-radius:16px;
+
+    }
+
+    /* Mantém Área do Cliente */
+
+    .client-header__brand span{
+
+        font-size:.62rem;
+
+        letter-spacing:.14em;
+
+        margin-bottom:2px;
+
+    }
+
+    .client-header__brand h2{
+
+        font-size:1.1rem;
 
     }
 
     .client-header__right{
 
-        width: 100%;
+        gap:12px;
 
-        justify-content: space-between;
+    }
+
+    .client-header__user span{
+
+        font-size:.68rem;
+
+    }
+
+    .client-header__user strong{
+
+        font-size:.88rem;
+
+    }
+
+    .client-header__right button{
+
+        width:42px;
+
+        height:42px;
+
+        border-radius:12px;
+
+    }
+
+}
+
+@media (max-width:520px){
+
+    .client-header{
+
+        height:82px;
+
+    }
+
+    .client-header__container{
+
+        width:92%;
+
+        gap:12px;
+
+    }
+
+    .client-header__brand{
+
+        flex:1;
+
+        gap:10px;
+
+    }
+
+    .client-header__logo{
+
+        width:42px;
+
+        height:42px;
+
+        border-radius:14px;
+
+    }
+
+    /* Continua mostrando Área do Cliente */
+
+    .client-header__brand span{
+
+        display:block;
+
+        font-size:.58rem;
+
+        letter-spacing:.12em;
+
+    }
+
+    .client-header__brand h2{
+
+        font-size:.95rem;
+
+    }
+
+    .client-header__right{
+
+        gap:10px;
+
+    }
+
+
+    .client-header__user strong{
+
+        font-size:.82rem;
+
+        max-width:90px;
+
+        overflow:hidden;
+
+        white-space:nowrap;
+
+        text-overflow:ellipsis;
+
+    }
+
+    .client-header__right button{
+
+        width:40px;
+
+        height:40px;
+
+        border-radius:12px;
 
     }
 

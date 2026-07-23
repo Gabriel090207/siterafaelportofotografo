@@ -16,7 +16,32 @@ import { subscribeAlbums } from "../../services/firebase/albumClient";
 
 import type { AlbumClient } from "../../types/albumClient";
 
+
+import DeleteConfirmModal from "../../components/DeleteConfirmModal/DeleteConfirmModal";
+
+import {
+    deleteFolder,
+} from "../../services/firebase/storageService";
+
+import {
+    deleteAlbum,
+} from "../../services/firebase/albumClient";
+
+import {
+    deleteDriveFolder,
+} from "../../services/api/google";
+
+import {
+    useToast,
+} from "../../contexts/ToastContext";
+
+import {
+    getErrorMessage,
+} from "../../utils/errorMessage";
+
 const Albums = () => {
+
+    const { showToast } = useToast();
 
     const navigate = useNavigate();
 
@@ -25,6 +50,13 @@ const Albums = () => {
 
     const [search, setSearch] =
         useState("");
+
+
+    const [showDeleteModal, setShowDeleteModal] =
+    useState(false);
+
+const [albumToDelete, setAlbumToDelete] =
+    useState<AlbumClient | null>(null);
 
     useEffect(() => {
 
@@ -53,6 +85,69 @@ const Albums = () => {
         );
 
     }, [albums, search]);
+
+
+
+    const handleDeleteAlbum = async () => {
+
+    if (!albumToDelete) return;
+
+    try {
+
+        const albumFolder =
+            albumToDelete.name
+                .trim()
+                .replace(/[\\/:*?"<>|]/g, "-");
+
+
+        // Storage
+        await deleteFolder(
+            `AlbumClient/${albumToDelete.clientName}/${albumFolder}`
+        );
+
+
+        // Drive
+        if (albumToDelete.driveFolderId) {
+
+            await deleteDriveFolder({
+
+                folderId: albumToDelete.driveFolderId,
+
+            });
+
+        }
+
+
+        // Firestore
+        await deleteAlbum(
+            albumToDelete.id!
+            
+        );
+
+        showToast(
+    "Álbum removido com sucesso!",
+    "success"
+);
+
+
+    } catch (error) {
+
+    console.error(error);
+
+    showToast(
+        getErrorMessage(error),
+        "error"
+    );
+
+} finally {
+
+        setShowDeleteModal(false);
+
+        setAlbumToDelete(null);
+
+    }
+
+};
 
     return (
 
@@ -120,7 +215,19 @@ const Albums = () => {
 
                 ) : (
 
-                    filteredAlbums.map((album) => (
+                   filteredAlbums.map((album) => {
+
+    const totalPhotos =
+        (album.watermarkedPhotos?.length ?? 0) +
+        (album.highQualityPhotos?.length ?? 0);
+
+
+    const totalVideos =
+        (album.watermarkedVideos?.length ?? 0) +
+        (album.highQualityVideos?.length ?? 0);
+
+
+    return (
 
                         <div
                             key={album.id}
@@ -164,15 +271,19 @@ const Albums = () => {
 
                                 <span>
 
-                                    {album.watermarkedPhotos.length} Foto{album.watermarkedPhotos.length !== 1 ? "s" : ""}
+                                  {totalPhotos} Foto{totalPhotos !== 1 ? "s" : ""}
 
-                                    {" • "}
+{" • "}
 
-                                    {album.watermarkedVideos.length} Vídeo{album.watermarkedVideos.length !== 1 ? "s" : ""}
+{totalVideos} Vídeo{totalVideos !== 1 ? "s" : ""}
 
                                 </span>
 
+                                
+
                             </div>
+
+                            
 
                             <div className="album-card__footer">
 
@@ -190,29 +301,64 @@ const Albums = () => {
 
                                 <div className="album-card__actions">
 
-                                    <button>
+                                    <button
+    onClick={() =>
+        navigate(`/albums/${album.id}/edit`)
+    }
+>
 
-                                        <Pencil size={18} />
+    <Pencil size={18} />
 
-                                    </button>
+</button>
 
-                                    <button>
+                                   <button
+    onClick={() => {
 
-                                        <Trash2 size={18} />
+        setAlbumToDelete(album);
 
-                                    </button>
+        setShowDeleteModal(true);
+
+    }}
+>
+
+    <Trash2 size={18} />
+
+</button>
 
                                 </div>
 
+                                
+
                             </div>
 
-                        </div>
+                            
 
-                    ))
+                                                </div>
+
+                    );
+
+                })
 
                 )}
 
+
+                
+
             </div>
+
+            <DeleteConfirmModal
+    open={showDeleteModal}
+    title="Excluir álbum"
+    message={`Deseja realmente excluir "${albumToDelete?.name}"? Esta ação removerá o álbum e todos os arquivos armazenados.`}
+    onCancel={() => {
+
+        setShowDeleteModal(false);
+
+        setAlbumToDelete(null);
+
+    }}
+    onConfirm={handleDeleteAlbum}
+/>
 
         </section>
 

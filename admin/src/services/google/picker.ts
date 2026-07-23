@@ -47,7 +47,7 @@ const loadScript = (src: string) => {
 
 export const loadGooglePicker = async () => {
 
-    console.log("2 - carregando scripts");
+    
 
     await Promise.all([
 
@@ -56,14 +56,14 @@ export const loadGooglePicker = async () => {
 
     ]);
 
-    console.log("3 - scripts carregados");
-
-    console.log("google", window.google);
-    console.log("gapi", window.gapi);
+   
 
 };
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+const ACCOUNT_EMAIL =
+    import.meta.env.VITE_GOOGLE_ACCOUNT_EMAIL;
 
 const SCOPES =
     "https://www.googleapis.com/auth/drive.readonly";
@@ -71,17 +71,21 @@ const SCOPES =
 let tokenClient: any = null;
 let accessToken: string | null = null;
 
-let onPhotoImported:
-    | ((photo: any) => void)
+let onFileImported:
+    | ((file: any) => void)
     | null = null;
 
 export const initializeGoogleAuth = async (
     callback?: (photo: any) => void
 ) => {
 
-    onPhotoImported = callback ?? null;
+    onFileImported = callback ?? null;
 
-    console.log("1 - initializeGoogleAuth");
+if (tokenClient) {
+    return;
+}
+
+  
 
     await loadGooglePicker();
 
@@ -91,20 +95,18 @@ export const initializeGoogleAuth = async (
 
         scope: SCOPES,
 
+        auto_select: true,
+
         callback: (response: any) => {
 
             accessToken = response.access_token;
 
-            console.log("token recebido");
-
-            console.log("carregando picker");
 
             window.gapi.load("picker", {
 
                 callback: () => {
 
-                    console.log("picker carregado");
-                    console.log(window.google.picker);
+                    
 
                     openGooglePicker();
 
@@ -118,6 +120,10 @@ export const initializeGoogleAuth = async (
 
 };
 
+
+
+let hasAuthorized = false;
+
 export const requestAccessToken = () => {
 
     if (!tokenClient) {
@@ -130,106 +136,117 @@ export const requestAccessToken = () => {
 
     tokenClient.requestAccessToken({
 
-        prompt: "consent",
+    prompt: hasAuthorized ? "" : "consent",
 
-    });
+    login_hint: ACCOUNT_EMAIL,
+
+});
+
+    hasAuthorized = true;
 
 };
 
+
 export const openGooglePicker = () => {
 
-    console.log("abrindo picker");
-
-    console.log(
-        "API KEY:",
-        import.meta.env.VITE_GOOGLE_API_KEY
-    );
-
-    console.log(
-        "CLIENT ID:",
-        import.meta.env.VITE_GOOGLE_CLIENT_ID
-    );
-
-    console.log(
-        "PROJECT:",
-        import.meta.env.VITE_GOOGLE_PROJECT_NUMBER
-    );
+   
 
     if (!accessToken) {
-
         throw new Error(
             "Access Token não encontrado."
         );
-
     }
 
-    const view = new window.google.picker.DocsView()
+    const view =
+        new window.google.picker.DocsView()
+            .setIncludeFolders(true)
+            .setSelectFolderEnabled(false)
+            .setMimeTypes(
+                "image/jpeg,image/png,image/webp,image/heic,image/heif"
+            );
 
-        .setIncludeFolders(true)
+    const picker =
+        new window.google.picker.PickerBuilder()
 
-        .setSelectFolderEnabled(false)
+            .addView(view)
 
-        .setMimeTypes(
-            "image/jpeg,image/png,image/webp,image/heic,image/heif"
-        );
+            // Permite selecionar vários arquivos
+            .enableFeature(
+                window.google.picker.Feature
+                    .MULTISELECT_ENABLED
+            )
 
-    const picker = new window.google.picker.PickerBuilder()
+            .setOAuthToken(accessToken)
 
-        .addView(view)
+            .setDeveloperKey(
+                import.meta.env.VITE_GOOGLE_API_KEY
+            )
 
-        .setOAuthToken(accessToken)
+            .setAppId(
+                import.meta.env
+                    .VITE_GOOGLE_PROJECT_NUMBER
+            )
 
-        .setDeveloperKey(
-            import.meta.env.VITE_GOOGLE_API_KEY
-        )
+            .setCallback(async (data: any) => {
 
-        .setAppId(
-            import.meta.env.VITE_GOOGLE_PROJECT_NUMBER
-        )
+               
+                if (
+                    data.action !==
+                    window.google.picker.Action.PICKED
+                ) {
+                    return;
+                }
 
-        .setCallback(async (data: any) => {
+                const files = data.docs ?? [];
 
-            console.log(data);
+                if (files.length === 0) {
+                    return;
+                }
 
-            if (
-                data.action !==
-                window.google.picker.Action.PICKED
-            ) {
-                return;
-            }
 
-            const file = data.docs[0];
+                /*
+                 * Importa um arquivo por vez.
+                 * Isso evita muitas requisições simultâneas
+                 * para o backend e para o Firebase.
+                 */
+                for (const file of files) {
 
-            console.log(file);
+                  
 
-            console.log("ID:", file.id);
-            console.log("Nome:", file.name);
-            console.log("URL:", file.url);
-            console.log("Mime:", file.mimeType);
+                    try {
 
-            try {
+                        const result =
+                            await importDriveFile({
 
-                const result = await importDriveFile({
+                                fileId: file.id,
 
-                    fileId: file.id,
-                    accessToken: accessToken!,
+                                accessToken:
+                                    accessToken!,
 
-                });
+                            });
 
-                console.log(result);
+                      
 
-                onPhotoImported?.(result);
+                        onFileImported?.(result);
 
-            } catch (error) {
+                    } catch (error) {
 
-                console.error(error);
+                        console.error(
+                            `Erro ao importar ${file.name}:`,
+                            error
+                        );
 
-            }
+                    }
 
-        })
+                }
 
-        .build();
+            })
+
+            .build();
 
     picker.setVisible(true);
 
 };
+
+
+export const getAccessToken = () => accessToken;

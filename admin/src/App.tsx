@@ -1,13 +1,31 @@
-import { AuthProvider } from "./contexts/AuthContext";
+import {
+    AuthProvider,
+} from "./contexts/AuthContext";
+
+import {
+    ToastProvider,
+} from "./contexts/ToastContext";
 
 import AppRoutes from "./routes/AppRoutes";
 
+
 function App() {
+
     return (
-        <AuthProvider>
-            <AppRoutes />
-        </AuthProvider>
+
+        <ToastProvider>
+
+            <AuthProvider>
+
+                <AppRoutes />
+
+            </AuthProvider>
+
+        </ToastProvider>
+
     );
+
 }
+
 
 export default App;

@@ -20,6 +20,8 @@ export interface AlbumClientPhoto {
 
     driveId?: string;
 
+    driveFileId?: string;
+
     storagePath?: string;
 
     source: AlbumClientFileSource;
@@ -37,6 +39,8 @@ export interface AlbumClientVideo {
     file?: File;
 
     driveId?: string;
+
+    driveFileId?: string;
 
     storagePath?: string;
 
@@ -77,4 +81,6 @@ export interface AlbumClient {
     createdAt?: Date;
 
     updatedAt?: Date;
+
+    driveFolderId?: string;
 }

@@ -7,6 +7,14 @@ import { Lock, Mail } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
+import {
+    useToast,
+} from "../../contexts/ToastContext";
+
+import {
+    getErrorMessage,
+} from "../../utils/errorMessage";
+
 import logo from "../../assets/images/logo/logo.png";
 import loginBg from "../../assets/images/login/login.png";
 
@@ -17,6 +25,8 @@ const [password, setPassword] = useState("");
 
 const { login } = useAuth();
 
+const { showToast } = useToast();
+
 const navigate = useNavigate();
 
 const handleLogin = async (
@@ -25,17 +35,30 @@ const handleLogin = async (
 
     event.preventDefault();
 
-    try {
+   try {
 
-        await login(email, password);
+    await login(email, password);
 
-        navigate("/dashboard");
 
-    } catch (error) {
+    showToast(
+        "Login realizado com sucesso!",
+        "success"
+    );
 
-        console.error(error);
 
-    }
+    navigate("/dashboard");
+
+
+} catch (error) {
+
+    console.error(error);
+
+    showToast(
+        getErrorMessage(error),
+        "error"
+    );
+
+}
 
 };
 

@@ -4,6 +4,7 @@ import {
     orderBy,
     query,
     where,
+    doc,
 } from "firebase/firestore";
 
 import db from "./firestore";
@@ -71,5 +72,39 @@ export const subscribeClientAlbums = (
         callback(albums);
 
     });
+
+};
+
+
+export const subscribeAlbum = (
+    albumId: string,
+    callback: (album: any | null) => void
+) => {
+
+    return onSnapshot(
+
+        doc(db, "AlbumClient", albumId),
+
+        (snapshot) => {
+
+            if (!snapshot.exists()) {
+
+                callback(null);
+
+                return;
+
+            }
+
+            callback({
+
+                id: snapshot.id,
+
+                ...snapshot.data(),
+
+            });
+
+        }
+
+    );
 
 };

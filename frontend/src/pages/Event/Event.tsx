@@ -52,25 +52,25 @@ useEffect(() => {
 
     const unsubscribe = onSnapshot(
 
-        doc(db, "albums", id),
+    doc(db, "AlbumFeed", id),
 
-        (snapshot) => {
+    (snapshot) => {
 
-            if (snapshot.exists()) {
+        if (snapshot.exists()) {
 
-                setAlbum({
+            setAlbum({
 
-                    id: snapshot.id,
+                id: snapshot.id,
 
-                    ...snapshot.data(),
+                ...snapshot.data(),
 
-                });
-
-            }
+            });
 
         }
 
-    );
+    }
+
+);
 
     return unsubscribe;
 

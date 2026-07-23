@@ -2,12 +2,17 @@
 
     min-height:100vh;
 
-    padding:150px 70px 40px;
+    padding:150px 70px 60px;
 
-   
-    background: #fcfbf9;
+    background:#fcfbf9;
 
-    background-size:22px 22px;
+    background-image:
+        radial-gradient(
+            rgba(0,0,0,.04) 1px,
+            transparent 1px
+        );
+
+    background-size:18px 18px;
 
 }
 

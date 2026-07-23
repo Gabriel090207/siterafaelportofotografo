@@ -35,6 +35,7 @@ import { useNavigate } from "react-router-dom";
 import {
     initializeGoogleAuth,
     requestAccessToken,
+    getAccessToken,
 } from "../../services/google/picker";
 
 
@@ -43,6 +44,23 @@ import {
 } from "../../services/firebase/clients";
 
 import type { Client } from "../../types/client";
+
+import {
+    copyDriveFile,
+    uploadAlbumFileToDrive,
+    copyPickerAlbumFileToDrive,
+} from "../../services/api/google";
+
+import LoadingModal from "../../components/LoadingModal/LoadingModal";
+import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
+
+import {
+    useToast,
+} from "../../contexts/ToastContext";
+
+import {
+    getErrorMessage,
+} from "../../utils/errorMessage";
 
 const STORAGE_KEY = "album-form";
 
@@ -63,6 +81,7 @@ useEffect(() => {
 
 const navigate = useNavigate();
 
+const { showToast } = useToast();
 
 const [album, setAlbum] = useState<AlbumClient>({
 
@@ -109,23 +128,224 @@ const highQualityVideoInputRef =
 
 const [isSaving, setIsSaving] = useState(false);
 
+const [showSaveToDriveModal, setShowSaveToDriveModal] =
+    useState(false);
+
+const [loadingModal, setLoadingModal] =
+    useState({
+
+        open: false,
+
+        success: false,
+
+        progress: 0,
+
+        title: "Criando álbum",
+
+        message: "Preparando...",
+
+    });
+
+const updateLoading = (
+    progress: number,
+    message: string,
+) => {
+
+    setLoadingModal((current) => ({
+
+        ...current,
+
+        progress,
+
+        message,
+
+    }));
+
+};
+
+const processAlbumFile = async (
+    item: AlbumClientPhoto | AlbumClientVideo,
+    albumFolder: string,
+    destinationFolder: string,
+    saveToDrive: boolean,
+    setDriveFolderId: (id: string) => void,
+) => {
+
+    if (item.file) {
+
+    console.log("item.file:", item.file);
+    console.log("instanceof File:", item.file instanceof File);
+    console.log("constructor:", item.file.constructor?.name);
+
+    if (saveToDrive) {
 
 
+        console.log({
+    clientName: album.clientName,
+    albumName: album.name,
+    category: destinationFolder,
+});
 
-const handleCreateAlbum = async () => {
+        const driveResult =
+    await uploadAlbumFileToDrive({
+
+        file: item.file,
+
+        clientName: album.clientName,
+
+        albumName: album.name,
+
+        category: destinationFolder,
+
+    });
+
+setDriveFolderId(
+    driveResult.albumFolderId
+);
+
+item.driveFileId =
+    driveResult.driveFileId;
+
+    }
+
+    const result =
+       await uploadAlbumClientFile(
+    `${album.clientName}/${albumFolder}`,
+    `${destinationFolder}/${item.name}`,
+    item.file
+);
+
+    item.preview = result.url;
+
+    item.storagePath = result.storagePath;
+
+    delete item.file;
+
+    return;
+}
+
+
+if (
+    item.source === "drive" &&
+    item.storagePath &&
+    item.driveId
+) {
+
+    if (saveToDrive) {
+
+        const token = getAccessToken();
+
+        if (token) {
+
+            const driveResult =
+                await copyPickerAlbumFileToDrive({
+
+                    fileId: item.driveId,
+
+                    accessToken: token,
+
+                    clientName: album.clientName,
+
+                    albumName: album.name,
+
+                    category: destinationFolder,
+
+                });
+
+            item.driveFileId =
+                driveResult.file.id;
+
+        }
+
+    }
+
+    const result =
+        await copyDriveFile({
+
+            sourcePath: item.storagePath,
+
+            destinationPath:
+    `AlbumClient/${album.clientName}/${albumFolder}/${destinationFolder}/${item.name}`,
+
+        });
+
+    item.preview = result.url;
+
+    item.storagePath = result.path;
+
+}
+
+};
+
+
+const createAlbum = async (
+    saveToDrive: boolean
+) => {
 
     if (isSaving) return;
 
     setIsSaving(true);
+
+    setLoadingModal({
+
+    open: true,
+
+    success: false,
+
+    progress: 0,
+
+    title: "Criando álbum",
+
+    message: "Preparando arquivos...",
+
+});
+
+    updateLoading(
+    5,
+    "Criando álbum..."
+);
 
     try {
 
         // 1 - cria documento e obtém o id
 
         const albumId =
+        
             await createAlbumDocument();
 
-        const albumToSave = structuredClone(album);
+            updateLoading(
+    15,
+    "Documento criado."
+);
+
+        const albumToSave: AlbumClient = {
+
+    ...album,
+
+    coverPhoto: album.coverPhoto
+        ? { ...album.coverPhoto }
+        : undefined,
+
+    watermarkedPhotos: album.watermarkedPhotos.map(photo => ({
+        ...photo,
+    })),
+
+    highQualityPhotos: album.highQualityPhotos.map(photo => ({
+        ...photo,
+    })),
+
+    watermarkedVideos: album.watermarkedVideos.map(video => ({
+        ...video,
+    })),
+
+    highQualityVideos: album.highQualityVideos.map(video => ({
+        ...video,
+    })),
+
+};
+
+
+let driveFolderId: string | undefined;
 
         const albumFolder = albumToSave.name
             .trim()
@@ -137,10 +357,37 @@ const handleCreateAlbum = async () => {
             albumToSave.coverPhoto?.file
         ) {
 
+            if (saveToDrive) {
+
+   const driveResult =
+    await uploadAlbumFileToDrive({
+
+        file: albumToSave.coverPhoto.file,
+
+        clientName: album.clientName,
+
+        albumName: album.name,
+
+        category: "Capa",
+
+    });
+
+if (!driveFolderId) {
+
+    driveFolderId =
+        driveResult.albumFolderId;
+
+}
+
+albumToSave.coverPhoto!.driveFileId =
+    driveResult.driveFileId;
+
+}
+
             const result =
-                await uploadAlbumClientFile(
-    albumFolder,
-    "Cover/capa.jpg",
+               await uploadAlbumClientFile(
+    `${album.clientName}/${albumFolder}`,
+    "Capa/capa.jpg",
     albumToSave.coverPhoto.file
 );
 
@@ -158,113 +405,115 @@ const handleCreateAlbum = async () => {
 
         }
 
+        updateLoading(
+    25,
+    "Capa enviada."
+);
+
 
         // 3 - Fotos com marca d'água
 
+
+        updateLoading(
+    35,
+    "Enviando fotos com marca d'água..."
+);
+
 for (const photo of albumToSave.watermarkedPhotos) {
 
-    if (!photo.file) continue;
-
-    const result =
-        await uploadAlbumClientFile(
-
-            albumFolder,
-
-            `WatermarkedPhotos/${photo.name}`,
-
-            photo.file
-
-        );
-
-    photo.preview = result.url;
-
-    photo.storagePath = result.storagePath;
-
-    delete photo.file;
+  await processAlbumFile(
+    photo,
+    albumFolder,
+    "Fotos com Marca d'Água",
+    saveToDrive,
+    (id) => {
+        if (!driveFolderId) {
+            driveFolderId = id;
+        }
+    }
+);
 
 }
 
+
+updateLoading(
+    55,
+    "Enviando fotos em alta qualidade..."
+);
 
 // 4 - Fotos em alta qualidade
 
 for (const photo of albumToSave.highQualityPhotos) {
 
-    if (!photo.file) continue;
-
-    const result =
-        await uploadAlbumClientFile(
-
-            albumFolder,
-
-            `HighQualityPhotos/${photo.name}`,
-
-            photo.file
-
-        );
-
-    photo.preview = result.url;
-
-    photo.storagePath = result.storagePath;
-
-    delete photo.file;
+   await processAlbumFile(
+    photo,
+    albumFolder,
+    "Fotos em Alta Qualidade",
+    saveToDrive,
+    (id) => {
+        if (!driveFolderId) {
+            driveFolderId = id;
+        }
+    }
+);
 
 }
 
 
+updateLoading(
+    70,
+    "Enviando vídeos com marca d'água..."
+);
 // 5 - Vídeos com marca d'água
-
 for (const video of albumToSave.watermarkedVideos) {
 
-    if (!video.file) continue;
-
-    const result =
-        await uploadAlbumClientFile(
-
-            albumFolder,
-
-            `WatermarkedVideos/${video.name}`,
-
-            video.file
-
-        );
-
-    video.preview = result.url;
-
-    video.storagePath = result.storagePath;
-
-    delete video.file;
+    await processAlbumFile(
+    video,
+    albumFolder,
+    "Vídeos com Marca d'Água",
+    saveToDrive,
+    (id) => {
+        if (!driveFolderId) {
+            driveFolderId = id;
+        }
+    }
+);
 
 }
 
-
+updateLoading(
+    85,
+    "Enviando vídeos em alta qualidade..."
+);
 
 // 6 - Vídeos em alta qualidade
 
 for (const video of albumToSave.highQualityVideos) {
 
-    if (!video.file) continue;
-
-    const result =
-        await uploadAlbumClientFile(
-
-            albumFolder,
-
-            `HighQualityVideos/${video.name}`,
-
-            video.file
-
-        );
-
-    video.preview = result.url;
-
-    video.storagePath = result.storagePath;
-
-    delete video.file;
+    await processAlbumFile(
+    video,
+    albumFolder,
+    "Vídeos em Alta Qualidade",
+    saveToDrive,
+    (id) => {
+        if (!driveFolderId) {
+            driveFolderId = id;
+        }
+    }
+);
 
 }
 
-
         // 7 - salva documento final
+
+
+        if (driveFolderId) {
+
+    albumToSave.driveFolderId =
+        driveFolderId;
+
+}
+
 
         await updateAlbum(
 
@@ -274,15 +523,55 @@ for (const video of albumToSave.highQualityVideos) {
 
         );
 
+        setLoadingModal((current) => ({
+
+    ...current,
+
+    success: true,
+
+    progress: 100,
+
+    message: "Álbum criado com sucesso!",
+
+}));
+
         localStorage.removeItem(
             STORAGE_KEY
         );
 
-        navigate("/albums");
+        await new Promise((resolve) =>
+    setTimeout(resolve, 900)
+);
 
-    } catch (error) {
+setLoadingModal((current) => ({
+
+    ...current,
+
+    open: false,
+
+}));
+
+await new Promise((resolve) =>
+    setTimeout(resolve, 350)
+);
+
+showToast(
+    "Álbum criado com sucesso!",
+    "success"
+);
+
+navigate("/albums");
+
+       } catch (error) {
 
         console.error(error);
+
+
+        showToast(
+            getErrorMessage(error),
+            "error"
+        );
+
 
     } finally {
 
@@ -292,6 +581,110 @@ for (const video of albumToSave.highQualityVideos) {
 
 };
 
+const validateAlbum = () => {
+
+
+    if (!album.name.trim()) {
+
+        showToast(
+            "Informe o nome do álbum.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    if (!album.clientId) {
+
+        showToast(
+            "Selecione um cliente.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    if (!album.eventDate) {
+
+        showToast(
+            "Informe a data do evento.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    if (!album.eventTime) {
+
+        showToast(
+            "Informe o horário do evento.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    if (!album.eventLocation?.trim()) {
+
+        showToast(
+            "Informe o local do evento.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    if (!album.description.trim()) {
+
+        showToast(
+            "Informe a descrição do álbum.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    if (!album.coverPhoto) {
+
+        showToast(
+            "Selecione uma capa para o álbum.",
+            "warning"
+        );
+
+        return false;
+
+    }
+
+
+    return true;
+
+};
+
+const handleCreateAlbum = () => {
+
+
+    if (!validateAlbum()) {
+
+        return;
+
+    }
+
+
+    setShowSaveToDriveModal(true);
+
+};
 
 const handleCoverUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -453,6 +846,8 @@ const handleWatermarkedVideoUpload = (
 
 };
 
+
+/*
 useEffect(() => {
 
     const albumSaved = localStorage.getItem(
@@ -476,7 +871,7 @@ useEffect(() => {
     }
 
 }, []);
-
+*/
 
 const handleHighQualityVideoUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -519,26 +914,48 @@ const handleHighQualityVideoUpload = (
 
 };
 
+/*
 useEffect(() => {
 
-    const albumToSave = structuredClone(album);
+    const albumToStore: AlbumClient = {
 
-    if (albumToSave.coverPhoto) {
+        ...album,
 
-        delete albumToSave.coverPhoto.file;
+        // Arquivos escolhidos no computador não podem
+        // ser armazenados no localStorage.
+        coverPhoto: album.coverPhoto?.file
+            ? undefined
+            : album.coverPhoto,
 
-    }
+        watermarkedPhotos:
+            album.watermarkedPhotos.filter(
+                (photo) => !photo.file
+            ),
+
+        highQualityPhotos:
+            album.highQualityPhotos.filter(
+                (photo) => !photo.file
+            ),
+
+        watermarkedVideos:
+            album.watermarkedVideos.filter(
+                (video) => !video.file
+            ),
+
+        highQualityVideos:
+            album.highQualityVideos.filter(
+                (video) => !video.file
+            ),
+
+    };
 
     localStorage.setItem(
-
         STORAGE_KEY,
-
-        JSON.stringify(albumToSave)
-
+        JSON.stringify(albumToStore)
     );
 
 }, [album]);
-
+*/
 
     return (
 
@@ -594,64 +1011,48 @@ useEffect(() => {
                     </div>
 
                    
-
-<div
-    className="album-form__field"
-    style={{ gridColumn: "1 / -1" }}
->
-
-
-    <div
-    className="album-form__field"
-    style={{ gridColumn: "1 / -1" }}
->
+<div className="album-form__field">
 
     <label>Cliente</label>
 
-   <select
-    value={album.clientId}
-    onChange={(event) => {
+    <select
+        value={album.clientId}
+        onChange={(event) => {
 
-        const client = clients.find(
-            (item) =>
-                item.id === event.target.value
-        );
+            const client = clients.find(
+                (item) =>
+                    item.id === event.target.value
+            );
 
-        setAlbum((current) => ({
+            setAlbum((current) => ({
 
-            ...current,
+                ...current,
 
-            clientId: client?.id ?? "",
+                clientId: client?.id ?? "",
 
-            clientName: client?.name ?? "",
+                clientName: client?.name ?? "",
 
-        }));
+            }));
 
-    }}
->
+        }}
+    >
 
-    <option value="">
-
-        Selecione um cliente
-
-    </option>
-
-    {clients.map((client) => (
-
-        <option
-            key={client.id}
-            value={client.id}
-        >
-
-            {client.name}
-
+        <option value="">
+            Selecione um cliente
         </option>
 
-    ))}
+        {clients.map((client) => (
 
-</select>
+            <option
+                key={client.id}
+                value={client.id}
+            >
+                {client.name}
+            </option>
 
-</div>
+        ))}
+
+    </select>
 
 </div>
                     
@@ -818,9 +1219,14 @@ useEffect(() => {
 
                 } catch (error) {
 
-                    console.error(error);
+    console.error(error);
 
-                }
+    showToast(
+        getErrorMessage(error),
+        "error"
+    );
+
+}
 
             }}
         >
@@ -983,9 +1389,14 @@ useEffect(() => {
 
                 } catch (error) {
 
-                    console.error(error);
+    console.error(error);
 
-                }
+    showToast(
+        getErrorMessage(error),
+        "error"
+    );
+
+}
 
             }}
         >
@@ -1256,9 +1667,14 @@ useEffect(() => {
 
                 } catch (error) {
 
-                    console.error(error);
+    console.error(error);
 
-                }
+    showToast(
+        getErrorMessage(error),
+        "error"
+    );
+
+}
 
             }}
         >
@@ -1551,15 +1967,43 @@ useEffect(() => {
 
                    <Save size={18} />
 
-{isSaving
-    ? "Criando..."
-    : "Criar Álbum"}
+Criar Álbum
 
                 </button>
 
             </div>
 
-            
+
+<SaveToDriveModal
+    open={showSaveToDriveModal}
+    onCancel={() => {
+
+        setShowSaveToDriveModal(false);
+
+    }}
+    onNo={async () => {
+
+        setShowSaveToDriveModal(false);
+
+        await createAlbum(false);
+
+    }}
+    onYes={async () => {
+
+        setShowSaveToDriveModal(false);
+
+        await createAlbum(true);
+
+    }}
+/>
+        
+        <LoadingModal
+    open={loadingModal.open}
+    progress={loadingModal.progress}
+    title={loadingModal.title}
+    message={loadingModal.message}
+    success={loadingModal.success}
+/>
 
         </section>
 

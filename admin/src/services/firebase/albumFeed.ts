@@ -2,12 +2,14 @@ import {
     addDoc,
     collection,
     doc,
+    getDoc,
     onSnapshot,
     orderBy,
     query,
     serverTimestamp,
     updateDoc,
     where,
+     deleteDoc,
 } from "firebase/firestore";
 
 import db from "./firestore";
@@ -61,21 +63,20 @@ export const subscribeAlbums = (
 
             snapshot.docs.map((doc) => ({
 
-                id: doc.id,
+    ...(doc.data() as Omit<
+        Album,
+        "id"
+    >),
 
-                ...(doc.data() as Omit<
-                    Album,
-                    "id"
-                >),
+    id: doc.id,
 
-            }))
+}))
 
         );
 
     });
 
 };
-
 
 export const subscribeAlbumsByCategory = (
     category: string,
@@ -84,27 +85,93 @@ export const subscribeAlbumsByCategory = (
 
     const q = query(
         collection(db, "AlbumFeed"),
-        where("category", "==", category),
-        orderBy("createdAt", "desc")
+        where("category", "==", category)
     );
 
     return onSnapshot(q, (snapshot) => {
 
-        callback(
+        const albums = snapshot.docs.map((doc) => {
 
-            snapshot.docs.map((doc) => ({
+    const data =
+        doc.data() as Omit<
+            Album,
+            "id"
+        >;
 
-                id: doc.id,
 
-                ...(doc.data() as Omit<
-                    Album,
-                    "id"
-                >),
+    return {
 
-            }))
+        ...data,
 
-        );
+        id: doc.id,
+
+    };
+
+});
+
+        albums.sort((a, b) => {
+
+            const aTime =
+                (a.createdAt as any)?.seconds ?? 0;
+
+            const bTime =
+                (b.createdAt as any)?.seconds ?? 0;
+
+            return bTime - aTime;
+
+        });
+
+        callback(albums);
 
     });
+
+};
+
+export const getFeedAlbum = async (
+    albumId: string
+): Promise<Album | null> => {
+
+    const ref = doc(
+        db,
+        "AlbumFeed",
+        albumId
+    );
+
+
+    const snapshot = await getDoc(ref);
+
+
+    if (!snapshot.exists()) {
+
+        return null;
+
+    }
+
+
+   return {
+
+    ...(snapshot.data() as Omit<
+        Album,
+        "id"
+    >),
+
+    id: snapshot.id,
+
+};
+
+};
+
+
+export const deleteAlbum = async (
+    albumId: string
+) => {
+
+    await deleteDoc(
+        doc(
+            db,
+            "AlbumFeed",
+            albumId
+        )
+    );
 
 };

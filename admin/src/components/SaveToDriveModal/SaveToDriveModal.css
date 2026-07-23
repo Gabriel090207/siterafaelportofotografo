@@ -1,0 +1,220 @@
+.save-drive {
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(5, 5, 5, .55);
+
+   
+  
+
+}
+
+.save-drive__card {
+
+    width: 100%;
+    max-width: 420px;
+
+    padding: 32px;
+
+    background: var(--color-white);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow-lg);
+
+    animation:
+        save-drive-open
+        .28s
+        cubic-bezier(.16,1,.3,1);
+
+}
+
+.save-drive__card h3 {
+
+    margin: 0 0 14px;
+
+    color: var(--color-text);
+
+    font-family: var(--font-title);
+
+    font-size: 1.45rem;
+    font-weight: 700;
+
+    line-height: 1.2;
+
+}
+
+.save-drive__card p {
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-family: var(--font-body);
+
+    font-size: .96rem;
+
+    line-height: 1.6;
+
+}
+
+.save-drive__actions {
+
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    margin-top: 30px;
+
+}
+
+.save-drive__actions button {
+
+    min-width: 100px;
+
+    padding: 12px 20px;
+
+    border: none;
+
+    border-radius: var(--radius-sm);
+
+    font-family: var(--font-ui);
+
+    font-size: .92rem;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition-default),
+        color var(--transition-default),
+        transform .15s ease,
+        box-shadow var(--transition-default);
+
+}
+
+.save-drive__actions button:hover {
+
+    transform: translateY(-2px);
+
+}
+
+.save-drive__actions button:active {
+
+    transform: translateY(0);
+
+}
+
+.save-drive__cancel {
+
+    color: var(--color-text);
+
+    background: var(--color-beige);
+
+}
+
+.save-drive__cancel:hover {
+
+    background: #e6d7c3;
+
+}
+
+.save-drive__no {
+
+    color: var(--color-text);
+
+    background: var(--color-cream);
+
+    border: 1px solid var(--color-border);
+
+}
+
+.save-drive__no:hover {
+
+    background: var(--color-beige);
+
+}
+
+.save-drive__yes {
+
+    color: var(--color-white);
+
+    background: var(--color-orange);
+
+    box-shadow:
+        0 10px 25px rgba(255,130,0,.25);
+
+}
+
+.save-drive__yes:hover {
+
+    background: var(--color-orange-dark);
+
+    box-shadow:
+        0 14px 30px rgba(255,130,0,.32);
+
+}
+
+@keyframes save-drive-open {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(18px)
+            scale(.97);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+    }
+
+}
+
+@media (max-width:520px){
+
+    .save-drive{
+
+        padding:16px;
+
+    }
+
+    .save-drive__card{
+
+        padding:28px 24px;
+
+    }
+
+    .save-drive__actions{
+
+        flex-direction:column-reverse;
+
+    }
+
+    .save-drive__actions button{
+
+        width:100%;
+
+    }
+
+}

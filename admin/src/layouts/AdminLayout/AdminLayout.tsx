@@ -1,6 +1,7 @@
 import "./AdminLayout.css";
 
 import {
+    useEffect,
     useState,
     type ReactNode,
 } from "react";
@@ -8,6 +9,10 @@ import {
 import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
+
+import {
+    initializeGoogleAuth,
+} from "../../services/google/picker";
 
 import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
@@ -23,6 +28,20 @@ const AdminLayout = ({
     const { user, loading } = useAuth();
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+   useEffect(() => {
+
+    const setupGoogle = async () => {
+
+        await initializeGoogleAuth();
+
+    
+
+    };
+
+    setupGoogle();
+
+}, []);
 
     if (loading) {
         return null;

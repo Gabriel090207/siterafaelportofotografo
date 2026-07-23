@@ -2,11 +2,13 @@ import {
     addDoc,
     collection,
     doc,
+    getDoc,
     onSnapshot,
     orderBy,
     query,
     serverTimestamp,
     updateDoc,
+    deleteDoc,
 } from "firebase/firestore";
 
 import db from "./firestore";
@@ -72,5 +74,57 @@ export const subscribeAlbums = (
         );
 
     });
+
+};
+
+
+export const deleteAlbum = async (
+    albumId: string,
+) => {
+
+    await deleteDoc(
+        doc(
+            db,
+            "AlbumClient",
+            albumId,
+        )
+    );
+
+};
+
+
+
+
+
+export const getAlbumById = async (
+    albumId: string,
+) => {
+
+    const snapshot = await getDoc(
+
+        doc(
+            db,
+            "AlbumClient",
+            albumId,
+        )
+
+    );
+
+    if (!snapshot.exists()) {
+
+        return null;
+
+    }
+
+    return {
+
+        id: snapshot.id,
+
+        ...(snapshot.data() as Omit<
+            AlbumClient,
+            "id"
+        >),
+
+    } as AlbumClient;
 
 };
