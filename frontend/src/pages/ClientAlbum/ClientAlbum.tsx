@@ -14,7 +14,11 @@ import {
 
 import ClientHeader from "../../components/ClientHeader/ClientHeader";
 
-import { subscribeAlbum } from "../../firebase/albums";
+import { subscribeAlbum } from "../../services/firebase/albums";
+
+import { createSelection } from "../../services/firebase/selections";
+
+import LoadingModal from "../../components/LoadingModal/LoadingModal";
 
 function ClientAlbum() {
 
@@ -34,18 +38,79 @@ function ClientAlbum() {
 
     const [closingPreview, setClosingPreview] = useState(false);
 
-    useEffect(() => {
+    const [selectionName, setSelectionName] = useState("");
 
-        if (!albumId) return;
+    const [personName, setPersonName] = useState("");
 
-        const unsubscribe = subscribeAlbum(
-            albumId,
-            setAlbum
-        );
+    const [email, setEmail] = useState("");
 
-        return unsubscribe;
 
-    }, [albumId]);
+const [loadingModal, setLoadingModal] = useState({
+
+    open: false,
+
+    success: false,
+
+    progress: 0,
+
+    title: "Salvando seleção",
+
+    message: "Preparando...",
+
+});
+
+const updateLoading = (
+    progress: number,
+    message: string,
+) => {
+
+    setLoadingModal((current) => ({
+
+        ...current,
+
+        progress,
+
+        message,
+
+    }));
+
+};
+
+const closeLoading = async () => {
+
+    setLoadingModal((current) => ({
+
+        ...current,
+
+        open: false,
+
+    }));
+
+    await new Promise((resolve) =>
+        setTimeout(resolve, 350)
+    );
+
+};
+
+useEffect(() => {
+
+    if (!albumId) return;
+
+    const unsubscribe = subscribeAlbum(
+        albumId,
+        (data) => {
+
+            console.log(data);
+
+            setAlbum(data);
+
+        }
+    );
+
+    return unsubscribe;
+
+}, [albumId]);
+
 
     const items =
         filter === "photos"
@@ -101,6 +166,126 @@ function ClientAlbum() {
     }, 250);
 
 };
+
+
+const buildSelection = () => {
+
+    
+    const photos = items
+        .filter((item: any) =>
+            selectedItems.includes(item.id)
+        )
+        .map((item: any) => ({
+            name: item.name,
+            preview: item.preview,
+        }));
+
+    return {
+
+        clientId: album.clientId,
+
+        albumId: album.id,
+
+        albumName: album.name,
+
+        selectionName,
+
+        personName,
+
+        email,
+
+        photos,
+
+        totalPhotos: photos.length,
+
+        status: "pending" as const,
+
+    };
+
+};
+
+const handleFinishSelection = async () => {
+
+    if (!selectionName.trim()) return;
+
+    if (!personName.trim()) return;
+
+    if (!email.trim()) return;
+
+    setShowFinishModal(false);
+
+    setLoadingModal({
+
+        open: true,
+
+        success: false,
+
+        progress: 0,
+
+        title: "Salvando seleção",
+
+        message: "Preparando...",
+
+    });
+
+    updateLoading(
+        20,
+        "Preparando seleção..."
+    );
+
+    try {
+
+        const selection = buildSelection();
+
+        updateLoading(
+            70,
+            "Salvando no banco de dados..."
+        );
+
+        await createSelection(selection);
+
+        setLoadingModal((current) => ({
+
+            ...current,
+
+            success: true,
+
+            progress: 100,
+
+            message: "Seleção salva com sucesso!",
+
+        }));
+
+        await new Promise((resolve) =>
+            setTimeout(resolve, 900)
+        );
+
+        await closeLoading();
+
+        setSelectionName("");
+
+        setPersonName("");
+
+        setEmail("");
+
+        setSelectedItems([]);
+
+        setSelectionMode(false);
+
+        
+
+    } catch (error) {
+
+        await closeLoading();
+
+        console.error(error);
+
+    }
+
+};
+
+
+
 
     return (
 
@@ -267,7 +452,7 @@ function ClientAlbum() {
             </span>
         )}
     </button>
-)}
+)} 
 
 
 {showFinishModal && (
@@ -306,6 +491,10 @@ function ClientAlbum() {
                 <input
                     type="text"
                     placeholder="Ex.: Família da Noiva"
+                    value={selectionName}
+                    onChange={(e) =>
+                        setSelectionName(e.target.value)
+                    }
                 />
 
             </div>
@@ -323,6 +512,10 @@ function ClientAlbum() {
                     <input
                         type="text"
                         placeholder="Nome completo"
+                        value={personName}
+                        onChange={(e) =>
+                            setPersonName(e.target.value)
+                        }
                     />
 
                 </div>
@@ -331,13 +524,17 @@ function ClientAlbum() {
 
                     <label>
 
-                        Contato
+                        E-mail
 
                     </label>
 
                     <input
-                        type="text"
-                        placeholder="Telefone ou WhatsApp"
+                        type="email"
+                        placeholder="Digite seu e-mail"
+                        value={email}
+                        onChange={(e) =>
+                            setEmail(e.target.value)
+                        }
                     />
 
                 </div>
@@ -346,6 +543,7 @@ function ClientAlbum() {
 
             <button
                 className="client-album-modal__submit"
+                onClick={handleFinishSelection}
             >
 
                 Completar
@@ -393,6 +591,16 @@ function ClientAlbum() {
     </div>
 
 )}
+
+
+
+<LoadingModal
+    open={loadingModal.open}
+    progress={loadingModal.progress}
+    title={loadingModal.title}
+    message={loadingModal.message}
+    success={loadingModal.success}
+/>
 
 
         </main>

@@ -16,7 +16,15 @@ import {
     onSnapshot,
 } from "firebase/firestore";
 
-import db from "../../firebase/firestore";
+import db from "../../services/firebase/firestore";
+
+import {
+    subscribeFeedCategories,
+} from "../../services/firebase/feedCategory";
+
+import type {
+    FeedCategory,
+} from "../../services/firebase/feedCategory";
 
 import {
   FiGrid,
@@ -45,6 +53,8 @@ const { id } = useParams();
 
 const [album, setAlbum] = useState<any>(null);
 
+const [categories, setCategories] =
+    useState<FeedCategory[]>([]);
 
 useEffect(() => {
 
@@ -75,6 +85,24 @@ useEffect(() => {
     return unsubscribe;
 
 }, [id]);
+
+
+useEffect(() => {
+
+    const unsubscribe =
+        subscribeFeedCategories(
+            setCategories
+        );
+
+    return unsubscribe;
+
+}, []);
+
+const currentCategory =
+    categories.find(
+        category =>
+            category.id === album?.category
+    );
 
 const geralImages =
     album?.photos?.map(
@@ -393,7 +421,15 @@ const totalPhotos =
 
            <button
     className="event-back-button"
-    onClick={() => navigate(-1)}
+    onClick={() =>
+
+    navigate(
+        currentCategory
+            ? `/eventos/${encodeURIComponent(currentCategory.name)}`
+            : "/eventos"
+    )
+
+}
   >
     <FiArrowLeft />
     <span>Voltar</span>
@@ -405,7 +441,7 @@ const totalPhotos =
   <span></span>
  <p>
 
-  {album?.category}
+{currentCategory?.name}
 
 </p>
 </div>

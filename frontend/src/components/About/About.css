@@ -103,6 +103,7 @@
 
 .about-buttons {
   display: flex;
+  
   gap: 16px;
 
   margin-top: 40px;
@@ -111,6 +112,12 @@
 /* BOTÃO LARANJA */
 
 .about-primary-btn {
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
   height: 48px;
 
   padding: 0 22px;
@@ -144,6 +151,13 @@
 /* IGUAL AO BOTÃO BRANCO DA SECTION FILMES */
 
 .about-secondary-btn {
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
+
   height: 48px;
 
   padding: 0 22px;

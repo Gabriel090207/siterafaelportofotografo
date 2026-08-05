@@ -54,6 +54,14 @@ import {
 import LoadingModal from "../../components/LoadingModal/LoadingModal";
 import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
 
+import {
+    subscribeFeedCategories,
+} from "../../services/firebase/feedCategory";
+
+import type {
+    FeedCategory,
+} from "../../services/firebase/feedCategory";
+
 const EditFeed = () => {
 
 
@@ -80,6 +88,16 @@ useEffect(() => {
     albumId
 );
 
+useEffect(() => {
+
+    const unsubscribe =
+        subscribeFeedCategories(
+            setFeedCategories
+        );
+
+    return unsubscribe;
+
+}, []);
 
     const data =
         await getFeedAlbum(albumId);
@@ -144,6 +162,9 @@ const coverInputRef =
 
 const [isSaving, setIsSaving] = useState(false);
 
+const [feedCategories, setFeedCategories] =
+    useState<FeedCategory[]>([]);
+
 const [showSaveToDriveModal, setShowSaveToDriveModal] =
     useState(false);
 
@@ -192,11 +213,11 @@ type FeedFileItem =
 const processFeedFile = async (
     item: FeedFileItem,
     albumToSave: Album,
+    categoryName: string,
     albumFolder: string,
     destinationFolder: string,
     saveToDrive: boolean,
 ) => {
-
     // Arquivo vindo do computador
     if (item.file) {
 
@@ -207,7 +228,7 @@ const processFeedFile = async (
 
         file: item.file,
 
-        albumCategory: album.category,
+        albumCategory: categoryName,
 
         albumName: album.name,
 
@@ -229,7 +250,7 @@ item.driveFileId =
 
       const result = await uploadAlbumFile(
 
-    album.category,
+    categoryName,
 
     albumFolder,
 
@@ -269,7 +290,7 @@ item.driveFileId =
 
         accessToken: token,
 
-        albumCategory: album.category,
+        albumCategory: categoryName,
 
         albumName: album.name,
 
@@ -296,7 +317,7 @@ item.driveFileId =
             sourcePath: item.storagePath,
 
             destinationPath:
-    `AlbumFeed/${album.category}/${albumFolder}/${destinationFolder}/${item.name}`,
+                `AlbumFeed/${categoryName}/${albumFolder}/${destinationFolder}/${item.name}`
 
         });
 
@@ -676,6 +697,26 @@ const albumFolder =
         .trim()
         .replace(/[\\/:*?"<>|]/g, "-");
 
+
+const selectedCategory =
+    feedCategories.find(
+        item => item.id === albumToSave.category
+    );
+
+const categoryName =
+    selectedCategory?.name ?? "";
+
+
+const originalCategoryName =
+    feedCategories.find(
+        item => item.id === originalAlbum?.category
+    )?.name ?? "";
+
+const currentCategoryName =
+    feedCategories.find(
+        item => item.id === albumToSave.category
+    )?.name ?? "";
+
        const folderChanged =
     originalFolder &&
     (
@@ -713,11 +754,11 @@ if (folderChanged) {
     console.log("ANTES DO MOVE");
 
     const oldStoragePath =
-    `AlbumFeed/${originalCategory}/${originalFolder}`;
+    `AlbumFeed/${originalCategoryName}/${originalFolder}`;
 
 
 const newStoragePath =
-    `AlbumFeed/${currentCategory}/${albumFolder}`;
+    `AlbumFeed/${currentCategoryName}/${albumFolder}`;
 
 
 const moveResult = await moveStorageFolder({
@@ -801,7 +842,7 @@ if (saveToDrive) {
 
         file: coverFile,
 
-        albumCategory: album.category,
+        albumCategory: categoryName,
 
         albumName: album.name,
 
@@ -822,18 +863,12 @@ if (!albumToSave.driveFolderId) {
 }
    
 
-   const result =
-    await uploadAlbumFile(
-
-        albumToSave.category,
-
-        albumFolder,
-
-        "Capa/capa.jpg",
-
-        coverFile
-
-    );
+   const result = await uploadAlbumFile(
+    categoryName,
+    albumFolder,
+    "Capa/capa.jpg",
+    coverFile
+);
 
     albumToSave.coverPhoto = {
 
@@ -862,9 +897,10 @@ updateLoading(
 
 for (const photo of albumToSave.photos) {
 
-   await processFeedFile(
+await processFeedFile(
     photo,
     albumToSave,
+    categoryName,
     albumFolder,
     "Fotos",
     saveToDrive,
@@ -883,9 +919,10 @@ updateLoading(
 
 for (const video of albumToSave.videos) {
 
- await processFeedFile(
+await processFeedFile(
     video,
     albumToSave,
+    categoryName,
     albumFolder,
     "Vídeos",
     saveToDrive,
@@ -909,9 +946,10 @@ for (const category of albumToSave.categories) {
 
     for (const photo of category.photos) {
 
-       await processFeedFile(
+   await processFeedFile(
     photo,
     albumToSave,
+    categoryName,
     albumFolder,
     folderName,
     saveToDrive,
@@ -1194,45 +1232,16 @@ const handleCoverUpload = (
             Selecione uma categoria
         </option>
 
-        <option value="Casamentos">
-            Casamentos
-        </option>
+        {feedCategories.map((category) => (
 
-        <option value="15 Anos">
-            15 Anos
-        </option>
+    <option
+        key={category.id}
+        value={category.id}
+    >
+        {category.name}
+    </option>
 
-        <option value="Pré Wedding">
-            Pré Wedding
-        </option>
-
-        <option value="Book de 15 Anos">
-            Book de 15 Anos
-        </option>
-
-        <option value="Infantil">
-            Infantil
-        </option>
-
-        <option value="Book de Gestante">
-            Book de Gestante
-        </option>
-
-        <option value="Aniversários">
-            Aniversários
-        </option>
-
-        <option value="Ensaio Fotográfico">
-            Ensaio Fotográfico
-        </option>
-
-        <option value="Corporativos">
-            Corporativos
-        </option>
-
-        <option value="Formaturas">
-            Formaturas
-        </option>
+))}
 
     </select>
 

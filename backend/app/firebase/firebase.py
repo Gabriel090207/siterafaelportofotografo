@@ -36,3 +36,7 @@ if not firebase_admin._apps:
             )
         }
     )
+
+from firebase_admin import storage
+
+bucket = storage.bucket()

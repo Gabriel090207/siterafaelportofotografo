@@ -138,7 +138,7 @@ const [albumToDelete, setAlbumToDelete] =
         const unsubscribe =
             subscribeAlbumsByCategory(
 
-                category.name,
+                category.id!,
 
                 setAlbums
 
@@ -198,7 +198,7 @@ const handleDeleteAlbum = async () => {
         // Firebase Storage
        // Firebase Storage
 await deleteFolder(
-    `AlbumFeed/${albumToDelete.category}/${albumFolder}`
+    `AlbumFeed/${category?.name}/${albumFolder}`
 );
 
         // Google Drive
@@ -395,21 +395,15 @@ await deleteFolder(
 
 
 
-                                    {
-                                        album.category && (
+                                    {category && (
 
+    <span className="album-card__category">
 
-                                            <span className="album-card__category">
+        {category.name}
 
+    </span>
 
-                                                {album.category}
-
-
-                                            </span>
-
-
-                                        )
-                                    }
+)}
 
 
 

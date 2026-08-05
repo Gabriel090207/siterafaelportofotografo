@@ -3,8 +3,8 @@ import "./ClientLogin.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { loginClient } from "../../firebase/auth";
-import { getClientByUid } from "../../firebase/clients";
+import { loginClient } from "../../services/firebase/auth";
+import { getClientByUid } from "../../services/firebase/clients";
 
 import {
     UserRound,

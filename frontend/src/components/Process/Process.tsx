@@ -1,89 +1,106 @@
 import "./Process.css";
 
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    subscribeSiteProcess,
+} from "../../services/firebase/siteProcess";
+
+import type {
+    SiteProcess,
+} from "../../services/firebase/siteProcess";
+
 function Process() {
-  return (
-    <section className="process">
-      <div className="process-container">
 
-        <div className="process-header">
-          <div className="section-eyebrow">
-            <span />
-            <p>COMO FUNCIONA</p>
-          </div>
+    const [process, setProcess] =
+        useState<SiteProcess | null>(null);
 
-          <h2>
-            Um caminho simples até
-            as fotos prontas.
-          </h2>
-        </div>
+    useEffect(() => {
 
-        <div className="process-grid">
+        const unsubscribe =
+            subscribeSiteProcess((data) => {
 
-          <article className="process-card">
-            <span className="process-number">01</span>
+                setProcess(data);
 
-            <h3>Contato</h3>
+            });
 
-            <p className="process-description">
-              Cliente chama no WhatsApp e informa data,
-              cidade e tipo de evento.
-            </p>
+        return unsubscribe;
 
-            <a href="#" className="process-link">
-              Chamar no WhatsApp
-            </a>
-          </article>
+    }, []);
 
-          <article className="process-card">
-            <span className="process-number">02</span>
+    const steps =
+        process?.steps ?? [];
 
-            <h3>Proposta</h3>
+    return (
 
-            <p className="process-description">
-              A equipe indica o pacote ideal
-              de foto, vídeo ou combo completo.
-            </p>
+        <section className="process">
 
-            <a href="#" className="process-link">
-              Ver pacotes
-            </a>
-          </article>
+            <div className="process-container">
 
-          <article className="process-card">
-            <span className="process-number">03</span>
+                <div className="process-header">
 
-            <h3>Registro</h3>
+                    <div className="section-eyebrow">
 
-            <p className="process-description">
-              No dia, a equipe conduz tudo com
-              naturalidade e atenção aos detalhes.
-            </p>
+                        <span />
 
-            <a href="#" className="process-link">
-              Conhecer processo
-            </a>
-          </article>
+                        <p>
 
-          <article className="process-card">
-            <span className="process-number">04</span>
+                            {process?.eyebrow}
 
-            <h3>Entrega</h3>
+                        </p>
 
-            <p className="process-description">
-              Galeria online organizada,
-              seleção e área do cliente.
-            </p>
+                    </div>
 
-            <a href="#" className="process-link">
-              Área do Cliente
-            </a>
-          </article>
+                    <h2>
 
-        </div>
+                        {process?.title}
 
-      </div>
-    </section>
-  );
+                    </h2>
+
+                </div>
+
+                <div className="process-grid">
+
+                    {steps.map((step, index) => (
+
+                        <article
+                            key={index}
+                            className="process-card"
+                        >
+
+                            <span className="process-number">
+
+                                {step.number}
+
+                            </span>
+
+                            <h3>
+
+                                {step.title}
+
+                            </h3>
+
+                            <p className="process-description">
+
+                                {step.description}
+
+                            </p>
+
+                        </article>
+
+                    ))}
+
+                </div>
+
+            </div>
+
+        </section>
+
+    );
+
 }
 
 export default Process;

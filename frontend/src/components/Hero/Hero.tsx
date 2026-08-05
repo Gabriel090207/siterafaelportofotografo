@@ -1,13 +1,45 @@
 import "./Hero.css";
 
-import heroBg from "../../assets/images/hero-bg.png";
+import heroBg from "../../assets/images/hero-bg.webp";
+
+import { Link } from "react-router-dom";
+
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    subscribeSiteHero,
+} from "../../services/firebase/siteHero";
+
+import type {
+    SiteHero as SiteHeroType,
+} from "../../services/firebase/siteHero";
 
 function Hero() {
+
+const [hero, setHero] =
+    useState<SiteHeroType | null>(null);
+
+useEffect(() => {
+
+    const unsubscribe =
+        subscribeSiteHero(
+            setHero
+        );
+
+    return unsubscribe;
+
+}, [])
+
   return (
     <section
       className="hero"
       style={{
-        backgroundImage: `url(${heroBg})`,
+        backgroundImage: `url(${
+            hero?.backgroundUrl || heroBg
+        })`,
       }}
     >
       <div className="hero-overlay"></div>
@@ -17,26 +49,42 @@ function Hero() {
 
           <div className="hero-eyebrow">
             <span></span>
-            <p>FOTOGRAFIA • FILME • EMOÇÃO</p>
+            <p>
+                {hero?.eyebrow ||
+                    "FOTOGRAFIA • FILME • EMOÇÃO"}
+            </p>
           </div>
 
          <h1>
-  Momentos únicos merecem ser eternizados com beleza.
-</h1>
+            {hero?.title ||
+                "Momentos únicos merecem ser eternizados com beleza."}
+        </h1>
 
           <p className="hero-description">
-            Casamentos, 15 anos, ensaios, formaturas e eventos corporativos
-            registrados com emoção, estética e cuidado em cada detalhe.
+            {hero?.description ||
+              "Especialistas em fotografia e filmagem de casamentos, 15 anos, ensaios, formaturas e eventos, com mais de 15 anos de experiência e mais de 30 premiações."}
           </p>
 
           <div className="hero-buttons">
-            <button className="hero-primary-btn">
-              Solicitar orçamento
-            </button>
+            <div className="hero-buttons">
 
-            <button className="hero-secondary-btn">
-              Ver portfólio
-            </button>
+              <a
+                  href="https://wa.me/5543988237222"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hero-primary-btn"
+              >
+                  Solicitar orçamento
+              </a>
+
+              <Link
+                  to="/portfolio"
+                  className="hero-secondary-btn"
+              >
+                  Ver portfólio
+              </Link>
+
+          </div>
           </div>
 
           <div className="hero-stats">

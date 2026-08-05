@@ -1,62 +1,126 @@
 import "./About.css";
 
+import {
+    useEffect,
+    useState,
+} from "react";
+
 import logo from "../../assets/logo/logoabout.png";
 import aboutImage from "../../assets/images/about.png";
 
+import { Link } from "react-router-dom";
+
+import {
+    subscribeSiteAbout,
+} from "../../services/firebase/siteAbout";
+
+import type {
+    SiteAbout,
+} from "../../services/firebase/siteAbout";
+
 function About() {
-  return (
-    <section className="about">
-      <div
-        className="about-background"
-        style={{
-          backgroundImage: `url(${aboutImage})`,
-        }}
-      />
 
-      <div className="about-overlay" />
+    const [about, setAbout] =
+        useState<SiteAbout | null>(null);
 
-      <div className="about-container">
-        <div className="about-logo-card">
-          <img
-            src={logo}
-            alt="Rafael Porto Fotografia"
-          />
-        </div>
+    useEffect(() => {
 
-        <div className="about-content">
-          <div className="section-eyebrow">
-            <span />
-            <p>SOBRE</p>
-          </div>
+        const unsubscribe =
+            subscribeSiteAbout((data) => {
 
-          <h2>
-            Por trás das lentes, um olhar atento aos detalhes.
-          </h2>
+                setAbout(data);
 
-          <p className="about-description">
-            A Rafael Porto Fotografia registra histórias em
-            Londrina e região com foco em emoção, estética e
-            cuidado em cada detalhe.
-          </p>
+            });
 
-          <p className="about-description">
-            O objetivo é criar imagens que façam você reviver
-            o momento sempre que olhar para elas.
-          </p>
+        return unsubscribe;
 
-          <div className="about-buttons">
-            <button className="about-primary-btn">
-              Conheça nossa história
-            </button>
+    }, []);
 
-            <button className="about-secondary-btn">
-              Fale com Rafael Porto
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+    return (
+
+        <section className="about">
+
+            <div
+                className="about-background"
+                style={{
+                    backgroundImage: `url(${
+                        about?.backgroundUrl ||
+                        aboutImage
+                    })`,
+                }}
+            />
+
+            <div className="about-overlay" />
+
+            <div className="about-container">
+
+                <div className="about-logo-card">
+
+                    <img
+                        src={logo}
+                        alt="Rafael Porto Fotografia"
+                    />
+
+                </div>
+
+                <div className="about-content">
+
+                    <div className="section-eyebrow">
+
+                        <span />
+
+                        <p>
+
+                            {about?.eyebrow}
+
+                        </p>
+
+                    </div>
+
+                    <h2>
+
+                        {about?.title}
+
+                    </h2>
+
+                    <p className="about-description">
+
+                        {about?.description}
+
+                    </p>
+
+                    <div className="about-buttons">
+
+                        <Link
+                            to="/sobre"
+                            className="about-primary-btn"
+                        >
+
+                            Conheça nossa história
+
+                        </Link>
+
+                        <a
+                            href="https://wa.me/5543988237222"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="about-secondary-btn"
+                        >
+
+                            Fale com Rafael Porto
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    );
+
 }
 
 export default About;

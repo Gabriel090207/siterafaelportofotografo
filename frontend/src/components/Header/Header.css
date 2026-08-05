@@ -225,6 +225,13 @@ text-decoration: none;
   height: 48px;
   padding: 0 22px;
 
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
+
   border: none;
   border-radius: 999px;
 
@@ -465,6 +472,12 @@ text-decoration: none;
 .mobile-btn-budget {
   width: 100%;
   height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
 
   border: none;
   border-radius: 999px;

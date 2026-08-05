@@ -118,6 +118,12 @@
   cursor: pointer;
 
   transition: .4s ease;
+
+  text-decoration: none;
+
+  display: block;
+
+  color: inherit;
 }
 
 .experience-card:hover {

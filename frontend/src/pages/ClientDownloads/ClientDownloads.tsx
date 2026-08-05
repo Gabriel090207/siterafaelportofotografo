@@ -15,7 +15,7 @@ import {
 import ClientHeader from "../../components/ClientHeader/ClientHeader";
 
 // Troque pelo mesmo método usado no seu ClientDashboard.
-import { subscribeClientAlbums } from "../../firebase/albums";
+import { subscribeClientAlbums } from "../../services/firebase/albums";
 
 interface AlbumItem {
     id: string;

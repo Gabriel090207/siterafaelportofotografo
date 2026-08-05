@@ -28,14 +28,20 @@ export function AppRoutes() {
       />
 
       <Route
-        path="/eventos"
-        element={<Events />}
+          path="/eventos"
+          element={<Events />}
       />
 
       <Route
-        path="/evento/:id"
-        element={<Event />}
+          path="/eventos/:categoryName"
+          element={<Events />}
       />
+            
+      <Route
+          path="/evento/:id"
+          element={<Event />}
+      />
+
       <Route
         path="/sobre"
         element={<About />}
@@ -76,4 +82,4 @@ export function AppRoutes() {
     </Routes>
         </>
   );
-}
+} 

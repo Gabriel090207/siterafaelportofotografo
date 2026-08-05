@@ -7,6 +7,7 @@ import {
     serverTimestamp,
 } from "firebase/firestore";
 
+import { doc, getDoc } from "firebase/firestore";
 
 import db from "./firestore";
 
@@ -52,5 +53,34 @@ export const subscribeClients = (
         callback(clients);
 
     });
+
+};
+
+
+export const getClient = async (
+    clientId: string
+) => {
+
+    const snapshot = await getDoc(
+        doc(db, "clients", clientId)
+    );
+
+    if (!snapshot.exists()) {
+        return null;
+    }
+
+    const data = snapshot.data();
+
+    return {
+
+        id: snapshot.id,
+
+        name: data.name ?? "",
+
+        email: data.email ?? "",
+
+        phone: data.phone ?? "",
+
+    };
 
 };

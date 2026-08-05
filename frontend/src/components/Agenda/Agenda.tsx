@@ -1,38 +1,91 @@
 import "./Agenda.css";
 
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    subscribeSiteAgenda,
+} from "../../services/firebase/siteAgenda";
+
+import type {
+    SiteAgenda,
+} from "../../services/firebase/siteAgenda";
+
 function Agenda() {
-  return (
-    <section className="agenda">
-      <div className="agenda-container">
-        <div className="agenda-content">
-          <div className="section-eyebrow">
-            <span />
-            <p>AGENDA</p>
-          </div>
 
-          <h2>
-            Sua data já pode estar sendo procurada por outro cliente.
-          </h2>
+    const [agenda, setAgenda] =
+        useState<SiteAgenda | null>(null);
 
-          <p className="agenda-description">
-            Consulte disponibilidade para casamento, 15 anos,
-            ensaio, formatura ou evento corporativo e garanta
-            seu atendimento com antecedência.
-          </p>
-        </div>
+    useEffect(() => {
 
-        <div className="agenda-actions">
-          <button className="agenda-primary-btn">
-            Consultar minha data
-          </button>
+        const unsubscribe =
+            subscribeSiteAgenda((data) => {
 
-          <button className="agenda-secondary-btn">
-            Ver promoções
-          </button>
-        </div>
-      </div>
-    </section>
-  );
+                setAgenda(data);
+
+            });
+
+        return unsubscribe;
+
+    }, []);
+
+    return (
+
+        <section className="agenda">
+
+            <div className="agenda-container">
+
+                <div className="agenda-content">
+
+                    <div className="section-eyebrow">
+
+                        <span />
+
+                        <p>
+
+                            {agenda?.eyebrow}
+
+                        </p>
+
+                    </div>
+
+                    <h2>
+
+                        {agenda?.title}
+
+                    </h2>
+
+                    <p className="agenda-description">
+
+                        {agenda?.description}
+
+                    </p>
+
+                </div>
+
+                <div className="agenda-actions">
+
+                    <a
+                        href="https://wa.me/55SEUNUMERO"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="agenda-primary-btn"
+                    >
+
+                        Consultar minha data
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    );
+
 }
 
 export default Agenda;

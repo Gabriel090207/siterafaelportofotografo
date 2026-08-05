@@ -6,13 +6,40 @@ import {
     useState,
 } from "react";
 
-import { Link } from "react-router-dom";
+import {
+    Link,
+    useParams,
+} from "react-router-dom";
 
-import { subscribeAlbums } from "../../firebase/feed";
+import { subscribeAlbums } from "../../services/firebase/feed";
+
+import {
+    subscribeFeedCategories,
+} from "../../services/firebase/feedCategory";
+
+import type {
+    FeedCategory,
+} from "../../services/firebase/feedCategory";
 
 function Events() {
 
-    const [albums, setAlbums] = useState<any[]>([]);
+const {
+    categoryName,
+} = useParams();
+
+const [albums, setAlbums] = useState<any[]>([]);
+
+const [categories, setCategories] =
+    useState<FeedCategory[]>([]);
+
+const currentCategory =
+    categories.find(
+        category =>
+            category.name ===
+            decodeURIComponent(
+                categoryName ?? ""
+            )
+    );
 
     useEffect(() => {
 
@@ -23,13 +50,40 @@ function Events() {
 
     }, []);
 
-    const events = useMemo(() => {
+    useEffect(() => {
 
-        return albums.filter(
-            album => album.status === "published"
+    const unsubscribe =
+        subscribeFeedCategories(
+            setCategories
         );
 
-    }, [albums]);
+    return unsubscribe;
+
+}, []);
+
+    const events = useMemo(() => {
+
+    return albums.filter(album => {
+
+        if (album.status !== "published") {
+            return false;
+        }
+
+        if (!currentCategory) {
+            return true;
+        }
+
+        return (
+            album.category ===
+            currentCategory.id
+        );
+
+    });
+
+}, [
+    albums,
+    currentCategory,
+]);
 
     const featuredAlbum = events[0];
 
@@ -59,9 +113,7 @@ function Events() {
 
                         <h1>
 
-                            {featuredAlbum
-                                ? featuredAlbum.category
-                                : "Eventos"}
+                            {currentCategory?.name ?? "Eventos"}
 
                         </h1>
 
@@ -97,7 +149,7 @@ function Events() {
 
                                 <span className="featured-event-label">
 
-                                    {featuredAlbum.category}
+                                    {currentCategory?.name}
 
                                 </span>
 
@@ -153,7 +205,7 @@ function Events() {
 
                                         <span>
 
-                                            {album.category}
+                                            {currentCategory?.name}
 
                                             {" • "}
 

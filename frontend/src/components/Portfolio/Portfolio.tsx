@@ -1,83 +1,196 @@
 import "./Portfolio.css";
 
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    subscribeSitePortfolio,
+} from "../../services/firebase/sitePortfolio";
+
+import type {
+    SitePortfolio,
+} from "../../services/firebase/sitePortfolio";
+
+import { Link } from "react-router-dom";
+
 function Portfolio() {
-  return (
-    <section className="portfolio">
-      <div className="portfolio-container">
-        <div className="portfolio-content">
-          <div className="section-eyebrow">
-            <span />
-            <p>PORTFÓLIO</p>
-          </div>
 
-          <h2>
-            Fotos que fazem você reviver o momento.
-          </h2>
+    const [data, setData] =
+        useState<SitePortfolio | null>(null);
 
-          <p className="portfolio-description">
-            Uma galeria visual elegante com imagens reais para inspirar noivos,
-            debutantes, famílias e empresas.
-          </p>
+    useEffect(() => {
 
-          <div className="portfolio-buttons">
-            <button className="portfolio-primary-btn">
-              Ver galeria completa
-            </button>
+        const unsubscribe =
+            subscribeSitePortfolio(
+                setData
+            );
 
-            <button className="portfolio-secondary-btn">
-              Ver ensaios
-            </button>
-          </div>
-        </div>
+        return unsubscribe;
 
-        <div className="portfolio-gallery">
-          <article className="portfolio-card portfolio-card-large">
-            <img
-              src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc"
-              alt="Casamentos"
-            />
+    }, []);
 
-            <div className="portfolio-overlay" />
+    const items =
+        data?.items ?? [];
 
-            <h3>Casamentos</h3>
-          </article>
+    return (
 
-          <article className="portfolio-card">
-            <img
-              src="https://images.unsplash.com/photo-1519741497674-611481863552"
-              alt="Making Of"
-            />
+        <section className="portfolio">
 
-            <div className="portfolio-overlay" />
+            <div className="portfolio-container">
 
-            <h3>Making Of</h3>
-          </article>
+                <div className="portfolio-content">
 
-          <article className="portfolio-card">
-            <img
-              src="https://images.unsplash.com/photo-1520854221256-17451cc331bf"
-              alt="Ensaios"
-            />
+                    <div className="section-eyebrow">
 
-            <div className="portfolio-overlay" />
+                        <span />
 
-            <h3>Ensaios</h3>
-          </article>
+                        <p>
 
-          <article className="portfolio-card portfolio-card-wide">
-            <img
-              src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8"
-              alt="Festas"
-            />
+                            {data?.eyebrow ||
+                                "PORTFÓLIO"}
 
-            <div className="portfolio-overlay" />
+                        </p>
 
-            <h3>Festas</h3>
-          </article>
-        </div>
-      </div>
-    </section>
-  );
+                    </div>
+
+                    <h2>
+
+                        {data?.title ||
+                            "Fotos que fazem você reviver o momento."}
+
+                    </h2>
+
+                    <p className="portfolio-description">
+
+                        {data?.description ||
+
+                            "Uma galeria visual elegante com imagens reais para inspirar noivos, debutantes, famílias e empresas."}
+
+                    </p>
+
+                    <div className="portfolio-buttons">
+
+                        <div className="portfolio-buttons">
+
+                            <Link
+                                to="/portfolio"
+                                className="portfolio-primary-btn"
+                            >
+
+                                Ver galeria completa
+
+                            </Link>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div className="portfolio-gallery">
+
+                    {items[0] && (
+
+                        <article
+                            className="portfolio-card portfolio-card-large"
+                        >
+
+                            <img
+                                src={items[0].imageUrl}
+                                alt={items[0].title}
+                            />
+
+                            <div className="portfolio-overlay" />
+
+                            <h3>
+
+                                {items[0].title}
+
+                            </h3>
+
+                        </article>
+
+                    )}
+
+                    {items[1] && (
+
+                        <article
+                            className="portfolio-card"
+                        >
+
+                            <img
+                                src={items[1].imageUrl}
+                                alt={items[1].title}
+                            />
+
+                            <div className="portfolio-overlay" />
+
+                            <h3>
+
+                                {items[1].title}
+
+                            </h3>
+
+                        </article>
+
+                    )}
+
+                    {items[2] && (
+
+                        <article
+                            className="portfolio-card"
+                        >
+
+                            <img
+                                src={items[2].imageUrl}
+                                alt={items[2].title}
+                            />
+
+                            <div className="portfolio-overlay" />
+
+                            <h3>
+
+                                {items[2].title}
+
+                            </h3>
+
+                        </article>
+
+                    )}
+
+                    {items[3] && (
+
+                        <article
+                            className="portfolio-card portfolio-card-wide"
+                        >
+
+                            <img
+                                src={items[3].imageUrl}
+                                alt={items[3].title}
+                            />
+
+                            <div className="portfolio-overlay" />
+
+                            <h3>
+
+                                {items[3].title}
+
+                            </h3>
+
+                        </article>
+
+                    )}
+
+                </div>
+
+            </div>
+
+        </section>
+
+    );
+
 }
 
 export default Portfolio;

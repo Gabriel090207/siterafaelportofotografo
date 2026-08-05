@@ -12,6 +12,8 @@ import ClientForm from "../pages/ClientForm/ClientForm";
 import Albums from "../pages/Albums/Albums";
 import AlbumForm from "../pages/AlbumForm/AlbumForm";
 import EditAlbum from "../pages/EditAlbum/EditAlbum";
+import Selections from "../pages/Selections/Selections";
+import SelectionDetails from "../pages/SelectionDetails/SelectionDetails";
 
 import Feed from "../pages/Feed/Feed";
 import FeedForm from "../pages/FeedForm/FeedForm";
@@ -19,6 +21,18 @@ import FeedCategory from "../pages/FeedCategory/FeedCategory";
 import FeedHidden from "../pages/FeedHidden/FeedHidden";
 import EditFeed from "../pages/EditFeed/EditFeed";
 
+
+import Site from "../pages/Site/Site";
+import SiteHero from "../pages/SiteHero/SiteHero";
+import SiteExperiences from "../pages/SiteExperiences/SiteExperiences";
+import SitePortfolio from "../pages/SitePortfolio/SitePortfolio";
+import SiteFilms from "../pages/SiteFilms/SiteFilms";
+import SiteProcess from "../pages/SiteProcess/SiteProcess";
+import SiteAbout from "../pages/SiteAbout/SiteAbout";
+import SiteTestimonials from "../pages/SiteTestimonials/SiteTestimonials";
+import SiteAgenda from "../pages/SiteAgenda/SiteAgenda";
+import SiteFaq from "../pages/SiteFaq/SiteFaq";
+import SiteCta from "../pages/SiteCta/SiteCta";
 
 const AppRoutes = () => {
     return (
@@ -137,7 +151,122 @@ const AppRoutes = () => {
                 }
             />
 
+            <Route
+                path="/selections"
+                element={
+                    <AdminLayout>
+                        <Selections />
+                    </AdminLayout>
+                }
+            />
 
+            <Route
+                path="/selections/:clientId/:selectionId"
+                element={
+                    <AdminLayout>
+                        <SelectionDetails />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site"
+                element={
+                    <AdminLayout>
+                        <Site />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/hero"
+                element={
+                    <AdminLayout>
+                        <SiteHero />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/experiencias"
+                element={
+                    <AdminLayout>
+                        <SiteExperiences />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/portfolio"
+                element={
+                    <AdminLayout>
+                        <SitePortfolio />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/videos"
+                element={
+                    <AdminLayout>
+                        <SiteFilms />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/processo"
+                element={
+                    <AdminLayout>
+                        <SiteProcess />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/sobre"
+                element={
+                    <AdminLayout>
+                        <SiteAbout />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/prova-social"
+                element={
+                    <AdminLayout>
+                        <SiteTestimonials />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/agenda"
+                element={
+                    <AdminLayout>
+                        <SiteAgenda />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/faq"
+                element={
+                    <AdminLayout>
+                        <SiteFaq />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/admin/site/cta"
+                element={
+                    <AdminLayout>
+                        <SiteCta />
+                    </AdminLayout>
+                }
+            />
 
         </Routes>
     );

@@ -16,7 +16,7 @@ import {
 
 import ClientHeader from "../../components/ClientHeader/ClientHeader";
 
-import { subscribeClientAlbums } from "../../firebase/albums";
+import { subscribeClientAlbums } from "../../services/firebase/albums";
 
 function ClientDashboard() { 
 

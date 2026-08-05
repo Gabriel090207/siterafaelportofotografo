@@ -79,13 +79,13 @@ export const subscribeAlbums = (
 };
 
 export const subscribeAlbumsByCategory = (
-    category: string,
+    categoryId: string,
     callback: (albums: Album[]) => void
 ) => {
 
     const q = query(
         collection(db, "AlbumFeed"),
-        where("category", "==", category)
+        where("category", "==", categoryId)
     );
 
     return onSnapshot(q, (snapshot) => {

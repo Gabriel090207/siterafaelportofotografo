@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import {
+    subscribeFeedCategories,
+} from "../../services/firebase/feedCategory";
+
+import type {
+    FeedCategory,
+} from "../../services/firebase/feedCategory";
+
 import logo from "../../assets/logo/logo.png";
 
 function Header() {
@@ -13,6 +21,8 @@ const [menuOpen, setMenuOpen] = useState(false);
 const [eventsOpen, setEventsOpen] = useState(false);
 
 const [desktopEventsOpen, setDesktopEventsOpen] = useState(false);
+
+const [categories, setCategories] = useState<FeedCategory[]>([]);
 
 useEffect(() => {
   document.body.classList.toggle(
@@ -25,6 +35,17 @@ useEffect(() => {
   }
 }, [menuOpen]);
 
+useEffect(() => {
+
+    const unsubscribe =
+        subscribeFeedCategories(
+            setCategories
+        );
+
+    return unsubscribe;
+
+}, []);
+
   return (
   <header className="header">
       <div className="topbar">
@@ -35,11 +56,16 @@ useEffect(() => {
           </p>
 
           <div className="topbar-links">
-            <a href="#">WhatsApp: (43) 98823-7222</a>
+            <a href="https://wa.me/5543988237222"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp">WhatsApp: (43) 98823-7222</a>
 
             <span>•</span>
 
-            <a href="#">Contato</a>
+            <a href="https://wa.me/5543988237222" target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp">Contato</a>
           </div>
         </div>
       </div>
@@ -67,75 +93,15 @@ useEffect(() => {
     desktopEventsOpen ? "active" : ""
   }`}
 >
+  {categories.map((category) => (
   <Link
-  to="/eventos?categoria=casamentos"
-  onClick={() => setDesktopEventsOpen(false)}
+    key={category.id}
+    to={`/eventos/${encodeURIComponent(category.name)}`}
+    onClick={() => setDesktopEventsOpen(false)}
 >
-  Casamentos
+    {category.name}
 </Link>
-
-<Link
-  to="/eventos?categoria=15-anos"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  15 Anos
-</Link>
-
-<Link
-  to="/eventos?categoria=pre-wedding"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Pré Wedding
-</Link>
-
-<Link
-  to="/eventos?categoria=book-15"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Book de 15 Anos
-</Link>
-
-<Link
-  to="/eventos?categoria=infantil"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Infantil
-</Link>
-
-<Link
-  to="/eventos?categoria=gestante"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Book de Gestante
-</Link>
-
-<Link
-  to="/eventos?categoria=aniversarios"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Aniversários
-</Link>
-
-<Link
-  to="/eventos?categoria=ensaio"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Ensaio Fotográfico
-</Link>
-
-<Link
-  to="/eventos?categoria=corporativo"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Corporativos
-</Link>
-
-<Link
-  to="/eventos?categoria=formaturas"
-  onClick={() => setDesktopEventsOpen(false)}
->
-  Formaturas
-</Link>
+))}
 </div>
   </div>
 
@@ -162,9 +128,14 @@ useEffect(() => {
   Área do Cliente
 </Link>
 
-  <button className="btn-budget">
-    Pedir orçamento
-  </button>
+<Link
+  to="https://wa.me/5543988237222"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="btn-budget"
+>
+  Pedir orçamento
+</Link>
 
   <button
     className="menu-toggle"
@@ -218,16 +189,20 @@ useEffect(() => {
       eventsOpen ? "active" : ""
     }`}
   >
-    <a href="#">Casamentos</a>
-    <a href="#">15 Anos</a>
-    <a href="#">Pré Wedding</a>
-    <a href="#">Book de 15 Anos</a>
-    <a href="#">Infantil</a>
-    <a href="#">Book de Gestante</a>
-    <a href="#">Aniversários</a>
-    <a href="#">Ensaio Fotográfico</a>
-    <a href="#">Corporativos</a>
-    <a href="#">Formaturas</a>
+    {categories.map((category) => (
+
+    <Link
+        key={category.id}
+        to={`/eventos/${encodeURIComponent(category.name)}`}
+        onClick={() => {
+            setMenuOpen(false);
+            setEventsOpen(false);
+        }}
+    >
+        {category.name}
+    </Link>
+
+))}
   </div>
 </div>
 
@@ -259,9 +234,15 @@ useEffect(() => {
 >
   Área do Cliente
 </Link>
-  <button className="mobile-btn-budget">
-    Pedir orçamento
-  </button>
+ <Link
+  to="https://wa.me/5543988237222"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="mobile-btn-budget"
+  onClick={() => setMenuOpen(false)}
+>
+  Pedir orçamento
+</Link>
 </div>
 
 </aside>

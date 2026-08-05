@@ -401,3 +401,109 @@ export const updateStoragePathUrl = async (
     };
 
 };
+
+
+
+export const uploadSiteHeroBackground = async (
+    file: File,
+): Promise<UploadResult> => {
+
+    const fullPath =
+        `Site/Hero/background.${file.name.split(".").pop()}`;
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};
+
+
+
+export const uploadSiteExperienceImage = async (
+    index: number,
+    file: File,
+): Promise<UploadResult> => {
+
+    const extension =
+        file.name.split(".").pop();
+
+    const fullPath =
+        `Site/Experiences/Card-${index}.${extension}`;
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};
+
+
+export const uploadSitePortfolioImage = async (
+    index: number,
+    file: File,
+): Promise<UploadResult> => {
+
+    const extension =
+        file.name.split(".").pop();
+
+    const fullPath =
+        `Site/Portfolio/Card-${index}.${extension}`;
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};
+
+export const uploadSiteFilmsThumbnail = async (
+    file: File,
+): Promise<UploadResult> => {
+
+    const extension =
+        file.name.split(".").pop();
+
+    const fullPath =
+        `Site/Films/Thumbnail.${extension}`;
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};
+
+export const uploadSiteFilmVideo = async (
+    file: File,
+): Promise<UploadResult> => {
+
+    const extension =
+        file.name.split(".").pop();
+
+    const fullPath =
+        `Site/Films/Video.${extension}`;
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};
+
+export const uploadSiteAboutBackground = async (
+    file: File,
+): Promise<UploadResult> => {
+
+    const extension =
+        file.name.split(".").pop();
+
+    const fullPath =
+        `Site/About/Background.${extension}`;
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};

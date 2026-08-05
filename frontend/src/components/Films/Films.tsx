@@ -1,72 +1,226 @@
 import "./Films.css";
 
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    Play,
+    X,
+} from "lucide-react";
+
+import {
+    subscribeSiteFilms,
+} from "../../services/firebase/siteFilms";
+
 function Films() {
-  return (
-    <section className="films">
-      <div className="films-container">
 
-        <div className="films-video">
-          <img
-            src="https://images.unsplash.com/photo-1519741497674-611481863552"
-            alt="Filme em destaque"
-          />
+    const [film, setFilm] =
+        useState<any>(null);
 
-          <div className="films-video-overlay" />
+    const [showVideo, setShowVideo] =
+        useState(false);
 
-          <button className="play-button">
-            ▶
-          </button>
+    const [closingVideo, setClosingVideo] =
+        useState(false);
 
-          <span>Assistir filme em destaque</span>
-        </div>
+    useEffect(() => {
 
-        <div className="films-content">
-          <div className="section-eyebrow">
-            <span />
-            <p>VÍDEOS </p>
-          </div>
+        const unsubscribe =
+            subscribeSiteFilms(
+                setFilm
+            );
 
-          <h2>
-            Transforme seu evento em uma experiência cinematográfica.
-          </h2>
+        return unsubscribe;
 
-          <p className="films-description">
-            Área ideal para vídeos de casamento,
-            15 anos, pré-wedding, formaturas
-            e eventos corporativos.
-          </p>
+    }, []);
 
-          <div className="films-features">
-            <div className="films-feature">
-              <h3>Trailer emocional</h3>
-              <p>para redes sociais</p>
-            </div>
+    const closeVideo = () => {
 
-            <div className="films-feature">
-              <h3>Filme completo</h3>
-              <p>para reviver o evento</p>
-            </div>
+        setClosingVideo(true);
 
-            <div className="films-feature">
-              <h3>Foto + Filme</h3>
-              <p>pacote mais desejado</p>
-            </div>
-          </div>
+        setTimeout(() => {
 
-          <div className="films-buttons">
-            <button className="films-primary-btn">
-              Assistir vídeos
-            </button>
+            setShowVideo(false);
 
-            <button className="films-secondary-btn">
-              Solicitar pacote
-            </button>
-          </div>
-        </div>
+            setClosingVideo(false);
 
-      </div>
-    </section>
-  );
+        }, 250);
+
+    };
+
+    const features =
+        film?.features ?? [];
+
+    return (
+
+        <>
+
+            <section className="films">
+
+                <div className="films-container">
+
+                    <div className="films-video">
+
+                        <img
+                            src={film?.thumbnailUrl}
+                            alt={film?.title}
+                        />
+
+                        <div className="films-video-overlay" />
+
+                        <button
+                            className="play-button"
+                            onClick={() =>
+                                setShowVideo(true)
+                            }
+                        >
+
+                            <Play
+                                size={34}
+                                fill="currentColor"
+                            />
+
+                        </button>
+
+                    </div>
+
+                    <div className="films-content">
+
+                        <div className="section-eyebrow">
+
+                            <span />
+
+                            <p>
+
+                                {film?.eyebrow}
+
+                            </p>
+
+                        </div>
+
+                        <h2>
+
+                            {film?.title}
+
+                        </h2>
+
+                        <p className="films-description">
+
+                            {film?.description}
+
+                        </p>
+
+                        <div className="films-features">
+
+                            {features.map(
+
+                                (
+                                    feature: any,
+                                    index: number
+                                ) => (
+
+                                    <div
+                                        key={index}
+                                        className="films-feature"
+                                    >
+
+                                        <h3>
+
+                                            {feature.title}
+
+                                        </h3>
+
+                                        <p>
+
+                                            {feature.description}
+
+                                        </p>
+
+                                    </div>
+
+                                )
+
+                            )}
+
+                        </div>
+
+                        <div className="films-buttons">
+
+                            <a
+                                href="https://wa.me/SEUNUMERO"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="films-secondary-btn"
+                            >
+
+                                Solicitar pacote
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            {showVideo && (
+
+                <div
+                    className={`films-preview ${
+
+                        closingVideo
+                            ? "films-preview--closing"
+                            : ""
+
+                    }`}
+                    onClick={closeVideo}
+                >
+
+                    <button
+                        className="films-preview__close"
+                        onClick={closeVideo}
+                    >
+
+                        <X size={26} />
+
+                    </button>
+
+                    <div
+                        className="films-preview__content"
+                        onClick={(event) =>
+                            event.stopPropagation()
+                        }
+                    >
+
+                        <video
+                            controls
+                            autoPlay
+                            playsInline
+                        >
+
+                            <source
+                                src={film?.videoUrl}
+                                type="video/mp4"
+                            />
+
+                            Seu navegador não suporta vídeos.
+
+                        </video>
+
+                    </div>
+
+                </div>
+
+            )}
+
+        </>
+
+    );
+
 }
 
 export default Films;

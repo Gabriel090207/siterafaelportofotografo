@@ -5,6 +5,7 @@ import app.firebase.firebase
 
 from app.routes.auth import router as auth_router
 from app.routes.google import router as google_router
+from app.routes.selection import router as selection_router
 
 app = FastAPI(
     title="Rafael Porto API",
@@ -21,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(google_router)
+app.include_router(selection_router)
 
 
 @app.get("/")

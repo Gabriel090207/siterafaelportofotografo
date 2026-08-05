@@ -11,7 +11,7 @@ import {
     UserRound,
 } from "lucide-react";
 
-import { logoutClient } from "../../firebase/auth";
+import { logoutClient } from "../../services/firebase/auth";
 
 const ClientHeader = () => {
 

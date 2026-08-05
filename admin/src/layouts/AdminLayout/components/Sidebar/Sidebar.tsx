@@ -1,8 +1,10 @@
 import "./Sidebar.css";
 
 import {
+    Heart,
     Images,
     LayoutDashboard,
+    LayoutPanelTop,
     Settings,
     Users,
 } from "lucide-react";
@@ -81,20 +83,53 @@ const Sidebar = ({
 
 
                 <NavLink
-    to="/feed"
-    onClick={onClose}
-    className={({ isActive }) =>
-        isActive
-            ? "sidebar__item sidebar__item--active"
-            : "sidebar__item"
-    }
->
+                    to="/selections"
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                        isActive
+                            ? "sidebar__item sidebar__item--active"
+                            : "sidebar__item"
+                    }
+                >
 
-    <Images size={20} />
+                    <Heart size={20} />
 
-    <span>Eventos</span>
+                    <span>Seleções</span>
 
-</NavLink>
+                </NavLink>
+
+                <NavLink
+                    to="/feed"
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                        isActive
+                            ? "sidebar__item sidebar__item--active"
+                            : "sidebar__item"
+                    }
+                >
+                    
+
+                    <Images size={20} />
+
+                    <span>Eventos</span>
+
+                </NavLink>
+
+                <NavLink
+                    to="/admin/site"
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                        isActive
+                            ? "sidebar__item sidebar__item--active"
+                            : "sidebar__item"
+                    }
+                >
+
+                    <LayoutPanelTop size={20} />
+
+                    <span>Site</span>
+
+                </NavLink>
 
                 <NavLink
                     to="/settings"

@@ -96,6 +96,14 @@
 }
 
 .testimonials-btn {
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  text-decoration:none;
+
   height: 56px;
   padding: 0 32px;
 
