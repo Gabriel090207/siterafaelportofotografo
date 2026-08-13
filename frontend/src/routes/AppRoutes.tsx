@@ -3,11 +3,14 @@ import { Route, Routes } from "react-router-dom";
 import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
 
 import Home from "../pages/Home/Home";
+import Portfolio from "../pages/Portfolio/Portfolio";
 import Events from "../pages/Events/Events";
 import Event from "../pages/Event/Event";
 import About from "../pages/About/About";
 import Services from "../pages/Services/Services";
 import Contact from "../pages/Contact/Contact";
+import Testimonials from "../pages/Testimonials/Testimonials";
+import Promocoes from "../pages/Promocoes/Promocoes";
 
 import ClientLogin from "../pages/ClientLogin/ClientLogin";
 import ClientDashboard from "../pages/ClientDashboard/ClientDashboard";
@@ -25,6 +28,11 @@ export function AppRoutes() {
       <Route
         path="/"
         element={<Home />}
+      />
+
+      <Route
+          path="/portfolio"
+          element={<Portfolio />}
       />
 
       <Route
@@ -58,26 +66,36 @@ export function AppRoutes() {
         element={<Contact />}
       />
 
+      <Route
+          path="/depoimentos"
+          element={<Testimonials />}
+      />
 
       <Route
-  path="/cliente"
-  element={<ClientLogin />}
-/>
+          path="/promocoes"
+          element={<Promocoes />}
+      />
 
-<Route
-    path="/cliente/dashboard"
-    element={<ClientDashboard />}
-/>
 
-<Route
-    path="/cliente/album/:albumId"
-    element={<ClientAlbum />}
-/>
+      <Route
+        path="/cliente"
+        element={<ClientLogin />}
+      />
 
-<Route
-    path="/cliente/downloads"
-    element={<ClientDownloads />}
-/>
+      <Route
+          path="/cliente/dashboard"
+          element={<ClientDashboard />}
+      />
+
+      <Route
+          path="/cliente/album/:albumId"
+          element={<ClientAlbum />}
+      />
+
+      <Route
+          path="/cliente/downloads"
+          element={<ClientDownloads />}
+      />
 
     </Routes>
         </>

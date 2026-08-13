@@ -21,6 +21,9 @@ import FeedCategory from "../pages/FeedCategory/FeedCategory";
 import FeedHidden from "../pages/FeedHidden/FeedHidden";
 import EditFeed from "../pages/EditFeed/EditFeed";
 
+import Testimonials from "../pages/Testimonials/Testimonials";
+import TestimonialForm from "../pages/TestimonialForm/TestimonialForm";
+import EditTestimonial from "../pages/EditTestimonial/EditTestimonial";
 
 import Site from "../pages/Site/Site";
 import SiteHero from "../pages/SiteHero/SiteHero";
@@ -165,6 +168,33 @@ const AppRoutes = () => {
                 element={
                     <AdminLayout>
                         <SelectionDetails />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/testimonials"
+                element={
+                    <AdminLayout>
+                        <Testimonials />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/testimonials/new"
+                element={
+                    <AdminLayout>
+                        <TestimonialForm />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/testimonials/:id/edit"
+                element={
+                    <AdminLayout>
+                        <EditTestimonial />
                     </AdminLayout>
                 }
             />

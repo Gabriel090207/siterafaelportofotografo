@@ -507,3 +507,30 @@ export const uploadSiteAboutBackground = async (
     );
 
 };
+
+
+export const uploadTestimonialPhoto = async (
+    file: File,
+): Promise<UploadResult> => {
+
+    const extension =
+        file.name
+            .split(".")
+            .pop()
+            ?.toLowerCase() ?? "jpg";
+
+
+    const uniqueName =
+        `${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+
+    const fullPath =
+        `Depoimentos/Fotos/${uniqueName}`;
+
+
+    return uploadFile(
+        fullPath,
+        file
+    );
+
+};

@@ -1,0 +1,514 @@
+/* =========================
+   PÁGINA
+========================= */
+
+.admin-testimonials-page {
+    display: flex;
+    flex-direction: column;
+
+    gap: 32px;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.admin-testimonials-page__header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+}
+
+
+.admin-testimonials-page__header h2 {
+    margin: 0 0 8px;
+
+    font-family: var(--font-title);
+
+    font-size: 2rem;
+    font-weight: 700;
+
+    color: var(--color-text);
+}
+
+
+.admin-testimonials-page__header p {
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: .95rem;
+}
+
+
+/* =========================
+   BOTÃO NOVO
+========================= */
+
+.admin-testimonials-page__new {
+    height: 48px;
+
+    padding: 0 22px;
+
+    border: none;
+
+    border-radius: var(--radius-md);
+
+    background: var(--color-orange);
+
+    color: var(--color-white);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+
+    font-family: var(--font-ui);
+    font-weight: 600;
+
+    box-shadow:
+        0 10px 24px rgba(255, 130, 0, .18);
+
+    transition: var(--transition-default);
+}
+
+
+.admin-testimonials-page__new:hover {
+    background: var(--color-orange-dark);
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================
+   LISTA
+========================= */
+
+.admin-testimonials-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+
+/* =========================
+   ITEM
+========================= */
+
+.admin-testimonial-item {
+    width: 100%;
+
+    padding: 24px;
+
+    background: var(--color-white);
+
+    border:
+        1px solid var(--color-border);
+
+    border-radius: var(--radius-lg);
+
+    display: grid;
+
+    grid-template-columns: 76px minmax(0, 1fr);
+
+    gap: 22px;
+
+    transition: var(--transition-default);
+}
+
+
+.admin-testimonial-item:hover {
+    border-color:
+        rgba(255, 130, 0, .18);
+
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, .05);
+}
+
+
+/* =========================
+   FOTO
+========================= */
+
+.admin-testimonial-item__photo {
+    width: 76px;
+    height: 76px;
+
+    overflow: hidden;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--color-beige),
+            var(--color-cream)
+        );
+
+    color: var(--color-orange);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.admin-testimonial-item__photo img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+}
+
+
+/* =========================
+   CONTEÚDO
+========================= */
+
+.admin-testimonial-item__content {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+
+/* =========================
+   TOPO
+========================= */
+
+.admin-testimonial-item__top {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+
+.admin-testimonial-item__client {
+    min-width: 0;
+}
+
+
+.admin-testimonial-item__client h3 {
+    margin: 0 0 5px;
+
+    font-family: var(--font-title);
+
+    font-size: 1.2rem;
+    font-weight: 700;
+
+    color: var(--color-text);
+}
+
+
+.admin-testimonial-item__client span {
+    display: block;
+
+    color: var(--color-text-light);
+
+    font-size: .84rem;
+
+    overflow-wrap: anywhere;
+}
+
+/* =========================
+   AÇÕES
+========================= */
+
+.admin-testimonial-item__actions {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+}
+
+
+.admin-testimonial-item__actions button {
+    width: 40px;
+    height: 40px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: rgba(255, 130, 0, .08);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition: var(--transition-default);
+}
+
+
+.admin-testimonial-item__actions button svg {
+    color: var(--color-orange);
+
+    transition: var(--transition-default);
+}
+
+
+.admin-testimonial-item__actions button:hover {
+    background: var(--color-orange);
+}
+
+
+.admin-testimonial-item__actions button:hover svg {
+    color: var(--color-white);
+}
+
+/* =========================
+   DEPOIMENTO
+========================= */
+
+.admin-testimonial-item__message {
+    margin: 0;
+
+    max-width: 1050px;
+
+    color: var(--color-text);
+
+    font-size: .94rem;
+
+    line-height: 1.75;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================
+   RODAPÉ
+========================= */
+
+.admin-testimonial-item__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding-top: 18px;
+
+    border-top: 1px solid var(--color-border);
+
+    margin-top: auto;
+}
+
+
+.admin-testimonial-item__footer-info {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.admin-testimonial-item__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+    height: 36px;
+
+    padding: 0 16px;
+
+    border-radius: var(--radius-full);
+
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+
+
+
+/* PUBLICADO */
+
+.admin-testimonial-item__status--active {
+    background: #EAF8EF;
+
+    color: #15803D;
+}
+
+
+.admin-testimonial-item__status--hidden {
+    background: #FDECEC;
+
+    color: #DC2626;
+}
+
+
+/* =========================
+   DATA
+========================= */
+
+.admin-testimonial-item__date {
+    color: var(--color-text-light);
+
+    font-size: .78rem;
+}
+
+
+/* =========================
+   ESTADO VAZIO / LOADING
+========================= */
+
+.admin-testimonials-page__empty {
+    min-height: 320px;
+
+    padding: 40px;
+
+    background: var(--color-white);
+
+    border:
+        1px solid var(--color-border);
+
+    border-radius: var(--radius-lg);
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+.admin-testimonials-page__empty-icon {
+    width: 62px;
+    height: 62px;
+
+    margin-bottom: 18px;
+
+    border-radius: 18px;
+
+    background:
+        rgba(255, 130, 0, .08);
+
+    color: var(--color-orange);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.admin-testimonials-page__empty h3 {
+    margin: 0 0 8px;
+
+    font-family: var(--font-title);
+
+    font-size: 1.25rem;
+
+    color: var(--color-text);
+}
+
+
+.admin-testimonials-page__empty p {
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: .9rem;
+}
+
+
+/* =========================
+   TABLET / MOBILE
+========================= */
+
+@media (max-width: 900px) {
+
+    .admin-testimonials-page__header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 20px;
+    }
+
+
+    .admin-testimonials-page__new {
+        width: 100%;
+    }
+
+
+    .admin-testimonial-item {
+        grid-template-columns: 64px minmax(0, 1fr);
+
+        gap: 16px;
+
+        padding: 20px;
+
+        border-radius: var(--radius-md);
+    }
+
+
+    .admin-testimonial-item__photo {
+        width: 64px;
+        height: 64px;
+
+        border-radius: 18px;
+    }
+
+}
+
+
+/* =========================
+   MOBILE PEQUENO
+========================= */
+
+@media (max-width: 600px) {
+
+    .admin-testimonial-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+
+    .admin-testimonial-item__top {
+        gap: 14px;
+    }
+
+
+    .admin-testimonial-item__photo {
+        width: 68px;
+        height: 68px;
+    }
+
+
+    .admin-testimonial-item__message {
+        font-size: .9rem;
+    }
+
+
+    .admin-testimonial-item__footer {
+        flex-wrap: wrap;
+    }
+
+}

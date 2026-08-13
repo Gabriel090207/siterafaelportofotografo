@@ -105,11 +105,9 @@ useEffect(() => {
 </div>
   </div>
 
-  <Link to="/servicos">
-  Serviços
-</Link>
-  <a href="#">Depoimentos</a>
-  <a href="#">Promoções</a>
+  
+<Link to="/depoimentos">Depoimentos</Link>
+<Link to="/promocoes">Promoções</Link>
   <Link to="/sobre">
   Sobre
 </Link>
@@ -206,12 +204,20 @@ useEffect(() => {
   </div>
 </div>
 
-  <Link to="/servicos"
-   onClick={() => setMenuOpen(false)}>
-  Serviços
+  
+   <Link
+  to="/depoimentos"
+  onClick={() => setMenuOpen(false)}
+>
+  Depoimentos
 </Link>
-  <a href="#">Depoimentos</a>
-  <a href="#">Promoções</a>
+
+<Link
+  to="/promocoes"
+  onClick={() => setMenuOpen(false)}
+>
+  Promoções
+</Link>
  <Link
   to="/sobre"
   onClick={() => setMenuOpen(false)}

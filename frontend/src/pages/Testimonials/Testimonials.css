@@ -1,0 +1,1028 @@
+/* ===================================
+   TESTIMONIALS PAGE
+=================================== */
+
+.testimonials-page {
+    min-height: 100vh;
+
+    padding: 80px 0 140px;
+
+    background: #fcfbf9;
+
+    background-image:
+        radial-gradient(
+            rgba(0, 0, 0, 0.04) 1px,
+            transparent 1px
+        );
+
+    background-size: 18px 18px;
+}
+
+
+.testimonials-page-container {
+    width: min(1380px, 92%);
+
+    margin: 0 auto;
+}
+
+
+/* ===================================
+   HEADER
+=================================== */
+
+.testimonials-page-header {
+    margin-bottom: 70px;
+}
+
+
+.testimonials-page-eyebrow {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 26px;
+}
+
+
+.testimonials-page-eyebrow span {
+    width: 42px;
+    height: 2px;
+
+    flex-shrink: 0;
+
+    background: var(--color-orange);
+}
+
+
+.testimonials-page-eyebrow p {
+    margin: 0;
+
+    color: var(--color-orange);
+
+    font-size: 14px;
+    font-weight: 800;
+
+    letter-spacing: 2px;
+}
+
+
+.testimonials-page-header h1 {
+    max-width: 1200px;
+
+    margin-bottom: 22px;
+
+    font-family: var(--font-title);
+
+    font-size: 62px;
+
+    line-height: .92;
+
+    color: var(--color-text);
+}
+
+
+.testimonials-page-description {
+    max-width: 1200px;
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 16px;
+
+    line-height: 1.7;
+}
+
+
+/* ===================================
+   ÁREA DO FORMULÁRIO
+=================================== */
+
+.testimonials-page-form-section {
+    width: 100%;
+
+    margin-bottom: 120px;
+}
+
+
+/* ===================================
+   TEXTO AO LADO DO FORMULÁRIO
+=================================== */
+
+.testimonials-page-form-heading {
+    padding-top: 18px;
+}
+
+
+.testimonials-page-form-heading > span {
+    display: block;
+
+    margin-bottom: 18px;
+
+    color: var(--color-orange);
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 2px;
+}
+
+
+.testimonials-page-form-heading h2 {
+    max-width: 430px;
+
+    margin-bottom: 20px;
+
+    font-family: var(--font-title);
+
+    font-size: 46px;
+
+    line-height: .98;
+
+    color: var(--color-text);
+}
+
+
+.testimonials-page-form-heading p {
+    max-width: 430px;
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 15px;
+
+    line-height: 1.8;
+}
+
+
+/* ===================================
+   FORMULÁRIO
+=================================== */
+
+.testimonials-page-form {
+    width: 100%;
+
+    padding: 36px;
+
+    background: var(--color-white);
+
+    border:
+        1px solid rgba(0, 0, 0, .06);
+
+    border-radius: 30px;
+
+    box-shadow: var(--shadow-sm);
+}
+
+
+/* ===================================
+   FOTO DE PERFIL
+=================================== */
+
+.testimonials-page-photo-field {
+    display: flex;
+    align-items: center;
+
+    gap: 20px;
+
+    padding-bottom: 28px;
+
+    margin-bottom: 28px;
+
+    border-bottom:
+        1px solid rgba(0, 0, 0, .07);
+}
+
+
+.testimonials-page-photo-button {
+    width: 86px;
+    height: 86px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    overflow: hidden;
+
+    border:
+        2px dashed rgba(255, 130, 0, .35);
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 130, 0, .06);
+
+    color: var(--color-orange);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        border-color .3s ease,
+        background .3s ease,
+        transform .3s ease;
+}
+
+
+.testimonials-page-photo-button:hover {
+    border-color: var(--color-orange);
+
+    background:
+        rgba(255, 130, 0, .1);
+
+    transform: translateY(-2px);
+}
+
+
+.testimonials-page-photo-button svg {
+    font-size: 27px;
+}
+
+
+.testimonials-page-photo-button img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+}
+
+
+.testimonials-page-photo-info {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+}
+
+
+.testimonials-page-photo-info strong {
+    color: var(--color-text);
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+
+.testimonials-page-photo-info span {
+    color: var(--color-text-light);
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+.testimonials-page-file-input {
+    display: none;
+}
+
+
+/* ===================================
+   CAMPOS
+=================================== */
+
+.testimonials-page-fields-row {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 20px;
+
+    margin-bottom: 22px;
+}
+
+
+.testimonials-page-field {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+
+.testimonials-page-fields-row
+.testimonials-page-field {
+    margin: 0;
+}
+
+
+.testimonials-page-form >
+.testimonials-page-field {
+    margin-bottom: 24px;
+}
+
+
+.testimonials-page-field label {
+    color: var(--color-text);
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+
+.testimonials-page-field input,
+.testimonials-page-field textarea {
+    width: 100%;
+
+    border:
+        1px solid rgba(0, 0, 0, .09);
+
+    outline: none;
+
+    border-radius: 16px;
+
+    background: #fcfbf9;
+
+    color: var(--color-text);
+
+    font-family: var(--font-body);
+
+    font-size: 14px;
+
+    transition:
+        border-color .25s ease,
+        box-shadow .25s ease,
+        background .25s ease;
+}
+
+
+.testimonials-page-field input {
+    height: 52px;
+
+    padding: 0 17px;
+}
+
+
+.testimonials-page-field textarea {
+    min-height: 150px;
+
+    padding: 16px 17px 38px;
+
+    line-height: 1.7;
+
+    resize: none;
+}
+
+
+.testimonials-page-field input::placeholder,
+.testimonials-page-field textarea::placeholder {
+    color: #aaa49d;
+}
+
+
+.testimonials-page-field input:focus,
+.testimonials-page-field textarea:focus {
+    border-color:
+        rgba(255, 130, 0, .55);
+
+    background: white;
+
+    box-shadow:
+        0 0 0 4px rgba(255, 130, 0, .07);
+}
+
+
+/* ===================================
+   CONTADOR
+=================================== */
+
+.testimonials-page-character-count {
+    position: absolute;
+
+    right: 15px;
+    bottom: 12px;
+
+    color: #aaa49d;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    pointer-events: none;
+}
+
+
+/* ===================================
+   MENSAGENS
+=================================== */
+
+.testimonials-page-message {
+    min-height: 48px;
+
+    padding: 12px 16px;
+
+    margin-bottom: 20px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+.testimonials-page-message-error {
+    background:
+        rgba(190, 45, 45, .07);
+
+    border:
+        1px solid rgba(190, 45, 45, .12);
+
+    color: #a22b2b;
+}
+
+
+.testimonials-page-message-success {
+    background:
+        rgba(37, 142, 83, .08);
+
+    border:
+        1px solid rgba(37, 142, 83, .14);
+
+    color: #237a49;
+}
+
+
+.testimonials-page-message-success svg {
+    flex-shrink: 0;
+
+    font-size: 18px;
+}
+
+
+/* ===================================
+   RODAPÉ DO FORMULÁRIO
+=================================== */
+
+.testimonials-page-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 25px;
+}
+
+
+.testimonials-page-form-footer > p {
+    max-width: 300px;
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+/* ===================================
+   BOTÃO ENVIAR
+=================================== */
+
+.testimonials-page-submit {
+    min-height: 48px;
+
+    padding: 0 22px;
+
+    border: none;
+
+    border-radius: var(--radius-full);
+
+    background: var(--color-orange);
+
+    color: white;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 11px;
+
+    font-family: var(--font-ui);
+
+    font-size: 13px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 25px rgba(255, 130, 0, .18);
+
+    transition:
+        background .3s ease,
+        transform .3s ease,
+        box-shadow .3s ease;
+}
+
+
+.testimonials-page-submit svg {
+    font-size: 17px;
+
+    transition: transform .3s ease;
+}
+
+
+.testimonials-page-submit:hover:not(:disabled) {
+    background: var(--color-orange-dark);
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 14px 30px rgba(255, 130, 0, .25);
+}
+
+
+.testimonials-page-submit:hover:not(:disabled) svg {
+    transform: translateX(3px);
+}
+
+
+.testimonials-page-submit:disabled {
+    opacity: .6;
+
+    cursor: not-allowed;
+}
+
+
+/* ===================================
+   LISTA DE DEPOIMENTOS
+=================================== */
+
+.testimonials-page-list-section {
+    width: 100%;
+}
+
+
+.testimonials-page-list-heading {
+    margin-bottom: 45px;
+}
+
+
+.testimonials-page-list-eyebrow {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 22px;
+}
+
+
+.testimonials-page-list-eyebrow > span {
+    width: 42px;
+    height: 2px;
+
+    flex-shrink: 0;
+
+    background: var(--color-orange);
+}
+
+
+.testimonials-page-list-eyebrow p {
+    margin: 0;
+
+    color: var(--color-orange);
+
+    font-size: 14px;
+    font-weight: 800;
+
+    letter-spacing: 2px;
+}
+
+
+.testimonials-page-list-heading h2 {
+    max-width: 750px;
+
+    margin: 0;
+
+    font-family: var(--font-title);
+
+    font-size: 52px;
+
+    line-height: .95;
+
+    color: var(--color-text);
+}
+
+
+/* ===================================
+   GRID DOS DEPOIMENTOS
+=================================== */
+.testimonials-page-grid {
+    display: flex;
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+/* ===================================
+   CARD DE DEPOIMENTO
+=================================== */
+
+.testimonials-page-card {
+    width: 100%;
+
+    padding: 28px 32px;
+
+    background: white;
+
+    border:
+        1px solid rgba(0, 0, 0, .05);
+
+    border-radius: 24px;
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform .3s ease,
+        box-shadow .3s ease;
+}
+
+.testimonials-page-card:hover {
+    transform: translateY(-4px);
+
+    box-shadow: var(--shadow-md);
+}
+
+
+/* ===================================
+   CABEÇALHO DO CARD
+=================================== */
+
+.testimonials-page-card-header {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    padding-bottom: 22px;
+
+    margin-bottom: 22px;
+
+    border-bottom:
+        1px solid rgba(0, 0, 0, .06);
+}
+
+
+.testimonials-page-card-header > img {
+    width: 58px;
+    height: 58px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    display: block;
+
+    border:
+        3px solid rgba(255, 130, 0, .1);
+}
+
+
+.testimonials-page-card-header h3 {
+    margin: 0 0 4px;
+
+    color: var(--color-text);
+
+    font-family: var(--font-title);
+
+    font-size: 19px;
+
+    line-height: 1.1;
+}
+
+
+.testimonials-page-card-header span {
+    color: var(--color-orange);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+}
+
+
+/* ===================================
+   TEXTO DO DEPOIMENTO
+=================================== */
+
+.testimonials-page-card-message {
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 14px;
+
+    line-height: 1.85;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* ===================================
+   SEM DEPOIMENTOS
+=================================== */
+
+.testimonials-page-empty {
+    min-height: 300px;
+
+    padding: 40px;
+
+    border:
+        1px solid rgba(0, 0, 0, .05);
+
+    border-radius: 28px;
+
+    background: white;
+
+    box-shadow: var(--shadow-sm);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+.testimonials-page-empty > svg {
+    margin-bottom: 18px;
+
+    color: var(--color-orange);
+
+    font-size: 34px;
+}
+
+
+.testimonials-page-empty h3 {
+    margin: 0 0 8px;
+
+    font-family: var(--font-title);
+
+    color: var(--color-text);
+
+    font-size: 24px;
+}
+
+
+.testimonials-page-empty p {
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 14px;
+
+    line-height: 1.7;
+}
+
+
+/* ===================================
+   TABLET
+=================================== */
+
+@media (max-width: 1050px) {
+
+    .testimonials-page-form-section {
+        grid-template-columns: 1fr;
+
+        gap: 35px;
+    }
+
+
+    .testimonials-page-form-heading {
+        padding-top: 0;
+    }
+
+
+    .testimonials-page-form-heading p {
+        max-width: 700px;
+    }
+
+
+    .testimonials-page-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* ===================================
+   MOBILE
+=================================== */
+
+@media (max-width: 700px) {
+
+    .testimonials-page {
+        padding: 60px 0 90px;
+    }
+
+
+    .testimonials-page-container {
+        width: 92%;
+    }
+
+
+    /* HEADER */
+
+    .testimonials-page-header {
+        margin-bottom: 55px;
+    }
+
+
+    .testimonials-page-eyebrow {
+        gap: 10px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .testimonials-page-eyebrow span {
+        width: 32px;
+    }
+
+
+    .testimonials-page-eyebrow p {
+        font-size: 12px;
+    }
+
+
+    .testimonials-page-header h1 {
+        font-size: 38px;
+
+        line-height: .98;
+
+        margin-bottom: 20px;
+    }
+
+
+    .testimonials-page-description {
+        font-size: 15px;
+
+        line-height: 1.75;
+    }
+
+
+    /* FORM */
+
+    .testimonials-page-form-section {
+        gap: 28px;
+
+        margin-bottom: 90px;
+    }
+
+
+    .testimonials-page-form-heading > span {
+        font-size: 11px;
+    }
+
+
+    .testimonials-page-form-heading h2 {
+        font-size: 34px;
+    }
+
+
+    .testimonials-page-form {
+        padding: 24px;
+
+        border-radius: 24px;
+    }
+
+
+    .testimonials-page-photo-button {
+        width: 74px;
+        height: 74px;
+    }
+
+
+    .testimonials-page-fields-row {
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+
+    .testimonials-page-form-footer {
+        align-items: stretch;
+        flex-direction: column;
+
+        gap: 18px;
+    }
+
+
+    .testimonials-page-form-footer > p {
+        max-width: 100%;
+    }
+
+
+    .testimonials-page-submit {
+        width: 100%;
+
+        min-height: 48px;
+    }
+
+
+    /* LISTA */
+
+    .testimonials-page-list-heading {
+        margin-bottom: 32px;
+    }
+
+
+    .testimonials-page-list-eyebrow {
+        gap: 10px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .testimonials-page-list-eyebrow > span {
+        width: 32px;
+    }
+
+
+    .testimonials-page-list-eyebrow p {
+        font-size: 12px;
+    }
+
+
+    .testimonials-page-list-heading h2 {
+        font-size: 34px;
+    }
+
+
+    .testimonials-page-grid {
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+
+    .testimonials-page-card {
+        padding: 24px;
+
+        border-radius: 24px;
+    }
+
+}
+
+
+/* ===================================
+   MOBILE PEQUENO
+=================================== */
+
+@media (max-width: 430px) {
+
+    .testimonials-page-header h1 {
+        font-size: 34px;
+    }
+
+
+    .testimonials-page-form {
+        padding: 20px;
+    }
+
+
+    .testimonials-page-photo-field {
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+
+    .testimonials-page-photo-button {
+        width: 66px;
+        height: 66px;
+    }
+
+
+    .testimonials-page-photo-info span {
+        font-size: 12px;
+    }
+
+
+    .testimonials-page-list-heading h2,
+    .testimonials-page-form-heading h2 {
+        font-size: 31px;
+    }
+
+}

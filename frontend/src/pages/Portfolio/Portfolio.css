@@ -1,0 +1,430 @@
+/* ===================================
+   PORTFOLIO PAGE
+=================================== */
+
+.portfolio-page {
+    min-height: 100vh;
+
+    padding: 80px 0 140px;
+
+    background: #fcfbf9;
+
+    background-image:
+        radial-gradient(
+            rgba(0, 0, 0, 0.04) 1px,
+            transparent 1px
+        );
+
+    background-size: 18px 18px;
+}
+
+
+.portfolio-page-container {
+    width: min(1380px, 92%);
+
+    margin: 0 auto;
+}
+
+
+/* ===================================
+   HEADER
+=================================== */
+
+.portfolio-page-header {
+    margin-bottom: 65px;
+}
+
+
+.portfolio-page-eyebrow {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 26px;
+}
+
+
+.portfolio-page-eyebrow span {
+    width: 42px;
+    height: 2px;
+
+    flex-shrink: 0;
+
+    background: var(--color-orange);
+}
+
+
+.portfolio-page-eyebrow p {
+    margin: 0;
+
+    color: var(--color-orange);
+
+    font-size: 14px;
+    font-weight: 800;
+
+    letter-spacing: 2px;
+}
+
+
+.portfolio-page-header h1 {
+    max-width: 1200px;
+
+    margin-bottom: 22px;
+
+    font-family: var(--font-title);
+
+    font-size: 62px;
+
+    line-height: .92;
+
+    color: var(--color-text);
+}
+
+
+.portfolio-page-description {
+    max-width: 1200px;
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 16px;
+
+    line-height: 1.7;
+}
+
+
+/* ===================================
+   CATEGORIAS
+=================================== */
+
+.portfolio-page-categories {
+    width: 100%;
+}
+
+
+/* ===================================
+   GRID
+=================================== */
+
+.portfolio-page-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 26px;
+}
+
+
+/* ===================================
+   CARD
+=================================== */
+
+.portfolio-page-card {
+    min-width: 0;
+
+    overflow: hidden;
+
+    background: var(--color-white);
+
+    border:
+        1px solid rgba(0, 0, 0, .05);
+
+    border-radius: 28px;
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform .3s ease,
+        box-shadow .3s ease;
+}
+
+
+.portfolio-page-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow: var(--shadow-md);
+}
+
+
+/* ===================================
+   IMAGEM DO CARD
+=================================== */
+
+.portfolio-page-card-image {
+    position: relative;
+
+    width: 100%;
+    height: 300px;
+
+    overflow: hidden;
+
+    background: #f2eee8;
+}
+
+
+.portfolio-page-card-image img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    transition:
+        transform .6s ease;
+}
+
+
+.portfolio-page-card:hover
+.portfolio-page-card-image img {
+    transform: scale(1.04);
+}
+
+
+/* ===================================
+   PLACEHOLDER
+=================================== */
+
+.portfolio-page-card-placeholder {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(255, 130, 0, .06);
+
+    color: var(--color-orange);
+}
+
+
+.portfolio-page-card-placeholder svg {
+    font-size: 40px;
+}
+
+
+/* ===================================
+   CONTEÚDO DO CARD
+=================================== */
+
+.portfolio-page-card-content {
+    padding: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.portfolio-page-card-content h2 {
+    margin: 0;
+
+    font-family: var(--font-title);
+
+    font-size: 28px;
+    font-weight: 700;
+
+    line-height: 1.1;
+
+    color: var(--color-text);
+}
+
+
+/* ===================================
+   BOTÃO
+=================================== */
+
+.portfolio-page-card-button {
+    width: auto;
+    flex-shrink: 0;
+
+    min-height: 46px;
+
+    padding: 0 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    border-radius: var(--radius-full);
+
+    background: var(--color-orange);
+
+    color: var(--color-white);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    transition:
+        background .3s ease;
+}
+
+
+.portfolio-page-card-button svg {
+    flex-shrink: 0;
+
+    font-size: 18px;
+
+    transition:
+        transform .3s ease;
+}
+
+
+.portfolio-page-card-button:hover {
+    background: var(--color-orange-dark);
+}
+
+
+.portfolio-page-card-button:hover svg {
+    transform: translateX(4px);
+}
+
+
+/* ===================================
+   TABLET
+=================================== */
+
+@media (max-width: 1000px) {
+
+    .portfolio-page-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .portfolio-page-card-image {
+        height: 290px;
+    }
+
+}
+
+
+/* ===================================
+   MOBILE
+=================================== */
+
+@media (max-width: 700px) {
+
+    .portfolio-page {
+        padding: 60px 0 90px;
+    }
+
+
+    .portfolio-page-container {
+        width: 92%;
+    }
+
+
+    /* HEADER */
+
+    .portfolio-page-header {
+        margin-bottom: 50px;
+    }
+
+
+    .portfolio-page-eyebrow {
+        gap: 10px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .portfolio-page-eyebrow span {
+        width: 32px;
+    }
+
+
+    .portfolio-page-eyebrow p {
+        font-size: 12px;
+    }
+
+
+    .portfolio-page-header h1 {
+        font-size: 38px;
+
+        line-height: .98;
+
+        margin-bottom: 20px;
+    }
+
+
+    .portfolio-page-description {
+        font-size: 15px;
+
+        line-height: 1.75;
+    }
+
+
+    /* GRID */
+
+    .portfolio-page-grid {
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+    }
+
+
+    /* CARD */
+
+    .portfolio-page-card {
+        border-radius: 24px;
+    }
+
+
+    .portfolio-page-card-image {
+        height: 280px;
+    }
+
+
+    .portfolio-page-card-content {
+        padding: 22px;
+    }
+
+
+    .portfolio-page-card-content h2 {
+        font-size: 25px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .portfolio-page-card-button {
+        min-height: 44px;
+
+        padding: 0 17px;
+    }
+
+}
+
+
+/* ===================================
+   MOBILE PEQUENO
+=================================== */
+
+@media (max-width: 420px) {
+
+    .portfolio-page-header h1 {
+        font-size: 34px;
+    }
+
+
+    .portfolio-page-card-image {
+        height: 250px;
+    }
+
+
+    .portfolio-page-card-content h2 {
+        font-size: 24px;
+    }
+
+}

@@ -5,6 +5,7 @@ import {
     Images,
     LayoutDashboard,
     LayoutPanelTop,
+    MessageSquareQuote,
     Settings,
     Users,
 } from "lucide-react";
@@ -112,6 +113,21 @@ const Sidebar = ({
                     <Images size={20} />
 
                     <span>Eventos</span>
+
+                </NavLink>
+
+                <NavLink
+                    to="/testimonials"
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                        isActive
+                            ? "sidebar__item sidebar__item--active"
+                            : "sidebar__item"
+                    }
+                >
+                    <MessageSquareQuote size={20} />
+
+                    <span>Depoimentos</span>
 
                 </NavLink>
 

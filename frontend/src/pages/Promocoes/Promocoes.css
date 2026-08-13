@@ -1,0 +1,371 @@
+/* ===================================
+   PROMOÇÕES PAGE
+=================================== */
+
+.promocoes-page {
+    min-height: 100vh;
+
+    padding: 80px 0 140px;
+
+    background: #fcfbf9;
+
+    background-image:
+        radial-gradient(
+            rgba(0, 0, 0, 0.04) 1px,
+            transparent 1px
+        );
+
+    background-size: 18px 18px;
+}
+
+
+.promocoes-page-container {
+    width: min(1380px, 92%);
+
+    margin: 0 auto;
+}
+
+
+/* ===================================
+   HEADER
+=================================== */
+
+.promocoes-page-header {
+    margin-bottom: 70px;
+}
+
+
+.promocoes-page-eyebrow {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 26px;
+}
+
+
+.promocoes-page-eyebrow span {
+    width: 42px;
+    height: 2px;
+
+    flex-shrink: 0;
+
+    background: var(--color-orange);
+}
+
+
+.promocoes-page-eyebrow p {
+    margin: 0;
+
+    color: var(--color-orange);
+
+    font-size: 14px;
+
+    font-weight: 800;
+
+    letter-spacing: 2px;
+}
+
+
+.promocoes-page-header h1 {
+    max-width: 1200px;
+
+    margin: 0 0 22px;
+
+    font-family: var(--font-title);
+
+    font-size: 62px;
+
+    line-height: .92;
+
+    color: var(--color-text);
+}
+
+
+.promocoes-page-description {
+    max-width: 1200px;
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 16px;
+
+    line-height: 1.7;
+}
+
+
+/* ===================================
+   EM DESENVOLVIMENTO
+=================================== */
+
+.promocoes-page-development {
+    width: 100%;
+
+    min-height: 580px;
+
+    padding: 55px 40px;
+
+    background: var(--color-white);
+
+    border:
+        1px solid rgba(0, 0, 0, .05);
+
+    border-radius: 30px;
+
+    box-shadow: var(--shadow-sm);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+/* ===================================
+   ÍCONE
+=================================== */
+
+.promocoes-page-development-icon {
+    width: 72px;
+    height: 72px;
+
+    margin-bottom: 22px;
+
+    border-radius: 22px;
+
+    background:
+        rgba(255, 130, 0, .08);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+
+.promocoes-page-development-icon svg {
+    color: var(--color-orange);
+
+    font-size: 30px;
+}
+
+
+/* ===================================
+   LABEL
+=================================== */
+
+.promocoes-page-development-label {
+    margin-bottom: 16px;
+
+    color: var(--color-orange);
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: 2px;
+}
+
+
+/* ===================================
+   TÍTULO
+=================================== */
+
+.promocoes-page-development h2 {
+    max-width: 950px;
+
+    margin: 0 0 18px;
+
+    font-family: var(--font-title);
+
+    font-size: 46px;
+
+    line-height: .98;
+
+    color: var(--color-text);
+}
+
+
+/* ===================================
+   TEXTO
+=================================== */
+
+.promocoes-page-development p {
+    max-width: 620px;
+
+    margin: 0;
+
+    color: var(--color-text-light);
+
+    font-size: 15px;
+
+    line-height: 1.8;
+}
+
+
+/* ===================================
+   TABLET
+=================================== */
+
+@media (max-width: 900px) {
+
+    .promocoes-page {
+        padding: 70px 0 100px;
+    }
+
+
+    .promocoes-page-header {
+        margin-bottom: 55px;
+    }
+
+
+    .promocoes-page-header h1 {
+        font-size: 48px;
+    }
+
+
+    .promocoes-page-description {
+        font-size: 16px;
+
+        line-height: 1.8;
+    }
+
+
+    .promocoes-page-development {
+        min-height: 340px;
+
+        padding: 45px 30px;
+    }
+
+
+    .promocoes-page-development h2 {
+        font-size: 42px;
+    }
+
+}
+
+
+/* ===================================
+   MOBILE
+=================================== */
+
+@media (max-width: 600px) {
+
+    .promocoes-page {
+        padding: 60px 0 80px;
+    }
+
+
+    .promocoes-page-container {
+        width: 92%;
+    }
+
+
+    /* HEADER */
+
+    .promocoes-page-header {
+        margin-bottom: 40px;
+    }
+
+
+    .promocoes-page-eyebrow {
+        gap: 10px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .promocoes-page-eyebrow span {
+        width: 32px;
+    }
+
+
+    .promocoes-page-eyebrow p {
+        font-size: 12px;
+    }
+
+
+    .promocoes-page-header h1 {
+        font-size: 38px;
+
+        line-height: .98;
+
+        margin-bottom: 20px;
+    }
+
+
+    .promocoes-page-description {
+        font-size: 15px;
+
+        line-height: 1.75;
+    }
+
+
+    /* DESENVOLVIMENTO */
+
+    .promocoes-page-development {
+        min-height: 320px;
+
+        padding: 40px 24px;
+
+        border-radius: 24px;
+    }
+
+
+    .promocoes-page-development-icon {
+        width: 64px;
+        height: 64px;
+
+        border-radius: 19px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .promocoes-page-development-icon svg {
+        font-size: 27px;
+    }
+
+
+    .promocoes-page-development h2 {
+        font-size: 34px;
+    }
+
+
+    .promocoes-page-development p {
+        font-size: 14px;
+
+        line-height: 1.75;
+    }
+
+}
+
+
+/* ===================================
+   MOBILE PEQUENO
+=================================== */
+
+@media (max-width: 430px) {
+
+    .promocoes-page-header h1 {
+        font-size: 34px;
+    }
+
+
+    .promocoes-page-development {
+        padding: 34px 20px;
+    }
+
+
+    .promocoes-page-development h2 {
+        font-size: 31px;
+    }
+
+}

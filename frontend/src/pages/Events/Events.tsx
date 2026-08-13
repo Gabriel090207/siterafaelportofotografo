@@ -119,10 +119,7 @@ const currentCategory =
 
                         <p className="events-description">
 
-                            Casamentos, 15 anos, ensaios,
-                            formaturas e eventos corporativos
-                            registrados com emoção, estética
-                            e cuidado em cada detalhe.
+                            Fotógrafo a mais de 16 anos e especialista em festa de 15 anos, casamentos, formaturas, pré wedding, ensaio de gestante, eventos corporativos, aniversário infantil e book, Rafael Porto foi o primeiro fotógrafo no Brasil a entregar um álbum no próprio casamento, ama surpreender seus clientes e transformar momentos únicos em recordações eternas, possui mais de 50 prêmios por atendimento e qualidade, a empresa é a mais indicada em sua região a 6 anos consecutivos, atende Paraná e região. Tenha a tranquilidade e segurança em obter as melhores imagens dos momentos mais importantes da vida.
 
                         </p>
 
