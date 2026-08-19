@@ -6,6 +6,8 @@ import { WhatsappButton } from "./components/WhatsappButton/WhatsappButton";
 import { AppRoutes } from "./routes/AppRoutes";
 
 import { useLocation } from "react-router-dom";
+import { ClientAuthProvider } from "./contexts/ClientAuthProvider";
+import { ToastProvider } from "./contexts/ToastContext";
 
 function App() {
 
@@ -15,17 +17,19 @@ function App() {
     location.pathname.startsWith("/cliente");
 
   return (
-    <>
+    <ToastProvider>
+      <ClientAuthProvider>
 
-      {!isClientArea && <Header />}
+        {!isClientArea && <Header />}
 
-      <AppRoutes />
+        <AppRoutes />
 
-      {!isClientArea && <Footer />}
+        {!isClientArea && <Footer />}
 
-      {!isClientArea && <WhatsappButton />}
+        {!isClientArea && <WhatsappButton />}
 
-    </>
+      </ClientAuthProvider>
+    </ToastProvider>
   );
 }
 

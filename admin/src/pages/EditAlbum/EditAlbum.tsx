@@ -5,6 +5,7 @@ import {
     useRef,
     useState,
 } from "react";
+import { isAxiosError } from "axios";
 
 import {
     useNavigate,
@@ -13,7 +14,9 @@ import {
 
 import {
     getAlbumById,
-    updateAlbum,
+    resolveAlbumClient,
+    updateAlbumDetails,
+    updateAlbumIdentity,
 } from "../../services/firebase/albumClient";
 
 import {
@@ -80,7 +83,24 @@ useEffect(() => {
 
 const navigate = useNavigate();
 
-const { id } = useParams();
+const {
+    albumSlug,
+    identifier,
+} = useParams();
+
+const requestedIdentifier = albumSlug ?? identifier;
+
+const [resolvedAlbum, setResolvedAlbum] = useState<{
+    albumId: string;
+    canonicalSlug: string;
+    requestedIdentifier: string;
+} | null>(null);
+
+const [loadState, setLoadState] = useState<
+    "resolving" | "loading" | "found" | "notFound" | "error"
+>("resolving");
+
+const albumId = resolvedAlbum?.albumId;
 
 
 const [album, setAlbum] = useState<AlbumClient>({
@@ -114,28 +134,61 @@ const [originalAlbum, setOriginalAlbum] =
 
 useEffect(() => {
 
+    let active = true;
+
     const loadAlbum = async () => {
 
-        if (!id) return;
-
-        const albumLoaded = await getAlbumById(id);
-
-        if (!albumLoaded) {
-
-            navigate("/albums");
-
+        if (!requestedIdentifier) {
+            setLoadState("notFound");
             return;
-
         }
 
-        setAlbum(albumLoaded);
-        setOriginalAlbum(albumLoaded);
+        try {
+            setLoadState("resolving");
+            const identity = await resolveAlbumClient(requestedIdentifier);
+            if (!active) return;
+            setResolvedAlbum({
+                ...identity,
+                requestedIdentifier,
+            });
+
+            if (!identity.isCanonical) {
+                navigate(
+                    `/albuns/${identity.canonicalSlug}`,
+                    { replace: true },
+                );
+            }
+
+            setLoadState("loading");
+            const albumLoaded = await getAlbumById(identity.albumId);
+            if (!active) return;
+
+            if (!albumLoaded) {
+                setLoadState("notFound");
+                return;
+            }
+
+            setAlbum(albumLoaded);
+            setOriginalAlbum(structuredClone(albumLoaded));
+            setLoadState("found");
+        } catch (error) {
+            if (!active) return;
+            setLoadState(
+                isAxiosError(error) && error.response?.status === 404
+                    ? "notFound"
+                    : "error"
+            );
+        }
 
     };
 
-    loadAlbum();
+    void loadAlbum();
 
-}, [id, navigate]);
+    return () => {
+        active = false;
+    };
+
+}, [navigate, requestedIdentifier]);
 
 const coverInputRef =
     useRef<HTMLInputElement>(null);
@@ -870,14 +923,24 @@ for (const video of albumToSave.highQualityVideos) {
 
         // 7 - salva documento final
 
-        if (!id) {
+        if (!albumId) {
     throw new Error("Álbum não encontrado.");
 }
 
-await updateAlbum(
-    id,
+await updateAlbumDetails(
+    albumId,
     albumToSave
 );
+
+const mustUpdateIdentity =
+    !originalAlbum?.slug ||
+    albumToSave.name.trim() !== originalAlbum.name.trim();
+
+const identity = mustUpdateIdentity
+    ? await updateAlbumIdentity(albumId, albumToSave.name)
+    : {
+        slug: originalAlbum.slug!,
+    };
 
         setLoadingModal((current) => ({
 
@@ -911,7 +974,10 @@ await new Promise((resolve) =>
     setTimeout(resolve, 350)
 );
 
-navigate("/albums");
+navigate(
+    `/albuns/${identity.slug}`,
+    { replace: true },
+);
 
     } catch (error) {
 
@@ -1203,6 +1269,44 @@ useEffect(() => {
 }, [album]);
 */
 
+    if (loadState === "notFound") {
+        return (
+            <section className="album-form">
+                <h2>Álbum não encontrado.</h2>
+                <p>Não foi possível localizar este álbum.</p>
+            </section>
+        );
+    }
+
+    if (loadState === "error") {
+        return (
+            <section className="album-form">
+                <h2>Não foi possível carregar o álbum.</h2>
+                <p>Tente novamente em alguns instantes.</p>
+            </section>
+        );
+    }
+
+    if (
+        loadState === "resolving" ||
+        loadState === "loading" ||
+        resolvedAlbum?.requestedIdentifier !== requestedIdentifier
+    ) {
+        return (
+            <section className="album-form">
+                <p>Carregando álbum...</p>
+            </section>
+        );
+    }
+
+    if (!originalAlbum) {
+        return (
+            <section className="album-form">
+                <h2>Não foi possível carregar o álbum.</h2>
+            </section>
+        );
+    }
+
     return (
 
         <section className="album-form">
@@ -1211,7 +1315,7 @@ useEffect(() => {
 
     <button
         className="album-form__back"
-        onClick={() => navigate("/albums")}
+        onClick={() => navigate("/albuns")}
     >
 
         <ArrowLeft size={18} />
@@ -2182,7 +2286,7 @@ useEffect(() => {
 
                 <button
                     className="album-form__cancel"
-                    onClick={() => navigate("/albums")}
+                    onClick={() => navigate("/albuns")}
                 >
 
                     Cancelar

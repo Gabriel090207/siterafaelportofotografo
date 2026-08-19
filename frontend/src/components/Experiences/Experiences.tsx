@@ -17,16 +17,38 @@ import type {
     SiteExperiences,
 } from "../../services/firebase/siteExperiences";
 
+import {
+    subscribeFeedCategories,
+} from "../../services/firebase/feedCategory";
+
+import type {
+    FeedCategory,
+} from "../../services/firebase/feedCategory";
+
 function Experiences() {
 
     const [data, setData] =
         useState<SiteExperiences | null>(null);
+
+    const [categories, setCategories] =
+        useState<FeedCategory[]>([]);
 
     useEffect(() => {
 
         const unsubscribe =
             subscribeSiteExperiences(
                 setData
+            );
+
+        return unsubscribe;
+
+    }, []);
+
+    useEffect(() => {
+
+        const unsubscribe =
+            subscribeFeedCategories(
+                setCategories
             );
 
         return unsubscribe;
@@ -81,13 +103,23 @@ function Experiences() {
 
                 <div className="experiences-grid">
 
-                    {(data?.items ?? []).map((item) => (
+                    {(data?.items ?? []).map((item) => {
+
+                        const category = categories.find(
+                            (candidate) =>
+                                candidate.id === item.categoryId ||
+                                candidate.name === item.categoryName
+                        );
+
+                        if (!category?.slug) return null;
+
+                        return (
 
                         <Link
 
-                            key={item.categoryName}
+                            key={item.categoryId ?? item.categoryName}
 
-                            to={`/eventos/${encodeURIComponent(item.categoryName)}`}
+                            to={`/eventos/${category.slug}`}
 
                             className="experience-card"
 
@@ -123,7 +155,9 @@ function Experiences() {
 
                         </Link>
 
-                    ))}
+                    );
+
+                    })}
 
                 </div>
 

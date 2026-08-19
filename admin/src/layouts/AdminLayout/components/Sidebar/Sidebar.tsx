@@ -67,7 +67,7 @@ const Sidebar = ({
                 </NavLink>
 
                 <NavLink
-                    to="/albums"
+                    to="/albuns"
                     onClick={onClose}
                     className={({ isActive }) =>
                         isActive
@@ -100,7 +100,7 @@ const Sidebar = ({
                 </NavLink>
 
                 <NavLink
-                    to="/feed"
+                    to="/eventos"
                     onClick={onClose}
                     className={({ isActive }) =>
                         isActive

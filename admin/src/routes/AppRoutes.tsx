@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import GuestLayout from "../layouts/GuestLayout/GuestLayout";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
@@ -15,11 +15,11 @@ import EditAlbum from "../pages/EditAlbum/EditAlbum";
 import Selections from "../pages/Selections/Selections";
 import SelectionDetails from "../pages/SelectionDetails/SelectionDetails";
 
-import Feed from "../pages/Feed/Feed";
-import FeedForm from "../pages/FeedForm/FeedForm";
-import FeedCategory from "../pages/FeedCategory/FeedCategory";
-import FeedHidden from "../pages/FeedHidden/FeedHidden";
-import EditFeed from "../pages/EditFeed/EditFeed";
+import Events from "../pages/Events/Events";
+import EventForm from "../pages/EventForm/EventForm";
+import EventCategory from "../pages/EventCategory/EventCategory";
+import HiddenEvents from "../pages/HiddenEvents/HiddenEvents";
+import EditEvent from "../pages/EditEvent/EditEvent";
 
 import Testimonials from "../pages/Testimonials/Testimonials";
 import TestimonialForm from "../pages/TestimonialForm/TestimonialForm";
@@ -77,57 +77,84 @@ const AppRoutes = () => {
                 }
             />
 
-            {/* Módulo Feed */}
+            {/* Módulo Eventos */}
 
             <Route
-                path="/feed"
+                path="/eventos"
                 element={
                     <AdminLayout>
-                        <Feed />
+                        <Events />
                     </AdminLayout>
                 }
             />
 
             <Route
-                path="/feed/new"
-                element={
-                    <AdminLayout>
-                        <FeedForm />
-                    </AdminLayout>
-                }
+                path="/eventos/novo"
+                element={<Navigate to="/eventos" replace />}
             />
 
-
             <Route
-                path="/feed/:categoryId/edit/:albumId"
+                path="/eventos/ocultos"
                 element={
                     <AdminLayout>
-                        <EditFeed />
-                    </AdminLayout>
-                }
-            />
-
-
-            <Route
-                path="/feed/:categoryId"
-                element={
-                    <AdminLayout>
-                        <FeedCategory />
+                        <HiddenEvents />
                     </AdminLayout>
                 }
             />
 
             <Route
-                path="/feed/hidden"
-                element={<AdminLayout>
-                        <FeedHidden />
-                    </AdminLayout>}
+                path="/eventos/:categorySlug/novo"
+                element={
+                    <AdminLayout>
+                        <EventForm />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/eventos/:categorySlug/:albumSlug"
+                element={
+                    <AdminLayout>
+                        <EditEvent />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/eventos/:categorySlug"
+                element={
+                    <AdminLayout>
+                        <EventCategory />
+                    </AdminLayout>
+                }
+            />
+
+            <Route path="/feed" element={<Navigate to="/eventos" replace />} />
+            <Route path="/feed/new" element={<Navigate to="/eventos" replace />} />
+            <Route path="/feed/hidden" element={<Navigate to="/eventos/ocultos" replace />} />
+
+            <Route
+                path="/feed/:categoryIdentifier/edit/:albumIdentifier"
+                element={
+                    <AdminLayout>
+                        <EditEvent />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/feed/:categoryIdentifier"
+                element={
+                    <AdminLayout>
+                        <EventCategory />
+                    </AdminLayout>
+                }
             />
 
             {/* Futuro módulo Álbum do Cliente */}
 
             <Route
-                path="/albums"
+                path="/albuns"
                 element={
                     <AdminLayout>
                         <Albums />
@@ -136,7 +163,7 @@ const AppRoutes = () => {
             />
 
             <Route
-                path="/albums/new"
+                path="/albuns/novo"
                 element={
                     <AdminLayout>
                         <AlbumForm />
@@ -146,7 +173,19 @@ const AppRoutes = () => {
 
 
             <Route
-                path="/albums/:id/edit"
+                path="/albuns/:albumSlug"
+                element={
+                    <AdminLayout>
+                        <EditAlbum />
+                    </AdminLayout>
+                }
+            />
+
+            <Route path="/albums" element={<Navigate to="/albuns" replace />} />
+            <Route path="/albums/new" element={<Navigate to="/albuns/novo" replace />} />
+
+            <Route
+                path="/albums/:identifier/edit"
                 element={
                     <AdminLayout>
                         <EditAlbum />

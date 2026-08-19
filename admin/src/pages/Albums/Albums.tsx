@@ -170,7 +170,7 @@ const [albumToDelete, setAlbumToDelete] =
                 <button
                     className="albums__new"
                     onClick={() =>
-                        navigate("/albums/new")
+                        navigate("/albuns/novo")
                     }
                 >
 
@@ -302,9 +302,12 @@ const [albumToDelete, setAlbumToDelete] =
                                 <div className="album-card__actions">
 
                                     <button
-    onClick={() =>
-        navigate(`/albums/${album.id}/edit`)
-    }
+    onClick={() => {
+        if (album.slug) {
+            navigate(`/albuns/${album.slug}`);
+        }
+    }}
+    disabled={!album.slug}
 >
 
     <Pencil size={18} />

@@ -8,8 +8,66 @@ import {
 
 import db from "./firestore";
 
+export interface PublicAlbumFeedResponse {
+    albumId: string;
+    canonicalSlug?: string;
+    canonicalCategorySlug: string;
+    requestedIdentifier: string;
+    resolvedBy: "slug" | "legacyId";
+    isCanonical: boolean;
+    album: Record<string, unknown> & { id: string; slug?: string };
+}
+
+export interface PublicContextualAlbumFeedResponse {
+    categoryId: string;
+    albumId: string;
+    canonicalCategorySlug: string;
+    canonicalAlbumSlug: string;
+    isCanonical: boolean;
+    album: Record<string, unknown> & { id: string; slug?: string };
+}
+
+export class PublicAlbumFeedError extends Error {
+    status: number;
+
+    constructor(status: number) {
+        super("Não foi possível carregar o evento.");
+        this.status = status;
+    }
+}
+
+export const getPublicAlbumFeed = async (
+    identifier: string,
+): Promise<PublicAlbumFeedResponse> => {
+    const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/public/album-feed/${encodeURIComponent(identifier)}`
+    );
+
+    if (!response.ok) {
+        throw new PublicAlbumFeedError(response.status);
+    }
+
+    return response.json();
+};
+
+export const getPublicAlbumFeedByCategory = async (
+    categorySlug: string,
+    albumSlug: string,
+): Promise<PublicContextualAlbumFeedResponse> => {
+    const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/public/album-feed/${encodeURIComponent(categorySlug)}/${encodeURIComponent(albumSlug)}`
+    );
+
+    if (!response.ok) {
+        throw new PublicAlbumFeedError(response.status);
+    }
+
+    return response.json();
+};
+
 export const subscribeAlbums = (
-    callback: (albums: any[]) => void
+    callback: (albums: any[]) => void,
+    onError?: (error: Error) => void,
 ) => {
 
     const q = query(
@@ -31,7 +89,7 @@ export const subscribeAlbums = (
 
         );
 
-    });
+    }, onError);
 
 };
 

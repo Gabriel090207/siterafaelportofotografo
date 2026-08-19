@@ -26,8 +26,8 @@ import {
 } from "../../services/firebase/siteExperiences";
 
 import {
-    subscribeFeedCategories,
-} from "../../services/firebase/feedCategory";
+    subscribeEventCategories,
+} from "../../services/firebase/eventCategory";
 
 import {
     deleteFile,
@@ -35,8 +35,8 @@ import {
 } from "../../services/firebase/storageService";
 
 import type {
-    FeedCategory,
-} from "../../services/firebase/feedCategory";
+    EventCategory,
+} from "../../services/firebase/eventCategory";
 
 import type {
     SiteExperiences as SiteExperiencesType,
@@ -70,7 +70,7 @@ function SiteExperiences() {
         });
 
     const [categories, setCategories] =
-        useState<FeedCategory[]>([]);
+        useState<EventCategory[]>([]);
 
     const [data, setData] =
         useState<SiteExperiencesType>({
@@ -106,7 +106,7 @@ function SiteExperiences() {
     useEffect(() => {
 
         const unsubscribe =
-            subscribeFeedCategories(
+            subscribeEventCategories(
                 setCategories
             );
 
@@ -602,16 +602,31 @@ function SiteExperiences() {
                             <label>Categoria</label>
 
                             <select
-                                value={item.categoryName}
+                                value={
+                                    item.categoryId ??
+                                    categories.find(
+                                        (category) =>
+                                            category.name === item.categoryName
+                                    )?.id ??
+                                    ""
+                                }
                                 onChange={(event) => {
 
                                     const updatedItems = [...items];
+
+                                    const selectedCategory =
+                                        categories.find(
+                                            (category) =>
+                                                category.id === event.target.value
+                                        );
 
                                     updatedItems[index] = {
 
                                         ...item,
 
-                                        categoryName: event.target.value,
+                                        categoryId: selectedCategory?.id,
+
+                                        categoryName: selectedCategory?.name ?? "",
 
                                     };
 
@@ -636,7 +651,7 @@ function SiteExperiences() {
 
                                     <option
                                         key={category.id}
-                                        value={category.name}
+                                        value={category.id}
                                     >
 
                                         {category.name}

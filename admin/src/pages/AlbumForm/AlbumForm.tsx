@@ -8,7 +8,7 @@ import {
 
 import {
     createAlbumDocument,
-    updateAlbum,
+    updateAlbumDetails,
 } from "../../services/firebase/albumClient";
 
 import {
@@ -309,18 +309,21 @@ const createAlbum = async (
 
         // 1 - cria documento e obtém o id
 
-        const albumId =
-        
-            await createAlbumDocument();
+        const {
+            albumId,
+            slug,
+        } = await createAlbumDocument(album.name);
 
             updateLoading(
     15,
     "Documento criado."
 );
 
-        const albumToSave: AlbumClient = {
+const albumToSave: AlbumClient = {
 
     ...album,
+
+    slug,
 
     coverPhoto: album.coverPhoto
         ? { ...album.coverPhoto }
@@ -515,7 +518,7 @@ for (const video of albumToSave.highQualityVideos) {
 }
 
 
-        await updateAlbum(
+        await updateAlbumDetails(
 
             albumId,
 
@@ -560,7 +563,7 @@ showToast(
     "success"
 );
 
-navigate("/albums");
+navigate("/albuns");
 
        } catch (error) {
 
@@ -965,7 +968,7 @@ useEffect(() => {
 
     <button
         className="album-form__back"
-        onClick={() => navigate("/albums")}
+        onClick={() => navigate("/albuns")}
     >
 
         <ArrowLeft size={18} />
@@ -1951,7 +1954,7 @@ useEffect(() => {
 
                 <button
                     className="album-form__cancel"
-                    onClick={() => navigate("/albums")}
+                    onClick={() => navigate("/albuns")}
                 >
 
                     Cancelar

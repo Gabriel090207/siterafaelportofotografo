@@ -1,0 +1,46 @@
+.client-auth-loading {
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 24px;
+    background:
+        radial-gradient(
+            circle,
+            #e8ddd1 1px,
+            transparent 1px
+        );
+    background-size: 22px 22px;
+    color: var(--color-text-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.client-auth-loading p {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.client-auth-loading__spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(255, 130, 0, .18);
+    border-top-color: var(--color-orange);
+    border-radius: 50%;
+    animation: client-auth-loading-spin .7s linear infinite;
+}
+
+@keyframes client-auth-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .client-auth-loading__spinner {
+        animation-duration: 1.5s;
+    }
+}

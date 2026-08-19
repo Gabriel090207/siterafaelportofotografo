@@ -1,523 +1,478 @@
 import "./ClientDownloads.css";
 
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 import {
-    CalendarDays,
-    Clock3,
-    Download,
-    HardDrive,
-    Image,
-    Images,
-    Video,
-} from "lucide-react";
+    FiClock,
+    FiDownload,
+    FiImage,
+    FiVideo,
+} from "react-icons/fi";
 
 import ClientHeader from "../../components/ClientHeader/ClientHeader";
+import {
+    downloadClientAlbum,
+    getClientAlbums,
+    type ClientAlbumSummary,
+} from "../../services/api/clientAlbums";
+import { ClientApiError } from "../../services/api/clientApi";
 
-// Troque pelo mesmo método usado no seu ClientDashboard.
-import { subscribeClientAlbums } from "../../services/firebase/albums";
+type DownloadDeadline =
+    | { status: "without-deadline"; label: string }
+    | { status: "available"; label: string; expiresAt: number }
+    | { status: "expired"; label: string }
+    | { status: "invalid"; label: string };
 
-interface AlbumItem {
-    id: string;
-    title?: string;
-    name?: string;
-    cover?: string;
-    coverUrl?: string;
-    thumbnail?: string;
-    watermarkedPhotos?: any[];
-    watermarkedVideos?: any[];
-    downloadEnabled?: boolean;
-    downloadExpiresAt?: any;
-    downloadSize?: string;
-}
+const getDownloadDeadline = (
+    album: ClientAlbumSummary,
+    now: number
+): DownloadDeadline => {
+    const downloadDays = album.highQualityDownloadDays;
 
-function ClientDownloads() {
+    if (downloadDays === null) {
+        return {
+            status: "without-deadline",
+            label: "Disponível sem prazo",
+        };
+    }
 
-    const [albums, setAlbums] = useState<AlbumItem[]>([]);
+    if (
+        typeof downloadDays !== "number" ||
+        !Number.isFinite(downloadDays) ||
+        downloadDays <= 0 ||
+        !album.createdAt
+    ) {
+        return {
+            status: "invalid",
+            label: "Prazo indisponível",
+        };
+    }
 
-    const [loading, setLoading] = useState(true);
+    const createdAt = new Date(album.createdAt);
 
-    const client = JSON.parse(
-        localStorage.getItem("client") ?? "{}"
+    const createdAtTime = createdAt.getTime();
+
+    if (!Number.isFinite(createdAtTime)) {
+        return {
+            status: "invalid",
+            label: "Prazo indisponível",
+        };
+    }
+
+    const expiresAt = createdAtTime + downloadDays * 24 * 60 * 60 * 1000;
+
+    if (!Number.isFinite(expiresAt)) {
+        return {
+            status: "invalid",
+            label: "Prazo indisponível",
+        };
+    }
+
+    if (now >= expiresAt) {
+        return {
+            status: "expired",
+            label: "Prazo encerrado",
+        };
+    }
+
+    const remainingMilliseconds = expiresAt - now;
+
+    if (remainingMilliseconds < 60_000) {
+        return {
+            status: "available",
+            label: "Menos de 1min restante",
+            expiresAt,
+        };
+    }
+
+    const totalMinutes = Math.ceil(remainingMilliseconds / 60_000);
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    const minutes = totalMinutes % 60;
+    const parts: string[] = [];
+
+    if (days > 0) {
+        parts.push(`${days}d`);
+    }
+
+    if (hours > 0 || days > 0) {
+        parts.push(`${String(hours).padStart(2, "0")}h`);
+    }
+
+    parts.push(`${String(minutes).padStart(2, "0")}min`);
+
+    return {
+        status: "available",
+        label: `${parts.join(" ")} restantes`,
+        expiresAt,
+    };
+};
+
+const sanitizeZipFilename = (
+    value: string,
+    fallbackName: string
+) => {
+    const filename = value
+        .split(/[\\/]/)
+        .pop()
+        ?.replace(/[\u0000-\u001f\u007f]/g, "")
+        .replace(/[<>:"|?*%]/g, "-")
+        .trim()
+        .replace(/^[. ]+|[. ]+$/g, "")
+        .slice(0, 180);
+
+    const safeName = filename || fallbackName;
+
+    return safeName.toLowerCase().endsWith(".zip")
+        ? safeName
+        : `${safeName}.zip`;
+};
+
+const getResponseFilename = (
+    contentDisposition: string | null,
+    albumName: string
+) => {
+    const fallbackName = sanitizeZipFilename(albumName, "album");
+
+    if (!contentDisposition) {
+        return fallbackName;
+    }
+
+    const encodedMatch = contentDisposition.match(
+        /filename\*\s*=\s*UTF-8''([^;]+)/i
+    );
+    const regularMatch = contentDisposition.match(
+        /filename\s*=\s*(?:"([^"]+)"|([^;]+))/i
     );
 
-    useEffect(() => {
+    let headerName = encodedMatch?.[1] || regularMatch?.[1] || regularMatch?.[2];
 
-        if (!client?.id) {
+    if (!headerName) {
+        return fallbackName;
+    }
 
-            setLoading(false);
+    headerName = headerName.trim();
 
-            return;
-
+    if (encodedMatch) {
+        try {
+            headerName = decodeURIComponent(headerName);
+        } catch {
+            return fallbackName;
         }
+    }
 
-        /*
-            Use aqui a mesma função que você já utiliza
-            no ClientDashboard para buscar os álbuns.
+    return sanitizeZipFilename(headerName, fallbackName);
+};
 
-            Exemplo esperado:
+const getDownloadErrorMessage = (error: ClientApiError) => {
+    if (
+        error.message
+        && error.message !== "A solicitação não pôde ser concluída."
+    ) {
+        return error.message;
+    }
 
-            subscribeClientAlbums(client.id, callback)
-        */
+    switch (error.status) {
+        case 410:
+            return "O prazo de download deste álbum expirou.";
+        case 403:
+            return "Este álbum não pertence ao cliente autenticado.";
+        case 404:
+            return "O álbum ou seus arquivos não foram encontrados.";
+        case 422:
+            return "Os dados de download deste álbum estão inválidos.";
+        case 502:
+            return "Não foi possível obter os arquivos no armazenamento.";
+        default:
+            return "Não foi possível preparar o download. Tente novamente.";
+    }
+};
 
-        const unsubscribe = subscribeClientAlbums(
-            client.id,
-            (receivedAlbums: AlbumItem[]) => {
+function ClientDownloads() {
+    const [albums, setAlbums] = useState<ClientAlbumSummary[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [currentTime, setCurrentTime] = useState(() => Date.now());
+    const [downloadingAlbumIds, setDownloadingAlbumIds] = useState<Set<string>>(
+        () => new Set()
+    );
+    const downloadLockRef = useRef<Set<string>>(new Set());
 
-                setAlbums(receivedAlbums ?? []);
+    useEffect(() => {
+        let isActive = true;
+        const controller = new AbortController();
 
-                setLoading(false);
+        const loadAlbums = async () => {
+            try {
+                const receivedAlbums = await getClientAlbums(
+                    controller.signal
+                );
 
+                if (isActive) {
+                    setAlbums(receivedAlbums);
+                }
+            } catch (error) {
+                if (!controller.signal.aborted) {
+                    console.error("Erro ao carregar álbuns:", error);
+                }
+            } finally {
+                if (isActive) {
+                    setLoading(false);
+                }
             }
-        );
-
-        return () => {
-
-            if (typeof unsubscribe === "function") {
-
-                unsubscribe();
-
-            }
-
         };
 
-    }, [client?.id]);
+        void loadAlbums();
 
-    const getAlbumName = (album: AlbumItem) => {
+        return () => {
+            isActive = false;
+            controller.abort();
+        };
+    }, []);
 
-        return (
-            album.title ||
-            album.name ||
-            "Álbum sem nome"
-        );
+    useEffect(() => {
+        let timeoutId: number;
 
-    };
+        const updateClock = () => {
+            const now = Date.now();
+            setCurrentTime(now);
 
-    const getAlbumCover = (album: AlbumItem) => {
+            const nextExpiration = albums.reduce<number | null>(
+                (closest, album) => {
+                    const deadline = getDownloadDeadline(album, now);
 
-        return (
-            album.cover ||
-            album.coverUrl ||
-            album.thumbnail ||
-            album.watermarkedPhotos?.[0]?.preview ||
-            ""
-        );
+                    if (deadline.status !== "available") {
+                        return closest;
+                    }
 
-    };
+                    if (closest === null || deadline.expiresAt < closest) {
+                        return deadline.expiresAt;
+                    }
 
-    const getPhotoCount = (album: AlbumItem) => {
+                    return closest;
+                },
+                null
+            );
 
-        return album.watermarkedPhotos?.length ?? 0;
+            const timeUntilExpiration = nextExpiration === null
+                ? 60_000
+                : Math.max(0, nextExpiration - now);
+            const nextUpdateIn = Math.min(60_000, timeUntilExpiration);
 
-    };
+            timeoutId = window.setTimeout(
+                updateClock,
+                nextUpdateIn
+            );
+        };
 
-    const getVideoCount = (album: AlbumItem) => {
+        updateClock();
 
-        return album.watermarkedVideos?.length ?? 0;
+        return () => window.clearTimeout(timeoutId);
+    }, [albums]);
 
+    const getAlbumName = (album: ClientAlbumSummary) =>
+        album.name || "Álbum sem nome";
+
+    const getAlbumCover = (album: ClientAlbumSummary) =>
+        album.coverPhoto?.preview || "";
+
+    const getPhotoCount = (album: ClientAlbumSummary) =>
+        album.photoCount;
+
+    const getVideoCount = (album: ClientAlbumSummary) =>
+        album.videoCount;
+
+    const handleDownloadAlbum = async (album: ClientAlbumSummary) => {
+        const deadline = getDownloadDeadline(album, Date.now());
+
+        if (
+            downloadLockRef.current.has(album.id) ||
+            deadline.status === "expired" ||
+            deadline.status === "invalid"
+        ) {
+            return;
+        }
+
+        downloadLockRef.current.add(album.id);
+        setDownloadingAlbumIds((current) => {
+            const next = new Set(current);
+            next.add(album.id);
+            return next;
+        });
+
+        try {
+            const response = await downloadClientAlbum(album.id);
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            try {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = getResponseFilename(
+                    response.headers.get("Content-Disposition"),
+                    getAlbumName(album)
+                );
+
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } finally {
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error("Erro ao baixar álbum:", error);
+
+            if (error instanceof ClientApiError) {
+                if (error.status !== 401 && error.status !== 403) {
+                    alert(getDownloadErrorMessage(error));
+                }
+            } else {
+                alert("Não foi possível preparar o download. Tente novamente.");
+            }
+        } finally {
+            downloadLockRef.current.delete(album.id);
+            setDownloadingAlbumIds((current) => {
+                const next = new Set(current);
+                next.delete(album.id);
+                return next;
+            });
+        }
     };
 
     return (
-
         <main className="client-downloads">
-
             <ClientHeader />
 
             <div className="client-downloads__container">
-
-                <section className="client-downloads__hero">
-
-                    <div className="client-downloads__hero-icon">
-
-                        <Download size={30} />
-
+                <header className="client-downloads__intro">
+                    <div className="client-downloads__eyebrow">
+                        <span />
+                        <p>ÁREA DO CLIENTE</p>
                     </div>
 
-                    <div className="client-downloads__hero-content">
+                    <h1>Downloads em alta qualidade</h1>
 
-                        <span className="client-downloads__eyebrow">
+                    <p className="client-downloads__description">
+                        Baixe as fotos e os vídeos dos seus álbuns em alta
+                        resolução enquanto os arquivos estiverem disponíveis.
+                    </p>
 
-                            ARQUIVOS EM ALTA RESOLUÇÃO
+                </header>
 
-                        </span>
-
-                        <h1>
-
-                            Downloads
-
-                        </h1>
-
-                        <p>
-
-                            Encontre seus álbuns e baixe as fotografias
-                            em alta qualidade quando estiverem disponíveis.
-
-                        </p>
-
-                    </div>
-
-                </section>
-
-                <section className="client-downloads__information">
-
-                    <div className="client-downloads__information-icon">
-
-                        <HardDrive size={22} />
-
-                    </div>
-
-                    <div>
-
-                        <strong>
-
-                            Seus arquivos estarão disponíveis por tempo limitado
-
-                        </strong>
-
-                        <p>
-
-                            O prazo e os botões de download serão liberados
-                            pelo fotógrafo após a entrega final do álbum.
-
-                        </p>
-
-                    </div>
-
-                </section>
-
-                <div className="client-downloads__heading">
-
-                    <div>
-
-                        <span>
-
-                            SEUS ÁLBUNS
-
-                        </span>
-
-                        <h2>
-
-                            Disponíveis para download
-
-                        </h2>
-
-                    </div>
-
-                    {!loading && albums.length > 0 && (
-
-                        <div className="client-downloads__total">
-
-                            <Images size={18} />
-
-                            {albums.length}
-
-                            {albums.length === 1
-                                ? " álbum"
-                                : " álbuns"}
-
+                {(loading || albums.length > 0) && (
+                    <section className="client-downloads__albums">
+                        <div className="client-downloads__section-label">
+                            <span />
+                            <p>SEUS ÁLBUNS</p>
                         </div>
 
-                    )}
+                        <div className="client-downloads__grid">
+                            {loading
+                                ? [1, 2, 3].map((item) => (
+                                      <article
+                                          key={item}
+                                          className="download-card download-card--loading"
+                                          aria-hidden="true"
+                                      >
+                                          <div className="download-card__skeleton-image" />
+                                          <div className="download-card__skeleton-content">
+                                              <div className="download-card__skeleton-line download-card__skeleton-line--title" />
+                                              <div className="download-card__skeleton-line download-card__skeleton-line--meta" />
+                                              <div className="download-card__skeleton-footer">
+                                                  <div className="download-card__skeleton-line download-card__skeleton-line--deadline" />
+                                                  <div className="download-card__skeleton-button" />
+                                              </div>
+                                          </div>
+                                      </article>
+                                  ))
+                                : albums.map((album) => {
+                                      const cover = getAlbumCover(album);
+                                      const photoCount = getPhotoCount(album);
+                                      const videoCount = getVideoCount(album);
+                                      const isDownloading = downloadingAlbumIds.has(album.id);
+                                      const deadline = getDownloadDeadline(album, currentTime);
+                                      const isUnavailable =
+                                          deadline.status === "expired" ||
+                                          deadline.status === "invalid";
 
-                </div>
+                                      return (
+                                          <article
+                                              key={album.id}
+                                              className="download-card"
+                                          >
+                                              <div className="download-card__cover">
+                                                  {cover ? (
+                                                      <img
+                                                          src={cover}
+                                                          alt={getAlbumName(album)}
+                                                      />
+                                                  ) : (
+                                                      <div className="download-card__cover-empty">
+                                                          <FiImage aria-hidden="true" />
+                                                          <span>Sem imagem de capa</span>
+                                                      </div>
+                                                  )}
+                                              </div>
 
-                {loading && (
+                                              <div className="download-card__content">
+                                                  <h2>{getAlbumName(album)}</h2>
 
-                    <section className="client-downloads__grid">
+                                                  <div className="download-card__media">
+                                                      <span>
+                                                          <FiImage aria-hidden="true" />
+                                                          {photoCount} {photoCount === 1 ? "foto" : "fotos"}
+                                                      </span>
 
-                        {[1, 2, 3].map((item) => (
+                                                      <span>
+                                                          <FiVideo aria-hidden="true" />
+                                                          {videoCount} {videoCount === 1 ? "vídeo" : "vídeos"}
+                                                      </span>
+                                                  </div>
 
-                            <div
-                                key={item}
-                                className="download-card download-card--loading"
-                            >
+                                                  <div className="download-card__footer">
+                                                      <div className="download-card__deadline">
+                                                          <FiClock aria-hidden="true" />
+                                                          <span>{deadline.label}</span>
+                                                      </div>
 
-                                <div className="download-card__skeleton-image" />
-
-                                <div className="download-card__skeleton-content">
-
-                                    <div className="download-card__skeleton-line download-card__skeleton-line--title" />
-
-                                    <div className="download-card__skeleton-line" />
-
-                                    <div className="download-card__skeleton-line download-card__skeleton-line--small" />
-
-                                </div>
-
-                            </div>
-
-                        ))}
-
+                                                      <button
+                                                          type="button"
+                                                          className="download-card__button"
+                                                          onClick={() => handleDownloadAlbum(album)}
+                                                          disabled={isDownloading || isUnavailable}
+                                                      >
+                                                          <span>
+                                                              {isDownloading
+                                                                  ? "Preparando download..."
+                                                                  : isUnavailable
+                                                                    ? "Download indisponível"
+                                                                    : "Baixar arquivos"}
+                                                          </span>
+                                                          <FiDownload aria-hidden="true" />
+                                                      </button>
+                                                  </div>
+                                              </div>
+                                          </article>
+                                      );
+                                  })}
+                        </div>
                     </section>
-
-                )}
-
-                {!loading && albums.length > 0 && (
-
-                    <section className="client-downloads__grid">
-
-                        {albums.map((album) => {
-
-                            const cover = getAlbumCover(album);
-
-                            const photoCount = getPhotoCount(album);
-
-                            const videoCount = getVideoCount(album);
-
-                            return (
-
-                                <article
-                                    key={album.id}
-                                    className="download-card"
-                                >
-
-                                    <div className="download-card__cover">
-
-                                        {cover ? (
-
-                                            <img
-                                                src={cover}
-                                                alt={getAlbumName(album)}
-                                            />
-
-                                        ) : (
-
-                                            <div className="download-card__cover-empty">
-
-                                                <Image size={42} />
-
-                                                <span>
-
-                                                    Sem imagem de capa
-
-                                                </span>
-
-                                            </div>
-
-                                        )}
-
-                                        <div className="download-card__cover-overlay" />
-
-                                        <span className="download-card__status">
-
-                                            Disponível em breve
-
-                                        </span>
-
-                                    </div>
-
-                                    <div className="download-card__content">
-
-                                        <div className="download-card__title-area">
-
-                                            <span className="download-card__label">
-
-                                                ÁLBUM
-
-                                            </span>
-
-                                            <h3>
-
-                                                {getAlbumName(album)}
-
-                                            </h3>
-
-                                        </div>
-
-                                        <div className="download-card__media-info">
-
-                                            <div>
-
-                                                <Images size={17} />
-
-                                                <span>
-
-                                                    {photoCount}
-
-                                                    {photoCount === 1
-                                                        ? " foto"
-                                                        : " fotos"}
-
-                                                </span>
-
-                                            </div>
-
-                                            {videoCount > 0 && (
-
-                                                <div>
-
-                                                    <Video size={17} />
-
-                                                    <span>
-
-                                                        {videoCount}
-
-                                                        {videoCount === 1
-                                                            ? " vídeo"
-                                                            : " vídeos"}
-
-                                                    </span>
-
-                                                </div>
-
-                                            )}
-
-                                        </div>
-
-                                        <div className="download-card__divider" />
-
-                                        <div className="download-card__timer">
-
-                                            <div className="download-card__timer-heading">
-
-                                                <Clock3 size={18} />
-
-                                                <span>
-
-                                                    Tempo para download
-
-                                                </span>
-
-                                            </div>
-
-                                            <div className="download-card__countdown">
-
-                                                <div>
-
-                                                    <strong>
-
-                                                        --
-
-                                                    </strong>
-
-                                                    <span>
-
-                                                        Dias
-
-                                                    </span>
-
-                                                </div>
-
-                                                <span className="download-card__separator">
-
-                                                    :
-
-                                                </span>
-
-                                                <div>
-
-                                                    <strong>
-
-                                                        --
-
-                                                    </strong>
-
-                                                    <span>
-
-                                                        Horas
-
-                                                    </span>
-
-                                                </div>
-
-                                                <span className="download-card__separator">
-
-                                                    :
-
-                                                </span>
-
-                                                <div>
-
-                                                    <strong>
-
-                                                        --
-
-                                                    </strong>
-
-                                                    <span>
-
-                                                        Minutos
-
-                                                    </span>
-
-                                                </div>
-
-                                            </div>
-
-                                            <div className="download-card__date">
-
-                                                <CalendarDays size={16} />
-
-                                                Data de expiração será informada
-
-                                            </div>
-
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            className="download-card__button"
-                                            disabled
-                                        >
-
-                                            <Download size={19} />
-
-                                            Baixar fotos em alta
-
-                                        </button>
-
-                                        <p className="download-card__notice">
-
-                                            O download será liberado quando os arquivos
-                                            em alta resolução estiverem prontos.
-
-                                        </p>
-
-                                    </div>
-
-                                </article>
-
-                            );
-
-                        })}
-
-                    </section>
-
                 )}
 
                 {!loading && albums.length === 0 && (
-
                     <section className="client-downloads__empty">
-
                         <div className="client-downloads__empty-icon">
-
-                            <Download size={38} />
-
+                            <FiDownload aria-hidden="true" />
                         </div>
-
-                        <h2>
-
-                            Nenhum álbum disponível
-
-                        </h2>
-
+                        <h2>Nenhum álbum disponível</h2>
                         <p>
-
-                            Quando seus álbuns forem liberados, eles aparecerão
-                            aqui para download em alta qualidade.
-
+                            Quando houver arquivos em alta qualidade, seus
+                            álbuns aparecerão aqui para download.
                         </p>
-
                     </section>
-
                 )}
-
             </div>
-
         </main>
-
     );
-
 }
 
 export default ClientDownloads;

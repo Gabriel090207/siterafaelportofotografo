@@ -1,6 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 
 import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
+import {
+  ClientGuestRoute,
+  ClientProtectedRoute,
+} from "../components/ClientProtectedRoute/ClientProtectedRoute";
 
 import Home from "../pages/Home/Home";
 import Portfolio from "../pages/Portfolio/Portfolio";
@@ -16,6 +20,9 @@ import ClientLogin from "../pages/ClientLogin/ClientLogin";
 import ClientDashboard from "../pages/ClientDashboard/ClientDashboard";
 import ClientAlbum from "../pages/ClientAlbum/ClientAlbum";
 import ClientDownloads from "../pages/ClientDownloads/ClientDownloads";
+import ClientTestimonials from "../pages/ClientTestimonials/ClientTestimonials";
+import ClientSelections from "../pages/ClientSelections/ClientSelections";
+import ClientSelectionDetails from "../pages/ClientSelectionDetails/ClientSelectionDetails";
 
 export function AppRoutes() {
 
@@ -41,12 +48,17 @@ export function AppRoutes() {
       />
 
       <Route
-          path="/eventos/:categoryName"
+          path="/eventos/:categoryPath"
           element={<Events />}
+      />
+
+      <Route
+          path="/eventos/:categorySlug/:albumSlug"
+          element={<Event />}
       />
             
       <Route
-          path="/evento/:id"
+          path="/evento/:identifier"
           element={<Event />}
       />
 
@@ -79,25 +91,51 @@ export function AppRoutes() {
 
       <Route
         path="/cliente"
-        element={<ClientLogin />}
+        element={
+          <ClientGuestRoute>
+            <ClientLogin />
+          </ClientGuestRoute>
+        }
       />
 
-      <Route
+      <Route element={<ClientProtectedRoute />}>
+        <Route
           path="/cliente/dashboard"
           element={<ClientDashboard />}
-      />
+        />
 
-      <Route
-          path="/cliente/album/:albumId"
+        <Route
+          path="/cliente/albuns/:albumSlug"
           element={<ClientAlbum />}
-      />
+        />
 
-      <Route
+        <Route
+          path="/cliente/album/:identifier"
+          element={<ClientAlbum />}
+        />
+
+        <Route
           path="/cliente/downloads"
           element={<ClientDownloads />}
-      />
+        />
+
+        <Route
+          path="/cliente/depoimentos"
+          element={<ClientTestimonials />}
+        />
+
+        <Route
+          path="/cliente/selecoes"
+          element={<ClientSelections />}
+        />
+
+        <Route
+          path="/cliente/selecoes/:selectionId"
+          element={<ClientSelectionDetails />}
+        />
+      </Route>
 
     </Routes>
         </>
   );
-} 
+}

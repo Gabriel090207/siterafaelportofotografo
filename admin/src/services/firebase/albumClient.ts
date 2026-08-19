@@ -1,5 +1,4 @@
 import {
-    addDoc,
     collection,
     doc,
     getDoc,
@@ -8,43 +7,82 @@ import {
     query,
     serverTimestamp,
     updateDoc,
-    deleteDoc,
 } from "firebase/firestore";
 
 import db from "./firestore";
+import api from "../api/client";
 
 import type { AlbumClient } from "../../types/albumClient";
 
-export const createAlbumDocument = async () => {
+export interface ResolvedAlbumClient {
+    albumId: string;
+    canonicalSlug: string;
+    resolvedBy: "slug" | "legacyId";
+    isCanonical: boolean;
+}
 
-    const docRef = await addDoc(
-        collection(db, "AlbumClient"),
-        {
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        }
+export const createAlbumDocument = async (name: string) => {
+    const response = await api.post<{
+        albumId: string;
+        slug: string;
+    }>(
+        "/album-client",
+        { name },
     );
 
-    return docRef.id;
+    return response.data;
 
 };
 
-export const updateAlbum = async (
+export const updateAlbumDetails = async (
     albumId: string,
-    album: Omit<
-        AlbumClient,
-        "id" | "createdAt" | "updatedAt"
-    >
+    album: AlbumClient,
 ) => {
+    const albumDetails: Partial<AlbumClient> = {
+        ...album,
+    };
+
+    delete albumDetails.id;
+    delete albumDetails.createdAt;
+    delete albumDetails.updatedAt;
+    delete albumDetails.name;
+    delete albumDetails.slug;
 
     await updateDoc(
         doc(db, "AlbumClient", albumId),
         {
-            ...album,
+            ...albumDetails,
             updatedAt: serverTimestamp(),
         }
     );
 
+};
+
+export const updateAlbumIdentity = async (
+    albumId: string,
+    name: string,
+) => {
+    const response = await api.patch<{
+        albumId: string;
+        name: string;
+        slug: string;
+        changed: boolean;
+    }>(
+        `/album-client/${encodeURIComponent(albumId)}/identity`,
+        { name },
+    );
+
+    return response.data;
+};
+
+export const resolveAlbumClient = async (
+    identifier: string,
+): Promise<ResolvedAlbumClient> => {
+    const response = await api.get<ResolvedAlbumClient>(
+        `/album-client/resolve/${encodeURIComponent(identifier)}`,
+    );
+
+    return response.data;
 };
 
 export const subscribeAlbums = (
@@ -81,14 +119,7 @@ export const subscribeAlbums = (
 export const deleteAlbum = async (
     albumId: string,
 ) => {
-
-    await deleteDoc(
-        doc(
-            db,
-            "AlbumClient",
-            albumId,
-        )
-    );
+    await api.delete(`/album-client/${encodeURIComponent(albumId)}`);
 
 };
 

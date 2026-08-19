@@ -93,10 +93,10 @@ useEffect(() => {
     desktopEventsOpen ? "active" : ""
   }`}
 >
-  {categories.map((category) => (
+  {categories.filter((category) => category.slug).map((category) => (
   <Link
     key={category.id}
-    to={`/eventos/${encodeURIComponent(category.name)}`}
+    to={`/eventos/${category.slug}`}
     onClick={() => setDesktopEventsOpen(false)}
 >
     {category.name}
@@ -187,11 +187,11 @@ useEffect(() => {
       eventsOpen ? "active" : ""
     }`}
   >
-    {categories.map((category) => (
+    {categories.filter((category) => category.slug).map((category) => (
 
     <Link
         key={category.id}
-        to={`/eventos/${encodeURIComponent(category.name)}`}
+        to={`/eventos/${category.slug}`}
         onClick={() => {
             setMenuOpen(false);
             setEventsOpen(false);

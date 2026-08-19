@@ -12,11 +12,10 @@ import {
 } from "react-router-dom";
 
 import {
-    doc,
-    onSnapshot,
-} from "firebase/firestore";
-
-import db from "../../services/firebase/firestore";
+    getPublicAlbumFeed,
+    getPublicAlbumFeedByCategory,
+    PublicAlbumFeedError,
+} from "../../services/firebase/feed";
 
 import {
     subscribeFeedCategories,
@@ -49,42 +48,82 @@ function Events() {
 
 const navigate = useNavigate();
 
-const { id } = useParams();
+const {
+    identifier,
+    categorySlug,
+    albumSlug,
+} = useParams();
 
 const [album, setAlbum] = useState<any>(null);
+
+const [loadState, setLoadState] = useState<
+    "loading" | "found" | "notFound" | "error"
+>("loading");
+
+const [loadedIdentifier, setLoadedIdentifier] =
+    useState<string | null>(null);
 
 const [categories, setCategories] =
     useState<FeedCategory[]>([]);
 
 useEffect(() => {
 
-    if (!id) return;
+    if (!identifier && (!categorySlug || !albumSlug)) return;
 
-    const unsubscribe = onSnapshot(
+    let cancelled = false;
 
-    doc(db, "AlbumFeed", id),
+    const loadAlbum = async () => {
+        try {
+            const result = identifier
+                ? await getPublicAlbumFeed(identifier)
+                : await getPublicAlbumFeedByCategory(
+                    categorySlug as string,
+                    albumSlug as string,
+                );
 
-    (snapshot) => {
+            if (cancelled) return;
 
-        if (snapshot.exists()) {
+            setAlbum(result.album);
+            setLoadState("found");
+            setLoadedIdentifier(identifier ?? albumSlug ?? null);
 
-            setAlbum({
+            const canonicalAlbumSlug = "canonicalAlbumSlug" in result
+                ? result.canonicalAlbumSlug
+                : result.canonicalSlug;
 
-                id: snapshot.id,
+            if (
+                canonicalAlbumSlug &&
+                (
+                    identifier ||
+                    result.canonicalCategorySlug !== categorySlug ||
+                    canonicalAlbumSlug !== albumSlug
+                )
+            ) {
+                navigate(
+                    `/eventos/${result.canonicalCategorySlug}/${canonicalAlbumSlug}`,
+                    { replace: true },
+                );
+            }
+        } catch (error) {
+            if (cancelled) return;
 
-                ...snapshot.data(),
-
-            });
-
+            setAlbum(null);
+            setLoadState(
+                error instanceof PublicAlbumFeedError && error.status === 404
+                    ? "notFound"
+                    : "error"
+            );
+            setLoadedIdentifier(identifier ?? albumSlug ?? null);
         }
+    };
 
-    }
+    void loadAlbum();
 
-);
+    return () => {
+        cancelled = true;
+    };
 
-    return unsubscribe;
-
-}, [id]);
+}, [albumSlug, categorySlug, identifier, navigate]);
 
 
 useEffect(() => {
@@ -413,6 +452,38 @@ const totalPhotos =
         0
     );
 
+  const requestedIdentifier = identifier ?? albumSlug ?? null;
+
+  if (loadState === "loading" || loadedIdentifier !== requestedIdentifier) {
+    return (
+      <main className="event">
+        <div className="event-container">
+          <p>Carregando evento...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (loadState === "notFound") {
+    return (
+      <main className="event">
+        <div className="event-container">
+          <h1>Evento não encontrado.</h1>
+        </div>
+      </main>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <main className="event">
+        <div className="event-container">
+          <h1>Não foi possível carregar o evento.</h1>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="event">
       <div className="event-container">
@@ -424,8 +495,8 @@ const totalPhotos =
     onClick={() =>
 
     navigate(
-        currentCategory
-            ? `/eventos/${encodeURIComponent(currentCategory.name)}`
+        currentCategory?.slug
+            ? `/eventos/${currentCategory.slug}`
             : "/eventos"
     )
 

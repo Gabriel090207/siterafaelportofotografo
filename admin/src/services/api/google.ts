@@ -125,7 +125,7 @@ export const uploadAlbumFileToDrive = async ({
 };
 
 
-export const uploadFeedFileToDrive = async ({
+export const uploadEventFileToDrive = async ({
     file,
     albumCategory,
     albumName,

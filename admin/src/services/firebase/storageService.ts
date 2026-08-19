@@ -42,7 +42,7 @@ const uploadFile = async (
 };
 
 /**
- * Upload dos arquivos exibidos no Feed público.
+ * Upload dos arquivos exibidos no site público de eventos.
  */
 export const uploadAlbumFile = async (
     category: string,
@@ -357,7 +357,7 @@ return {
 
 };
 
-export const uploadFeedCategoryCover = async (
+export const uploadEventCategoryCover = async (
     categoryName: string,
     file: File,
 ): Promise<UploadResult> => {

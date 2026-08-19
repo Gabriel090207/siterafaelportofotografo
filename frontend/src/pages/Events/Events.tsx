@@ -8,12 +8,14 @@ import {
 
 import {
     Link,
+    useNavigate,
     useParams,
 } from "react-router-dom";
 
 import { subscribeAlbums } from "../../services/firebase/feed";
 
 import {
+    getPublicFeedCategory,
     subscribeFeedCategories,
 } from "../../services/firebase/feedCategory";
 
@@ -24,27 +26,54 @@ import type {
 function Events() {
 
 const {
-    categoryName,
+    categoryPath,
 } = useParams();
+
+const navigate = useNavigate();
 
 const [albums, setAlbums] = useState<any[]>([]);
 
 const [categories, setCategories] =
     useState<FeedCategory[]>([]);
 
-const currentCategory =
+const [albumsLoaded, setAlbumsLoaded] = useState(false);
+const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+const [loadError, setLoadError] = useState(false);
+const [categoryLookup, setCategoryLookup] = useState<{
+    path: string;
+    categoryId: string | null;
+} | null>(null);
+
+const legacyCategoryName = categoryPath ?? "";
+
+const directCategory =
     categories.find(
         category =>
-            category.name ===
-            decodeURIComponent(
-                categoryName ?? ""
-            )
+            category.slug === categoryPath
+    ) ??
+    categories.find(
+        category =>
+            category.name.toLocaleLowerCase("pt-BR") ===
+            legacyCategoryName.toLocaleLowerCase("pt-BR")
+    );
+
+const currentCategory =
+    directCategory ??
+    categories.find(
+        (category) =>
+            category.id === categoryLookup?.categoryId
     );
 
     useEffect(() => {
 
         const unsubscribe =
-            subscribeAlbums(setAlbums);
+            subscribeAlbums(
+                (data) => {
+                    setAlbums(data);
+                    setAlbumsLoaded(true);
+                },
+                () => setLoadError(true),
+            );
 
         return unsubscribe;
 
@@ -54,12 +83,63 @@ const currentCategory =
 
     const unsubscribe =
         subscribeFeedCategories(
-            setCategories
+            (data) => {
+                setCategories(data);
+                setCategoriesLoaded(true);
+            },
+            () => setLoadError(true),
         );
 
     return unsubscribe;
 
 }, []);
+
+useEffect(() => {
+
+    if (!categoryPath || !categoriesLoaded || directCategory) return;
+
+    let cancelled = false;
+
+    const resolveCategory = async () => {
+        try {
+            const result = await getPublicFeedCategory(categoryPath);
+
+            if (cancelled) return;
+
+            setCategoryLookup({
+                path: categoryPath,
+                categoryId: result?.categoryId ?? null,
+            });
+        } catch {
+            if (!cancelled) setLoadError(true);
+        }
+    };
+
+    void resolveCategory();
+
+    return () => {
+        cancelled = true;
+    };
+
+}, [categoryPath, categoriesLoaded, directCategory]);
+
+useEffect(() => {
+
+    if (
+        !categoryPath ||
+        !categoriesLoaded ||
+        !currentCategory?.slug ||
+        categoryPath === currentCategory.slug
+    ) {
+        return;
+    }
+
+    navigate(
+        `/eventos/${currentCategory.slug}`,
+        { replace: true },
+    );
+
+}, [categoryPath, categoriesLoaded, currentCategory, navigate]);
 
     const events = useMemo(() => {
 
@@ -85,9 +165,54 @@ const currentCategory =
     currentCategory,
 ]);
 
-    const featuredAlbum = events[0];
+const featuredAlbum = events[0];
 
-    const otherAlbums = events.slice(1);
+const otherAlbums = events.slice(1);
+
+const getAlbumCategorySlug = (album: { category?: string }) =>
+    categories.find((category) => category.id === album.category)?.slug;
+
+    if (loadError) {
+        return (
+            <main className="events">
+                <div className="events-container">
+                    <h1>Não foi possível carregar os eventos.</h1>
+                </div>
+            </main>
+        );
+    }
+
+    if (
+        !albumsLoaded ||
+        !categoriesLoaded ||
+        (
+            categoryPath &&
+            !directCategory &&
+            categoryLookup?.path !== categoryPath
+        )
+    ) {
+        return (
+            <main className="events">
+                <div className="events-container">
+                    <p>Carregando eventos...</p>
+                </div>
+            </main>
+        );
+    }
+
+    if (
+        categoryPath &&
+        !currentCategory &&
+        categoryLookup?.path === categoryPath
+    ) {
+        return (
+            <main className="events">
+                <div className="events-container">
+                    <h1>Categoria não encontrada.</h1>
+                </div>
+            </main>
+        );
+    }
 
     return (
 
@@ -162,14 +287,16 @@ const currentCategory =
 
                                 </p>
 
-                                <Link
-                                    to={`/evento/${featuredAlbum.id}`}
-                                    className="featured-event-button"
-                                >
+                                {featuredAlbum.slug && getAlbumCategorySlug(featuredAlbum) && (
+                                    <Link
+                                        to={`/eventos/${getAlbumCategorySlug(featuredAlbum)}/${featuredAlbum.slug}`}
+                                        className="featured-event-button"
+                                    >
 
-                                    Ver Álbum
+                                        Ver Álbum
 
-                                </Link>
+                                    </Link>
+                                )}
 
                             </div>
 
@@ -212,14 +339,16 @@ const currentCategory =
 
                                     </div>
 
-                                    <Link
-                                        to={`/evento/${album.id}`}
-                                        className="event-card-button"
-                                    >
+                                    {album.slug && getAlbumCategorySlug(album) && (
+                                        <Link
+                                            to={`/eventos/${getAlbumCategorySlug(album)}/${album.slug}`}
+                                            className="event-card-button"
+                                        >
 
-                                        Ver Álbum
+                                            Ver Álbum
 
-                                    </Link>
+                                        </Link>
+                                    )}
 
                                 </div>
 

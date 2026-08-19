@@ -50,6 +50,8 @@ export interface AlbumClientVideo {
 export interface AlbumClient {
     id?: string;
 
+    slug?: string;
+
     clientId: string;
 
     clientName: string;

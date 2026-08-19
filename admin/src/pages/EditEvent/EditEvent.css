@@ -1,0 +1,1101 @@
+.album-form {
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 28px;
+
+}
+
+.album-form__top {
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 28px;
+
+}
+
+.album-form__title h2 {
+
+    font-family: var(--font-title);
+
+    font-size: 2.6rem;
+
+    color: var(--color-text);
+
+    margin-bottom: 8px;
+
+}
+
+.album-form__title p {
+
+    color: var(--color-text-light);
+
+    font-size: 1.05rem;
+
+}
+
+
+
+.album-form__back {
+
+    height: 52px;
+
+    padding: 0 18px;
+
+    border: 1px solid var(--color-border);
+
+    border-radius: 16px;
+
+    background: var(--color-white);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    cursor: pointer;
+
+    transition: var(--transition-default);
+
+    color: var(--color-text);
+
+    font-family: var(--font-ui);
+
+    font-size: .95rem;
+
+    font-weight: 600;
+
+}
+
+.album-form__back svg {
+
+    color: var(--color-text);
+
+    transition: var(--transition-default);
+
+}
+
+.album-form__back:hover {
+
+    border-color: var(--color-orange);
+
+    background: rgba(255,130,0,.06);
+
+    color: var(--color-orange);
+
+}
+
+.album-form__back:hover svg {
+
+    color: var(--color-orange);
+
+}
+
+
+
+.album-form__card {
+
+    background: var(--color-white);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-md);
+
+    padding: 28px;
+
+}
+
+.album-form__card h3 {
+
+    font-family: var(--font-title);
+
+    font-size: 1.25rem;
+
+    margin-bottom: 24px;
+
+    color: var(--color-text);
+
+}
+
+.album-form__grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2,1fr);
+
+    gap: 24px;
+
+    margin-bottom: 22px;
+
+}
+
+.album-form__grid--three{
+
+    grid-column: 1 / -1;
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 24px;
+
+    width: 100%;
+
+    margin-bottom: 2px;
+
+}
+
+.album-form__grid--three .album-form__field{
+
+    width: 100%;
+
+}
+
+.album-form__grid--three .album-form__field input{
+
+    width: 100%;
+
+}
+
+.album-form__field {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+.album-form__field label {
+
+    font-size: .92rem;
+
+    font-weight: 600;
+
+    color: var(--color-text);
+
+}
+
+.album-form__field input,
+.album-form__field textarea,
+.album-form__field select{
+
+    width:100%;
+
+    border:1px solid var(--color-border);
+
+    border-radius:14px;
+
+    background:var(--color-white);
+
+    font-family:var(--font-body);
+
+    font-size:.95rem;
+
+    color:var(--color-text);
+
+    outline:none;
+
+    transition:var(--transition-default);
+
+}
+
+.album-form__field input,
+.album-form__field select{
+
+    height:52px;
+
+}
+
+.album-form__field select{
+
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    cursor:pointer;
+
+    padding:0 52px 0 16px;
+
+    background-color:var(--color-white);
+
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236f6a64' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+
+    background-repeat:no-repeat;
+
+    background-position:right 18px center;
+
+    background-size:18px;
+
+}
+
+.album-form__field input{
+
+    padding:0 16px;
+
+}
+
+.album-form__field textarea{
+
+    min-height:130px;
+
+    padding:16px;
+
+    resize:none;
+
+}
+
+.album-form__field textarea {
+
+    height: 130px;
+
+    padding: 16px;
+
+    resize: none;
+
+}
+
+.album-form__field input:focus,
+.album-form__field select:focus,
+.album-form__field textarea:focus {
+
+    border-color: var(--color-orange);
+
+}
+
+.album-form__upload {
+
+    display: grid;
+
+    grid-template-columns: repeat(2,1fr);
+
+    gap: 22px;
+
+}
+
+.album-form__upload button{
+
+    height:190px;
+
+    border:2px dashed rgba(255,130,0,.22);
+
+    border-radius:20px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(255,255,255,.95),
+        rgba(255,130,0,.03)
+    );
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:18px;
+
+    cursor:pointer;
+
+    transition:var(--transition-default);
+
+}
+
+.album-form__upload button:hover{
+
+   
+
+    border-color:var(--color-orange);
+
+    background:rgba(255,130,0,.08);
+
+    box-shadow:var(--shadow-sm);
+
+}
+
+.album-form__upload button svg {
+
+    color: var(--color-orange);
+
+}
+
+.album-form__upload button span {
+
+    font-weight: 600;
+
+    color: var(--color-text);
+
+}
+
+.album-form__cover {
+
+    height: 52px;
+
+    border: 1px solid var(--color-border);
+
+    border-radius: 14px;
+
+    background: var(--color-white);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    cursor: pointer;
+
+    transition: var(--transition-default);
+
+}
+
+.album-form__cover:hover {
+
+    border-color: var(--color-orange);
+
+    color: var(--color-orange);
+
+}
+
+.album-form__actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 16px;
+
+}
+
+.album-form__cancel {
+
+    height: 50px;
+
+    padding: 0 24px;
+
+    border: 1px solid var(--color-border);
+
+    background: var(--color-white);
+
+    border-radius: 14px;
+
+    cursor: pointer;
+
+    transition: var(--transition-default);
+
+}
+
+.album-form__cancel:hover {
+
+    border-color: var(--color-orange);
+
+    color: var(--color-orange);
+
+}
+
+.album-form__save {
+
+    height: 50px;
+
+    padding: 0 28px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: var(--color-orange);
+
+    color: var(--color-white);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: var(--transition-default);
+
+    box-shadow: 0 12px 28px rgba(255,130,0,.18);
+
+}
+
+.album-form__save:hover {
+
+    background: var(--color-orange-dark);
+
+    transform: translateY(-2px);
+
+}
+
+@media(max-width:900px){
+
+    .album-form__grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .album-form__upload{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .album-form__actions{
+
+        flex-direction:column;
+
+    }
+
+    .album-form__cancel,
+    .album-form__save{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+}
+
+
+.album-form__video-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.album-form__video-header p{
+
+    margin-top:6px;
+
+    color:var(--color-text-light);
+
+    font-size:.92rem;
+
+}
+
+.album-form__switch{
+
+    position:relative;
+
+    width:56px;
+
+    height:30px;
+
+    display:inline-block;
+
+}
+
+.album-form__switch input{
+
+    display:none;
+
+}
+
+.album-form__switch span{
+
+    position:absolute;
+
+    inset:0;
+
+    border-radius:999px;
+
+    background:#d9d9d9;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.album-form__switch span::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:24px;
+
+    height:24px;
+
+    left:3px;
+
+    top:3px;
+
+    border-radius:50%;
+
+    background:#fff;
+
+    transition:.3s;
+
+    box-shadow:0 3px 10px rgba(0,0,0,.15);
+
+}
+
+.album-form__switch input:checked + span{
+
+    background:var(--color-orange);
+
+}
+
+.album-form__switch input:checked + span::before{
+
+    transform:translateX(26px);
+
+}
+
+.album-form__video-options{
+
+    margin-top:28px;
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:22px;
+
+}
+
+.album-form__video-options button{
+
+    height:170px;
+
+    border:2px dashed rgba(255,130,0,.22);
+
+    border-radius:20px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(255,255,255,.95),
+        rgba(255,130,0,.03)
+    );
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:16px;
+
+    cursor:pointer;
+
+    transition:var(--transition-default);
+
+}
+
+.album-form__video-options button:hover{
+
+    border-color:var(--color-orange);
+
+    background:rgba(255,130,0,.08);
+
+
+
+    box-shadow:var(--shadow-sm);
+
+}
+
+.album-form__video-options button svg{
+
+    color:var(--color-orange);
+
+}
+
+.album-form__video-options button span{
+
+    font-weight:600;
+
+    color:var(--color-text);
+
+}
+
+
+
+.album-form__categories-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:28px;
+
+}
+
+.album-form__categories-header p{
+
+    margin-top:6px;
+
+    color:var(--color-text-light);
+
+    font-size:.92rem;
+
+}
+
+.album-form__add-category{
+
+    height:46px;
+
+    padding:0 22px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:var(--color-orange);
+
+    color:var(--color-white);
+
+    font-family:var(--font-ui);
+
+    font-size:.92rem;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:var(--transition-default);
+
+    box-shadow:0 10px 24px rgba(255,130,0,.18);
+
+}
+
+.album-form__add-category:hover:not(:disabled){
+
+    background:var(--color-orange-dark);
+
+    transform:translateY(-2px);
+
+}
+
+.album-form__add-category:disabled{
+
+    opacity:.45;
+
+    cursor:not-allowed;
+
+    box-shadow:none;
+
+}
+
+.album-form__empty{
+
+    height:120px;
+
+    border:2px dashed rgba(255,130,0,.15);
+
+    border-radius:18px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:var(--color-text-light);
+
+    font-size:.95rem;
+
+    background:rgba(255,130,0,.03);
+
+}
+
+.album-form__category-card{
+
+    margin-top:22px;
+
+    padding:24px;
+
+    border:1px solid var(--color-border);
+
+    border-radius:18px;
+
+    background:#fff;
+
+}
+
+.album-form__category-card h4{
+
+    font-family:var(--font-title);
+
+    font-size:1.1rem;
+
+    color:var(--color-text);
+
+    margin-bottom:22px;
+
+}
+
+
+.album-form__category-upload{
+
+    margin-top:26px;
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:18px;
+
+}
+
+.album-form__category-upload button{
+
+    height:150px;
+
+    border:2px dashed rgba(255,130,0,.22);
+
+    border-radius:18px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(255,255,255,.96),
+        rgba(255,130,0,.03)
+    );
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:14px;
+
+    cursor:pointer;
+
+    transition:var(--transition-default);
+
+}
+
+.album-form__category-upload button:hover{
+
+    border-color:var(--color-orange);
+
+    background:rgba(255,130,0,.08);
+
+    transform:translateY(-4px);
+
+    box-shadow:var(--shadow-sm);
+
+}
+
+.album-form__category-upload button svg{
+
+    color:var(--color-orange);
+
+}
+
+.album-form__category-upload button span{
+
+    font-weight:600;
+
+    color:var(--color-text);
+
+}
+
+.album-form__category-info{
+
+    margin-top:20px;
+
+    height:52px;
+
+    border-radius:14px;
+
+    background:rgba(255,130,0,.05);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:var(--color-text-light);
+
+    font-size:.92rem;
+
+}
+
+
+.album-form__upload-info{
+
+    margin-top:20px;
+
+    height:52px;
+
+    border-radius:14px;
+
+    background:rgba(255,130,0,.05);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:var(--color-text-light);
+
+    font-size:.92rem;
+
+}
+
+
+.album-form__category-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:22px;
+
+}
+
+.album-form__category-top h4{
+
+    margin:0;
+
+}
+
+.album-form__remove-category{
+
+    width:38px;
+    height:38px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:rgba(220,38,38,.08);
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    cursor:pointer;
+
+    transition:var(--transition-default);
+
+}
+
+.album-form__remove-category svg{
+
+    color:#DC2626;
+
+    transition:var(--transition-default);
+
+}
+
+.album-form__remove-category:hover{
+
+    background:#DC2626;
+
+}
+
+.album-form__remove-category:hover svg{
+
+    color:#fff;
+
+}
+
+
+.album-form__photos{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+
+    gap:20px;
+
+    margin-top:28px;
+
+}
+
+.album-form__photo{
+
+    position:relative;
+
+    background:var(--color-white);
+
+    border:1px solid var(--color-border);
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+    transition:var(--transition-default);
+
+    box-shadow:0 4px 12px rgba(0,0,0,.04);
+
+}
+
+.album-form__photo:hover{
+
+
+
+    box-shadow:var(--shadow-md);
+
+}
+
+.album-form__photo img{
+
+    width:100%;
+
+    height:130px;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+.album-form__photo video{
+
+    width:100%;
+
+    height:130px;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+.album-form__cover-preview{
+
+    border:1px solid var(--color-border);
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+    background:var(--color-white);
+
+    box-shadow:0 4px 12px rgba(0,0,0,.04);
+
+}
+
+.album-form__cover-preview img{
+
+    width:100%;
+
+    height:130px;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+.album-form__cover-preview span{
+
+    display:block;
+
+    padding:14px;
+
+    font-size:.85rem;
+
+    color:var(--color-text);
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.album-form__cover-preview + .album-form__cover{
+
+    margin-top:12px;
+
+}
+
+.album-form__photo span{
+
+    display:block;
+
+    padding:14px;
+
+    font-size:.85rem;
+
+    color:var(--color-text);
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.album-form__photo-remove{
+
+    position:absolute;
+
+    top:10px;
+
+    right:10px;
+
+    width:34px;
+
+    height:34px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:rgba(0,0,0,.65);
+
+    color:var(--color-white);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    cursor:pointer;
+
+    font-size:1.1rem;
+
+    backdrop-filter:blur(8px);
+
+    transition:var(--transition-default);
+
+    z-index:2;
+
+}
+
+.album-form__photo-remove:hover{
+
+    background:#dc2626;
+
+    transform:scale(1.08);
+
+}

@@ -130,13 +130,13 @@ function Footer() {
 
                         </h4>
 
-                        {categories.map((category) => (
+                        {categories
+                            .filter((category) => category.slug)
+                            .map((category) => (
 
                             <Link
                                 key={category.id}
-                                to={`/eventos/${encodeURIComponent(
-                                    category.name
-                                )}`}
+                                to={`/eventos/${category.slug}`}
                             >
 
                                 {category.name}

@@ -91,7 +91,9 @@ function Portfolio() {
 
                     <div className="portfolio-page-grid">
 
-                        {categories.map((category) => (
+                        {categories
+                            .filter((category) => category.slug)
+                            .map((category) => (
 
                             <article
                                 key={category.id}
@@ -132,9 +134,7 @@ function Portfolio() {
 
 
                                     <Link
-                                        to={`/eventos/${encodeURIComponent(
-                                            category.name
-                                        )}`}
+                                        to={`/eventos/${category.slug}`}
                                         className="portfolio-page-card-button"
                                     >
 

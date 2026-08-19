@@ -17,6 +17,8 @@ export interface SiteExperienceItem {
 
     categoryName: string;
 
+    categoryId?: string;
+
 }
 
 export interface SiteExperiences {
