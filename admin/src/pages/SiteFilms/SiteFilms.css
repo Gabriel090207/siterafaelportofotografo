@@ -214,6 +214,40 @@
 
     color:var(--color-orange);
 
+    width:100%;
+
+    max-width:100%;
+
+    min-width:0;
+
+    box-sizing:border-box;
+
+}
+
+.site-films__upload svg{
+
+    flex-shrink:0;
+
+}
+
+.site-films__filename{
+
+    display:block;
+
+    width:100%;
+
+    max-width:100%;
+
+    min-width:0;
+
+    margin:0;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
 }
 
 .site-films__upload:hover{

@@ -1,0 +1,371 @@
+.category-banner-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.category-banner-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(8, 12, 22, 0.66);
+}
+
+.category-banner-modal__card {
+    position: relative;
+    width: min(860px, 100%);
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-white);
+    box-shadow: var(--shadow-lg);
+}
+
+.category-banner-modal__close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 12px;
+    background: var(--color-beige);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.category-banner-modal__header {
+    padding: 30px 70px 22px 30px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.category-banner-modal__icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        var(--color-orange),
+        var(--color-orange-dark)
+    );
+    color: var(--color-white);
+}
+
+.category-banner-modal__header h2 {
+    margin: 0 0 4px;
+    font-family: var(--font-title);
+    font-size: 1.55rem;
+    color: var(--color-text);
+}
+
+.category-banner-modal__header p {
+    color: var(--color-text-light);
+    font-size: 0.92rem;
+}
+
+.category-banner-modal__body {
+    min-height: 0;
+    padding: 24px 30px;
+    overflow-y: auto;
+}
+
+.category-banner-modal__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.category-banner-modal__summary > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.category-banner-modal__summary strong {
+    color: var(--color-text);
+}
+
+.category-banner-modal__summary span {
+    color: var(--color-text-light);
+    font-size: 0.85rem;
+}
+
+.category-banner-modal__upload,
+.category-banner-modal__cancel,
+.category-banner-modal__save {
+    min-height: 46px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 0;
+    border-radius: var(--radius-md);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+
+.category-banner-modal__upload {
+    background: var(--color-beige);
+    color: var(--color-text);
+}
+
+.category-banner-modal__upload:hover:not(:disabled),
+.category-banner-modal__cancel:hover:not(:disabled) {
+    background: rgba(255, 130, 0, 0.12);
+    color: var(--color-orange);
+}
+
+.category-banner-modal__error {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fdecec;
+    color: #b42318;
+    font-size: 0.9rem;
+}
+
+.category-banner-modal__empty {
+    min-height: 180px;
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 2px dashed rgba(255, 130, 0, 0.22);
+    border-radius: 18px;
+    background: rgba(255, 130, 0, 0.03);
+    color: var(--color-text-light);
+    text-align: center;
+}
+
+.category-banner-modal__empty svg {
+    color: var(--color-orange);
+}
+
+.category-banner-modal__grid {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.category-banner-modal__image {
+    position: relative;
+    touch-action: manipulation;
+    min-width: 0;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: var(--color-beige);
+}
+
+.category-banner-modal__image--dragging {
+    z-index: 4;
+    opacity: 0.72;
+    box-shadow: var(--shadow-md);
+}
+
+.category-banner-modal__image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.category-banner-modal__remove,
+.category-banner-modal__handle {
+    position: absolute;
+    top: 10px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.72);
+    color: var(--color-white);
+    cursor: pointer;
+}
+
+.category-banner-modal__remove {
+    right: 10px;
+}
+
+.category-banner-modal__remove:hover:not(:disabled) {
+    background: #b42318;
+}
+
+.category-banner-modal__handle {
+    left: 10px;
+    cursor: grab;
+    touch-action: none;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.category-banner-modal__handle:hover:not(:disabled) {
+    background: rgba(20, 20, 20, 0.88);
+    transform: scale(1.05);
+}
+
+.category-banner-modal__handle--dragging,
+.category-banner-modal__handle:active {
+    cursor: grabbing;
+}
+
+.category-banner-modal__image > span {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--color-orange);
+    color: var(--color-white);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.category-banner-modal__actions {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-white);
+}
+
+.category-banner-modal__cancel {
+    background: var(--color-beige);
+    color: var(--color-text);
+}
+
+.category-banner-modal__save {
+    background: linear-gradient(
+        135deg,
+        var(--color-orange),
+        var(--color-orange-dark)
+    );
+    color: var(--color-white);
+    box-shadow: 0 10px 22px rgba(255, 130, 0, 0.24);
+}
+
+.category-banner-modal__save:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.category-banner-modal button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.category-banner-modal button:focus-visible {
+    outline: 3px solid rgba(255, 130, 0, 0.42);
+    outline-offset: 2px;
+}
+
+.category-banner-modal__loader {
+    animation: category-banner-loader 1s linear infinite;
+}
+
+@keyframes category-banner-loader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 620px) {
+    .category-banner-modal {
+        padding:
+            max(12px, env(safe-area-inset-top))
+            12px
+            max(12px, env(safe-area-inset-bottom));
+    }
+
+    .category-banner-modal__card {
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
+    }
+
+    .category-banner-modal__header {
+        padding: 22px 58px 18px 18px;
+    }
+
+    .category-banner-modal__icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+    }
+
+    .category-banner-modal__body {
+        padding: 20px 18px;
+    }
+
+    .category-banner-modal__summary {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .category-banner-modal__upload {
+        width: 100%;
+    }
+
+    .category-banner-modal__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .category-banner-modal__actions {
+        padding: 16px 18px;
+        flex-direction: column-reverse;
+    }
+
+    .category-banner-modal__cancel,
+    .category-banner-modal__save {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .category-banner-modal button {
+        transition-duration: 0.01ms;
+    }
+
+    .category-banner-modal__save:hover:not(:disabled) {
+        transform: none;
+    }
+
+    .category-banner-modal__handle:hover:not(:disabled) {
+        transform: none;
+    }
+}

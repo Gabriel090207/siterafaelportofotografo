@@ -161,6 +161,19 @@ function Experiences() {
 
                 </div>
 
+                <div className="experiences-footer">
+
+                    <Link
+                        to="/portfolio"
+                        className="experiences-portfolio-btn"
+                    >
+
+                        Ver galeria completa
+
+                    </Link>
+
+                </div>
+
             </div>
 
         </section>

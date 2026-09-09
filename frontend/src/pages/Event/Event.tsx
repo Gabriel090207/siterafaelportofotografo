@@ -10,6 +10,7 @@ import {
     useNavigate,
     useParams,
 } from "react-router-dom";
+import { X } from "lucide-react";
 
 import {
     getPublicAlbumFeed,
@@ -44,6 +45,8 @@ import {
   FiMaximize,
 } from "react-icons/fi";
 
+const VIEWER_ANIMATION_MS = 300;
+
 function Events() {
 
 const navigate = useNavigate();
@@ -66,6 +69,14 @@ const [loadedIdentifier, setLoadedIdentifier] =
 const [categories, setCategories] =
     useState<FeedCategory[]>([]);
 
+const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+const [viewerClosing, setViewerClosing] = useState(false);
+
+const viewerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const viewerThumbnailsRef = useRef<HTMLDivElement | null>(null);
+const activeViewerThumbnailRef = useRef<HTMLButtonElement | null>(null);
+
 useEffect(() => {
 
     if (!identifier && (!categorySlug || !albumSlug)) return;
@@ -73,6 +84,9 @@ useEffect(() => {
     let cancelled = false;
 
     const loadAlbum = async () => {
+        setViewerIndex(null);
+        setViewerClosing(false);
+
         try {
             const result = identifier
                 ? await getPublicAlbumFeed(identifier)
@@ -203,6 +217,18 @@ const currentImages: string[] = Array.isArray(currentContent.images)
     ? currentContent.images
     : [];
 
+const viewerImage = viewerIndex !== null
+    ? currentImages[viewerIndex] ?? null
+    : null;
+
+const previousViewerDisabled =
+    viewerClosing || viewerIndex === null || viewerIndex <= 0;
+
+const nextViewerDisabled =
+    viewerClosing
+    || viewerIndex === null
+    || viewerIndex >= currentImages.length - 1;
+
 const [previewStart, setPreviewStart] = useState(0);
 
 const [isPaused, setIsPaused] = useState(false);
@@ -260,6 +286,149 @@ const prevPreview = () => {
     setPreviewStart(prev => prev - 1);
   }
 };
+
+const openViewer = () => {
+  if (
+    currentImage < 0
+    || currentImage >= currentImages.length
+    || !currentImages[currentImage]
+    || viewerTimerRef.current
+  ) return;
+
+  setViewerClosing(false);
+  setViewerIndex(currentImage);
+};
+
+const closeViewer = () => {
+  if (viewerIndex === null || viewerTimerRef.current) return;
+
+  setViewerClosing(true);
+  viewerTimerRef.current = setTimeout(() => {
+    setViewerIndex(null);
+    setViewerClosing(false);
+    viewerTimerRef.current = null;
+  }, VIEWER_ANIMATION_MS);
+};
+
+const navigateViewer = (direction: -1 | 1) => {
+  if (viewerClosing) return;
+
+  setViewerIndex((current) => {
+    if (
+      current === null
+      || current < 0
+      || current >= currentImages.length
+      || !currentImages[current]
+    ) return current;
+
+    const nextIndex = current + direction;
+
+    if (
+      nextIndex < 0
+      || nextIndex >= currentImages.length
+      || !currentImages[nextIndex]
+    ) return current;
+
+    return nextIndex;
+  });
+};
+
+const showViewerImage = (index: number) => {
+  if (
+    viewerClosing
+    || index < 0
+    || index >= currentImages.length
+    || !currentImages[index]
+  ) return;
+
+  setViewerIndex(index);
+};
+
+const changeActiveContent = (content: string) => {
+  if (viewerTimerRef.current) {
+    clearTimeout(viewerTimerRef.current);
+    viewerTimerRef.current = null;
+  }
+
+  setViewerIndex(null);
+  setViewerClosing(false);
+  setActiveContent(content);
+};
+
+useEffect(() => {
+  return () => {
+    if (viewerTimerRef.current) {
+      clearTimeout(viewerTimerRef.current);
+    }
+  };
+}, []);
+
+useEffect(() => {
+  if (!viewerImage) return;
+
+  const previousOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+
+  return () => {
+    document.body.style.overflow = previousOverflow;
+  };
+}, [viewerImage]);
+
+useEffect(() => {
+  if (!viewerImage) return;
+
+  const handleViewerKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      closeViewer();
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      navigateViewer(-1);
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      navigateViewer(1);
+    }
+  };
+
+  document.addEventListener("keydown", handleViewerKeyDown);
+  return () => document.removeEventListener("keydown", handleViewerKeyDown);
+}, [closeViewer, navigateViewer, viewerImage]);
+
+useEffect(() => {
+  if (!viewerImage || viewerIndex === null) return;
+
+  const thumbnails = viewerThumbnailsRef.current;
+  const activeThumbnail = activeViewerThumbnailRef.current;
+
+  if (!thumbnails || !activeThumbnail) return;
+
+  const thumbnailsRect = thumbnails.getBoundingClientRect();
+  const activeThumbnailRect = activeThumbnail.getBoundingClientRect();
+
+  if (
+    activeThumbnailRect.left >= thumbnailsRect.left
+    && activeThumbnailRect.right <= thumbnailsRect.right
+  ) return;
+
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+  const centeredPosition = thumbnails.scrollLeft
+    + activeThumbnailRect.left
+    + activeThumbnailRect.width / 2
+    - thumbnailsRect.left
+    - thumbnailsRect.width / 2;
+
+  thumbnails.scrollTo({
+    left: Math.max(0, centeredPosition),
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+  });
+}, [viewerImage, viewerIndex]);
 
 
 
@@ -423,7 +592,7 @@ if (newVolume === 0) {
 
 useEffect(() => {
 
-  if (isPaused || manualControl) return;
+  if (isPaused || manualControl || viewerIndex !== null) return;
 
   const interval = setInterval(() => {
 
@@ -440,7 +609,8 @@ useEffect(() => {
 }, [
   isPaused,
   manualControl,
-  currentImages.length
+  currentImages.length,
+  viewerIndex
 ]);
 
 
@@ -662,10 +832,13 @@ const totalPhotos =
 
 {activeContent !== "video" && (
   <>
-    <div
+    <button
+      type="button"
       className="event-post-media"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onClick={openViewer}
+      aria-label={`Ampliar ${currentContent.title}`}
     >
       {currentImages.map((image, index) => (
         <img
@@ -679,7 +852,7 @@ const totalPhotos =
           }
         />
       ))}
-    </div>
+    </button>
 
     <div className="event-post-preview">
 
@@ -888,9 +1061,7 @@ onLoadedMetadata={() => {
 
     <button
       className="video-preview-card"
-      onClick={() =>
-        setActiveContent("video")
-      }
+      onClick={() => changeActiveContent("video")}
     >
       <img
         src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc"
@@ -916,9 +1087,7 @@ onLoadedMetadata={() => {
 
       <button
         className="video-category-card"
-        onClick={() =>
-          setActiveContent("geral")
-        }
+        onClick={() => changeActiveContent("geral")}
       >
        <img
   src={album?.coverPhoto?.preview}
@@ -949,9 +1118,7 @@ onLoadedMetadata={() => {
 
             <button
                 className="video-category-card"
-                onClick={() =>
-                    setActiveContent(category.id)
-                }
+                onClick={() => changeActiveContent(category.id)}
             >
 
                 <img
@@ -984,6 +1151,98 @@ onLoadedMetadata={() => {
 </section>
 
       </div>
+
+      {viewerImage && (
+        <div
+          className={`event-viewer${viewerClosing ? " event-viewer--closing" : ""}`}
+          onClick={closeViewer}
+          role="presentation"
+        >
+          <button
+            type="button"
+            className="event-viewer__close"
+            onClick={(event) => {
+              event.stopPropagation();
+              closeViewer();
+            }}
+            aria-label="Fechar visualizador"
+          >
+            <X size={24} aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className="event-viewer__navigation event-viewer__navigation--previous"
+            onClick={(event) => {
+              event.stopPropagation();
+              navigateViewer(-1);
+            }}
+            disabled={previousViewerDisabled}
+            aria-label="Foto anterior"
+          >
+            <FiArrowLeft aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className="event-viewer__navigation event-viewer__navigation--next"
+            onClick={(event) => {
+              event.stopPropagation();
+              navigateViewer(1);
+            }}
+            disabled={nextViewerDisabled}
+            aria-label="Próxima foto"
+          >
+            <FiArrowRight aria-hidden="true" />
+          </button>
+
+          <div className="event-viewer__layout">
+            <div
+              className="event-viewer__content"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Visualização ampliada de ${currentContent.title}`}
+            >
+              <img src={viewerImage} alt={currentContent.title} />
+            </div>
+
+            <div
+              ref={viewerThumbnailsRef}
+              className="event-viewer__thumbnails"
+              onClick={(event) => event.stopPropagation()}
+              role="group"
+              aria-label="Fotos do evento"
+            >
+              {currentImages.map((image, index) => {
+                const isActive = index === viewerIndex;
+
+                return (
+                  <button
+                    key={`${image}-${index}`}
+                    ref={isActive ? activeViewerThumbnailRef : undefined}
+                    type="button"
+                    className={`event-viewer__thumbnail${isActive ? " event-viewer__thumbnail--active" : ""}`}
+                    onClick={() => showViewerImage(index)}
+                    disabled={viewerClosing || !image}
+                    aria-label={`Abrir foto ${index + 1}`}
+                    aria-current={isActive ? "true" : undefined}
+                  >
+                    {image && (
+                      <img
+                        src={image}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -15,6 +15,30 @@ export interface UploadResult {
     storagePath: string;
 }
 
+export interface CategoryBannerUploadResult extends UploadResult {
+    id: string;
+}
+
+const CATEGORY_BANNER_MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+const CATEGORY_BANNER_EXTENSIONS: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+};
+
+export const validateCategoryBannerImageFile = (file: File) => {
+    if (!CATEGORY_BANNER_EXTENSIONS[file.type]) {
+        throw new Error(
+            "Formato inválido. Selecione uma imagem JPEG, PNG ou WebP."
+        );
+    }
+
+    if (file.size > CATEGORY_BANNER_MAX_FILE_SIZE) {
+        throw new Error("A imagem deve ter no máximo 10 MB.");
+    }
+};
+
 const uploadFile = async (
     fullPath: string,
     file: File,
@@ -377,6 +401,37 @@ export const uploadEventCategoryCover = async (
         file
     );
 
+};
+
+export const uploadCategoryBannerImage = async (
+    categoryId: string,
+    file: File,
+): Promise<CategoryBannerUploadResult> => {
+    const normalizedCategoryId = categoryId.trim();
+
+    if (!normalizedCategoryId) {
+        throw new Error("A categoria do banner é obrigatória.");
+    }
+
+    validateCategoryBannerImageFile(file);
+
+    const imageId = crypto.randomUUID();
+    const originalExtension = file.name.split(".").pop()?.toLowerCase();
+    const acceptedExtensions = file.type === "image/jpeg"
+        ? ["jpg", "jpeg"]
+        : [CATEGORY_BANNER_EXTENSIONS[file.type]];
+    const extension = originalExtension
+        && acceptedExtensions.includes(originalExtension)
+        ? originalExtension
+        : CATEGORY_BANNER_EXTENSIONS[file.type];
+    const fullPath =
+        `Eventos/${normalizedCategoryId}/Banner/${imageId}.${extension}`;
+    const upload = await uploadFile(fullPath, file);
+
+    return {
+        id: imageId,
+        ...upload,
+    };
 };
 
 export const updateStoragePathUrl = async (

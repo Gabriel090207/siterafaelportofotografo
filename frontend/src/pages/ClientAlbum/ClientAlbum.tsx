@@ -1,11 +1,13 @@
 import "./ClientAlbum.css";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     ArrowLeft,
     CalendarDays,
     Check,
+    ChevronLeft,
+    ChevronRight,
     Heart,
     Image,
     MapPin,
@@ -20,11 +22,15 @@ import {
     createClientAlbumSelection,
     resolveClientAlbum,
     type ClientAlbumDetails,
-    type ClientAlbumMedia,
 } from "../../services/api/clientAlbums";
 import { ClientApiError } from "../../services/api/clientApi";
 
 const OVERLAY_ANIMATION_MS = 300;
+
+type PreviewPosition = {
+    mediaType: "photo" | "video";
+    index: number;
+};
 
 function ClientAlbum() {
     const { albumSlug, identifier } = useParams();
@@ -45,9 +51,8 @@ function ClientAlbum() {
     const [finishModalMounted, setFinishModalMounted] = useState(false);
     const [closingFinishModal, setClosingFinishModal] = useState(false);
 
-    const [previewImage, setPreviewImage] = useState<
-        (ClientAlbumMedia & { mediaType: "photo" | "video" }) | null
-    >(null);
+    const [previewPosition, setPreviewPosition] =
+        useState<PreviewPosition | null>(null);
     const [closingPreview, setClosingPreview] = useState(false);
 
     const [selectionName, setSelectionName] = useState("");
@@ -57,6 +62,8 @@ function ClientAlbum() {
     const finishModalTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const finishModalClosePromise = useRef<Promise<void> | null>(null);
     const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const previewThumbnailsRef = useRef<HTMLDivElement | null>(null);
+    const activeThumbnailRef = useRef<HTMLButtonElement | null>(null);
 
     const [loadingModal, setLoadingModal] = useState({
         open: false,
@@ -152,6 +159,21 @@ function ClientAlbum() {
         filter === "photos"
             ? album?.watermarkedPhotos ?? []
             : album?.watermarkedVideos ?? [];
+    const previewItems = previewPosition?.mediaType === "photo"
+        ? album?.watermarkedPhotos
+        : album?.watermarkedVideos;
+    const previewImage = previewPosition
+        ? previewItems?.[previewPosition.index] ?? null
+        : null;
+    const previousPreviewDisabled =
+        closingPreview
+        || !previewPosition
+        || previewPosition.index <= 0;
+    const nextPreviewDisabled =
+        closingPreview
+        || !previewPosition
+        || !previewItems
+        || previewPosition.index >= previewItems.length - 1;
 
     const openFinishModal = () => {
         if (selectedItems.length === 0) {
@@ -197,25 +219,74 @@ function ClientAlbum() {
         return closePromise;
     };
 
-    const openPreview = (
-        item: ClientAlbumMedia,
-        mediaType: "photo" | "video"
-    ) => {
+    const openPreview = (index: number, mediaType: "photo" | "video") => {
         if (previewTimer.current) return;
 
         setClosingPreview(false);
-        setPreviewImage({
-            ...item,
-            mediaType,
+        setPreviewPosition({ mediaType, index });
+    };
+
+    const navigatePreview = useCallback((direction: -1 | 1) => {
+        if (closingPreview) return;
+
+        setPreviewPosition((current) => {
+            if (!current) return current;
+
+            const currentItems = current.mediaType === "photo"
+                ? album?.watermarkedPhotos
+                : album?.watermarkedVideos;
+
+            if (
+                !currentItems
+                || current.index < 0
+                || current.index >= currentItems.length
+            ) {
+                return current;
+            }
+
+            const nextIndex = current.index + direction;
+
+            if (nextIndex < 0 || nextIndex >= currentItems.length) {
+                return current;
+            }
+
+            return { ...current, index: nextIndex };
+        });
+    }, [album, closingPreview]);
+
+    const showPreviousPreview = useCallback(
+        () => navigatePreview(-1),
+        [navigatePreview]
+    );
+    const showNextPreview = useCallback(
+        () => navigatePreview(1),
+        [navigatePreview]
+    );
+
+    const showPreviewAtIndex = (index: number) => {
+        if (closingPreview) return;
+
+        setPreviewPosition((current) => {
+            if (!current) return current;
+
+            const currentItems = current.mediaType === "photo"
+                ? album?.watermarkedPhotos
+                : album?.watermarkedVideos;
+
+            if (!currentItems || index < 0 || index >= currentItems.length) {
+                return current;
+            }
+
+            return { ...current, index };
         });
     };
 
     const closePreview = () => {
-        if (!previewImage || previewTimer.current) return;
+        if (!previewPosition || previewTimer.current) return;
 
         setClosingPreview(true);
         previewTimer.current = setTimeout(() => {
-            setPreviewImage(null);
+            setPreviewPosition(null);
             setClosingPreview(false);
             previewTimer.current = null;
         }, OVERLAY_ANIMATION_MS);
@@ -235,22 +306,82 @@ function ClientAlbum() {
     useEffect(() => {
         if (!finishModalMounted && !previewImage) return;
 
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key !== "Escape") return;
-
-            if (previewImage) {
-                closePreview();
+        const handlePreviewKeyDown = (event: KeyboardEvent) => {
+            if (previewImage && event.key === "ArrowLeft") {
+                event.preventDefault();
+                showPreviousPreview();
                 return;
             }
 
-            if (finishModalMounted && !loadingModal.open) {
-                void closeFinishModal();
+            if (previewImage && event.key === "ArrowRight") {
+                event.preventDefault();
+                showNextPreview();
+                return;
+            }
+
+            if (event.key === "Escape") {
+                if (previewImage) {
+                    closePreview();
+                    return;
+                }
+
+                if (finishModalMounted && !loadingModal.open) {
+                    void closeFinishModal();
+                }
             }
         };
 
-        document.addEventListener("keydown", handleEscape);
-        return () => document.removeEventListener("keydown", handleEscape);
-    }, [finishModalMounted, loadingModal.open, previewImage]);
+        document.addEventListener("keydown", handlePreviewKeyDown);
+        return () => document.removeEventListener("keydown", handlePreviewKeyDown);
+    }, [
+        closingPreview,
+        finishModalMounted,
+        loadingModal.open,
+        previewImage,
+        showNextPreview,
+        showPreviousPreview,
+    ]);
+
+    useEffect(() => {
+        if (!previewImage) return;
+
+        const thumbnails = previewThumbnailsRef.current;
+        const activeThumbnail = activeThumbnailRef.current;
+
+        if (!thumbnails || !activeThumbnail) return;
+
+        const thumbnailsRect = thumbnails.getBoundingClientRect();
+        const activeThumbnailRect = activeThumbnail.getBoundingClientRect();
+
+        if (
+            activeThumbnailRect.left >= thumbnailsRect.left
+            && activeThumbnailRect.right <= thumbnailsRect.right
+        ) {
+            return;
+        }
+
+        const prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        ).matches;
+        const centeredPosition = thumbnails.scrollLeft
+            + activeThumbnailRect.left
+            + activeThumbnailRect.width / 2
+            - thumbnailsRect.left
+            - thumbnailsRect.width / 2;
+
+        thumbnails.scrollTo({
+            left: Math.max(0, centeredPosition),
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+        });
+    }, [previewImage, previewPosition]);
+
+    const handleSelectionModeToggle = () => {
+        if (selectionMode) {
+            setSelectedItems([]);
+        }
+
+        setSelectionMode((current) => !current);
+    };
 
     const toggleSelection = (id: string) => {
         setSelectedItems((current) =>
@@ -400,7 +531,7 @@ function ClientAlbum() {
                             <button
                                 type="button"
                                 className={selectionMode ? "client-album__selection client-album__selection--active" : "client-album__selection"}
-                                onClick={() => setSelectionMode(!selectionMode)}
+                                onClick={handleSelectionModeToggle}
                             >
                                 {selectionMode ? <X size={18} aria-hidden="true" /> : <Heart size={18} aria-hidden="true" />}
                                 {selectionMode ? "Cancelar seleção" : "Criar seleção"}
@@ -435,14 +566,14 @@ function ClientAlbum() {
                         </div>
                     ) : items.length > 0 ? (
                         <div className="client-album__gallery">
-                            {items.map((item) => {
+                            {items.map((item, index) => {
                                 const isSelected = selectedItems.includes(item.id);
 
                                 return (
                                     <div
                                         key={item.id}
                                         className={isSelected ? "client-media-card client-media-card--selected" : "client-media-card"}
-                                        onClick={() => openPreview(item, filter === "photos" ? "photo" : "video")}
+                                        onClick={() => openPreview(index, filter === "photos" ? "photo" : "video")}
                                     >
                                         {selectionMode && (
                                             <button
@@ -602,23 +733,101 @@ function ClientAlbum() {
                         <X size={24} aria-hidden="true" />
                     </button>
 
-                    <div
-                        className="client-preview__content"
-                        onClick={(event) => event.stopPropagation()}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label={previewImage.name}
+                    <button
+                        type="button"
+                        className="client-preview__navigation client-preview__navigation--previous"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            showPreviousPreview();
+                        }}
+                        disabled={previousPreviewDisabled}
+                        aria-label="Visualizar mídia anterior"
                     >
-                        {previewImage.mediaType === "photo" ? (
-                            <img src={previewImage.preview} alt={previewImage.name} />
-                        ) : (
-                            <video
-                                src={previewImage.preview}
-                                controls
-                                playsInline
-                                preload="metadata"
-                            />
-                        )}
+                        <ChevronLeft size={28} aria-hidden="true" />
+                    </button>
+
+                    <button
+                        type="button"
+                        className="client-preview__navigation client-preview__navigation--next"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            showNextPreview();
+                        }}
+                        disabled={nextPreviewDisabled}
+                        aria-label="Visualizar próxima mídia"
+                    >
+                        <ChevronRight size={28} aria-hidden="true" />
+                    </button>
+
+                    <div className="client-preview__viewer">
+                        <div
+                            className="client-preview__content"
+                            onClick={(event) => event.stopPropagation()}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label={previewImage.name}
+                        >
+                            {previewPosition?.mediaType === "photo" ? (
+                                <img
+                                    key={`photo-${previewPosition.index}-${previewImage.id}`}
+                                    src={previewImage.preview}
+                                    alt={previewImage.name}
+                                />
+                            ) : (
+                                <video
+                                    key={`video-${previewPosition?.index}-${previewImage.id}`}
+                                    src={previewImage.preview}
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                />
+                            )}
+                        </div>
+
+                        <div
+                            ref={previewThumbnailsRef}
+                            className="client-preview__thumbnails"
+                            onClick={(event) => event.stopPropagation()}
+                            role="group"
+                            aria-label="Mídias do álbum"
+                        >
+                            {previewItems?.map((item, index) => {
+                                const isActive = index === previewPosition?.index;
+                                const mediaLabel = previewPosition?.mediaType === "photo"
+                                    ? "foto"
+                                    : "vídeo";
+
+                                return (
+                                    <button
+                                        key={item.id}
+                                        ref={isActive ? activeThumbnailRef : undefined}
+                                        type="button"
+                                        className={`client-preview__thumbnail${isActive ? " client-preview__thumbnail--active" : ""}`}
+                                        onClick={() => showPreviewAtIndex(index)}
+                                        disabled={closingPreview}
+                                        aria-label={`Abrir ${mediaLabel} ${index + 1}`}
+                                        aria-current={isActive ? "true" : undefined}
+                                    >
+                                        {previewPosition?.mediaType === "photo" && item.preview ? (
+                                            <img
+                                                src={item.preview}
+                                                alt=""
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        ) : (
+                                            <span className="client-preview__thumbnail-video">
+                                                {previewPosition?.mediaType === "photo" ? (
+                                                    <Image size={22} aria-hidden="true" />
+                                                ) : (
+                                                    <Video size={22} aria-hidden="true" />
+                                                )}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             )}

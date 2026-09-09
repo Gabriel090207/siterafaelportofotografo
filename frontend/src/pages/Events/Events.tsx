@@ -39,9 +39,15 @@ const [categories, setCategories] =
 const [albumsLoaded, setAlbumsLoaded] = useState(false);
 const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 const [loadError, setLoadError] = useState(false);
+const [bannerPosition, setBannerPosition] = useState({
+    key: "",
+    index: 0,
+});
+const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 const [categoryLookup, setCategoryLookup] = useState<{
     path: string;
     categoryId: string | null;
+    bannerImages?: FeedCategory["bannerImages"];
 } | null>(null);
 
 const legacyCategoryName = categoryPath ?? "";
@@ -57,12 +63,60 @@ const directCategory =
             legacyCategoryName.toLocaleLowerCase("pt-BR")
     );
 
-const currentCategory =
-    directCategory ??
+const resolvedCategory =
     categories.find(
         (category) =>
             category.id === categoryLookup?.categoryId
     );
+
+const currentCategory = useMemo(
+    () =>
+        directCategory ??
+        (
+            resolvedCategory
+                ? {
+                    ...resolvedCategory,
+                    bannerImages:
+                        categoryLookup?.bannerImages ??
+                        resolvedCategory.bannerImages,
+                }
+                : undefined
+        ),
+    [
+        categoryLookup?.bannerImages,
+        directCategory,
+        resolvedCategory,
+    ],
+);
+
+const categoryBannerImages = useMemo(
+    () => categoryPath && currentCategory
+        ? (currentCategory.bannerImages ?? []).filter(
+            (image) =>
+                typeof image?.url === "string" &&
+                image.url.trim().length > 0
+        )
+        : [],
+    [categoryPath, currentCategory],
+);
+
+const categoryBannerKey = categoryBannerImages
+    .map((image) => `${image.id}:${image.url}`)
+    .join("|");
+
+const bannerPositionKey = [
+    currentCategory?.id ?? "",
+    categoryBannerKey,
+    prefersReducedMotion ? "reduced" : "animated",
+].join("|");
+
+const activeBannerIndex =
+    bannerPosition.key === bannerPositionKey &&
+    bannerPosition.index < categoryBannerImages.length
+    ? bannerPosition.index
+    : 0;
+const categoryBannerImage = categoryBannerImages[activeBannerIndex];
+const hasCategoryBanner = categoryBannerImages.length > 0;
 
     useEffect(() => {
 
@@ -95,6 +149,53 @@ const currentCategory =
 }, []);
 
 useEffect(() => {
+    const reducedMotionQuery = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+    const updateReducedMotion = () => {
+        setPrefersReducedMotion(reducedMotionQuery.matches);
+    };
+
+    updateReducedMotion();
+    reducedMotionQuery.addEventListener("change", updateReducedMotion);
+
+    return () => {
+        reducedMotionQuery.removeEventListener("change", updateReducedMotion);
+    };
+}, []);
+
+useEffect(() => {
+    if (
+        prefersReducedMotion ||
+        !categoryPath ||
+        categoryBannerImages.length < 2
+    ) {
+        return;
+    }
+
+    const intervalId = window.setInterval(() => {
+        setBannerPosition((current) => {
+            const currentIndex = current.key === bannerPositionKey
+                ? current.index
+                : 0;
+
+            return {
+                key: bannerPositionKey,
+                index: (currentIndex + 1) % categoryBannerImages.length,
+            };
+        });
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+}, [
+    categoryBannerImages.length,
+    categoryBannerKey,
+    categoryPath,
+    bannerPositionKey,
+    prefersReducedMotion,
+]);
+
+useEffect(() => {
 
     if (!categoryPath || !categoriesLoaded || directCategory) return;
 
@@ -109,6 +210,7 @@ useEffect(() => {
             setCategoryLookup({
                 path: categoryPath,
                 categoryId: result?.categoryId ?? null,
+                bannerImages: result?.bannerImages,
             });
         } catch {
             if (!cancelled) setLoadError(true);
@@ -167,7 +269,9 @@ useEffect(() => {
 
 const featuredAlbum = events[0];
 
-const otherAlbums = events.slice(1);
+const displayedAlbums = hasCategoryBanner
+    ? events
+    : events.slice(1);
 
 const getAlbumCategorySlug = (album: { category?: string }) =>
     categories.find((category) => category.id === album.category)?.slug;
@@ -252,53 +356,77 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
 
                 </section>
 
-                {featuredAlbum && (
+                {(categoryBannerImage || featuredAlbum) && (
 
                     <section className="featured-event">
 
                         <div className="featured-event-card">
 
-                            <img
-                                src={
-                                    featuredAlbum.coverPhoto?.preview
-                                }
-                                alt={
-                                    featuredAlbum.name
-                                }
-                            />
+                            {categoryBannerImage ? (
+                                <div className="featured-event-slides">
+                                    {categoryBannerImages.map((image, index) => {
+                                        const isActive =
+                                            index === activeBannerIndex;
 
-                            <div className="featured-event-overlay">
+                                        return (
+                                            <img
+                                                key={image.id}
+                                                src={image.url}
+                                                className={
+                                                    isActive ? "active" : ""
+                                                }
+                                                alt={
+                                                    isActive
+                                                        ? `Banner de ${currentCategory?.name}`
+                                                        : ""
+                                                }
+                                                aria-hidden={!isActive}
+                                                decoding="async"
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <img
+                                    src={featuredAlbum?.coverPhoto?.preview}
+                                    alt={featuredAlbum?.name}
+                                />
+                            )}
 
-                                <span className="featured-event-label">
+                            {!categoryBannerImage && (
+                                <div className="featured-event-overlay">
 
-                                    {currentCategory?.name}
+                                    <span className="featured-event-label">
 
-                                </span>
+                                        {currentCategory?.name}
 
-                                <h2>
+                                    </span>
 
-                                    {featuredAlbum.name}
+                                    <h2>
 
-                                </h2>
+                                        {featuredAlbum?.name}
 
-                                <p>
+                                    </h2>
 
-                                    {featuredAlbum.description}
+                                    <p>
 
-                                </p>
+                                        {featuredAlbum?.description}
 
-                                {featuredAlbum.slug && getAlbumCategorySlug(featuredAlbum) && (
-                                    <Link
-                                        to={`/eventos/${getAlbumCategorySlug(featuredAlbum)}/${featuredAlbum.slug}`}
-                                        className="featured-event-button"
-                                    >
+                                    </p>
 
-                                        Ver Álbum
+                                    {featuredAlbum?.slug && getAlbumCategorySlug(featuredAlbum) && (
+                                        <Link
+                                            to={`/eventos/${getAlbumCategorySlug(featuredAlbum)}/${featuredAlbum.slug}`}
+                                            className="featured-event-button"
+                                        >
 
-                                    </Link>
-                                )}
+                                            Ver Álbum
 
-                            </div>
+                                        </Link>
+                                    )}
+
+                                </div>
+                            )}
 
                         </div>
 
@@ -310,7 +438,7 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
 
                     <div className="events-grid">
 
-                        {otherAlbums.map((album) => (
+                        {displayedAlbums.map((album) => (
 
                             <article
                                 key={album.id}
@@ -330,10 +458,6 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
                                         <span>
 
                                             {currentCategory?.name}
-
-                                            {" • "}
-
-                                            {album.clientName}
 
                                         </span>
 
@@ -379,6 +503,15 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
 
                         ))}
 
+                    </div>
+
+                    <div className="events-testimonials-action">
+                        <Link
+                            to="/depoimentos"
+                            className="events-testimonials-button"
+                        >
+                            Veja o que os clientes dizem a nosso respeito
+                        </Link>
                     </div>
 
                 </section>

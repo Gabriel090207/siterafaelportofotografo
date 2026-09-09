@@ -3,7 +3,7 @@ import unicodedata
 
 from fastapi import APIRouter, Depends, HTTPException
 from firebase_admin import firestore
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.firebase.firestore import db
 from app.dependencies.admin_auth import (
@@ -40,6 +40,80 @@ class UpdateFeedCategorySlugRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1, max_length=120)
+
+
+class FeedCategoryBannerImageRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    url: str
+    storagePath: str
+
+    @field_validator("id", "url", "storagePath")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        normalized_value = value.strip()
+
+        if not normalized_value:
+            raise ValueError("O campo não pode ser vazio.")
+
+        return normalized_value
+
+
+class UpdateFeedCategoryBannerImagesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    bannerImages: list[FeedCategoryBannerImageRequest]
+
+    @model_validator(mode="after")
+    def validate_unique_banner_images(self):
+        image_ids = [image.id for image in self.bannerImages]
+        storage_paths = [image.storagePath for image in self.bannerImages]
+
+        if len(set(image_ids)) != len(image_ids):
+            raise ValueError("Os IDs das imagens de banner não podem se repetir.")
+
+        if len(set(storage_paths)) != len(storage_paths):
+            raise ValueError(
+                "Os caminhos das imagens de banner não podem se repetir."
+            )
+
+        return self
+
+
+def _public_banner_images(value):
+    if not isinstance(value, list):
+        return []
+
+    public_images = []
+    image_ids = set()
+
+    for item in value:
+        if not isinstance(item, dict):
+            return []
+
+        image_id = item.get("id")
+        image_url = item.get("url")
+
+        if (
+            not isinstance(image_id, str)
+            or not image_id.strip()
+            or not isinstance(image_url, str)
+            or not image_url.strip()
+            or image_id.strip() in image_ids
+        ):
+            return []
+
+        normalized_id = image_id.strip()
+        image_ids.add(normalized_id)
+        public_images.append(
+            {
+                "id": normalized_id,
+                "url": image_url.strip(),
+            }
+        )
+
+    return public_images
 
 
 def normalize_category_slug(name: str) -> str:
@@ -276,6 +350,45 @@ def update_feed_category_slug(
     return update_identity(transaction)
 
 
+@router.put("/{category_id}/banner-images")
+def update_feed_category_banner_images(
+    category_id: str,
+    data: UpdateFeedCategoryBannerImagesRequest,
+    _authenticated_admin: AuthenticatedAdmin = Depends(
+        get_authenticated_admin
+    ),
+):
+    category_reference = db.collection("categories").document(category_id)
+    category_document = category_reference.get()
+
+    if not category_document.exists:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada.")
+
+    expected_storage_prefix = f"Eventos/{category_id}/Banner/"
+    banner_images = [image.model_dump() for image in data.bannerImages]
+
+    if any(
+        not image["storagePath"].startswith(expected_storage_prefix)
+        for image in banner_images
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="Caminho de imagem de banner inválido para esta categoria.",
+        )
+
+    category_reference.update(
+        {
+            "bannerImages": banner_images,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+    return {
+        "categoryId": category_id,
+        "bannerImages": banner_images,
+    }
+
+
 @router.delete("/{category_id}", status_code=204)
 def delete_feed_category(category_id: str):
     category_reference = db.collection("categories").document(category_id)
@@ -409,4 +522,7 @@ def get_public_feed_category(slug: str):
         "canonicalSlug": category_data.get("slug"),
         "requestedSlug": slug,
         "isCanonical": category_data.get("slug") == slug,
+        "bannerImages": _public_banner_images(
+            category_data.get("bannerImages")
+        ),
     }

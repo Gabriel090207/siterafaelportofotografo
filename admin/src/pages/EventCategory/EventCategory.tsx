@@ -14,6 +14,7 @@ import {
     Trash2,
     Images,
     ArrowLeft,
+    ImagePlus,
 } from "lucide-react";
 
 
@@ -44,6 +45,7 @@ import type {
 } from "../../types/eventCategory";
 
 import DeleteConfirmModal from "../../components/DeleteConfirmModal/DeleteConfirmModal";
+import CategoryBannerModal from "../../components/CategoryBannerModal/CategoryBannerModal";
 
 import {
     deleteFolder,
@@ -92,6 +94,9 @@ const [showDeleteModal, setShowDeleteModal] =
 
 const [albumToDelete, setAlbumToDelete] =
     useState<Album | null>(null);
+
+const [showBannerModal, setShowBannerModal] =
+    useState(false);
 
 
 
@@ -279,19 +284,31 @@ await deleteFolder(
 
     </div>
 
-    <button
-        type="button"
-        className="event-category__new"
-        onClick={() => {
-            if (category?.slug) {
-                navigate(`/eventos/${category.slug}/novo`);
-            }
-        }}
-        disabled={!category?.slug}
-    >
-        <Plus size={18} />
-        <span>Novo Evento</span>
-    </button>
+    <div className="event-category__actions">
+        <button
+            type="button"
+            className="event-category__banner"
+            onClick={() => setShowBannerModal(true)}
+            disabled={!category?.id}
+        >
+            <ImagePlus size={18} />
+            <span>Editar banner</span>
+        </button>
+
+        <button
+            type="button"
+            className="event-category__new"
+            onClick={() => {
+                if (category?.slug) {
+                    navigate(`/eventos/${category.slug}/novo`);
+                }
+            }}
+            disabled={!category?.slug}
+        >
+            <Plus size={18} />
+            <span>Novo Evento</span>
+        </button>
+    </div>
 
 </div>
             
@@ -642,6 +659,22 @@ await deleteFolder(
     }}
     onConfirm={handleDeleteAlbum}
 />
+
+{category?.id && (
+    <CategoryBannerModal
+        open={showBannerModal}
+        categoryId={category.id}
+        categoryName={category.name}
+        initialImages={category.bannerImages ?? []}
+        onClose={() => setShowBannerModal(false)}
+        onSaved={(bannerImages) => {
+            setCategory((current) => current
+                ? { ...current, bannerImages }
+                : current
+            );
+        }}
+    />
+)}
 
 
         </section>

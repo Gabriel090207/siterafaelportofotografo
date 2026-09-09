@@ -89,17 +89,17 @@ useEffect(() => {
 
           <div className="hero-stats">
             <div>
-              <h3>+500</h3>
+              <h3>+1000</h3>
               <span>eventos registrados</span>
             </div>
 
             <div>
-              <h3>15 anos</h3>
+              <h3>+20 anos</h3>
               <span>de experiência</span>
             </div>
 
             <div>
-              <h3>Foto + Filme</h3>
+              <h3>Foto e Filme</h3>
               <span>pacotes completos</span>
             </div>
           </div>

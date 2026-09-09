@@ -1,7 +1,7 @@
 .hero {
   position: relative;
 
-  min-height: 950px;
+  min-height: 760px;
 
   background-size: cover;
   background-position: center;
@@ -41,7 +41,7 @@
 }
 
 .hero-eyebrow {
-margin-top: -200px;
+margin-top: -30px;
   display: flex;
   align-items: center;
   gap: 14px;

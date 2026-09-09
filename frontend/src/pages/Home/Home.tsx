@@ -1,6 +1,5 @@
 import Hero from "../../components/Hero/Hero";
 import Experiences from "../../components/Experiences/Experiences";
-import Portfolio from "../../components/Portfolio/Portfolio";
 import Films from "../../components/Films/Films";
 import Process from "../../components/Process/Process";
 import About from "../../components/About/About";
@@ -14,7 +13,6 @@ function Home() {
     <>
       <Hero />
       <Experiences />
-      <Portfolio />
       <Films />
       <Process />
       <About />

@@ -1,4 +1,5 @@
 import "./EventForm.css";
+import "../../styles/albumFileControls.css";
 
 import {
     useEffect,
@@ -52,6 +53,7 @@ import PhotoUploadDropZone from "../../components/PhotoUploadDropZone/PhotoUploa
 import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
 import SortablePhotoGrid from "../../components/SortablePhotoGrid/SortablePhotoGrid";
 import createAlbumPhotos from "../../utils/createAlbumPhotos";
+import { withUniqueAlbumPhotoNames } from "../../utils/uniqueFileName";
 
 import {
     getEventCategory,
@@ -360,10 +362,17 @@ const addPhotos = (files: File[]) => {
 
     if (uploadedPhotos.length === 0) return;
 
-    setAlbum((current) => ({
-        ...current,
-        photos: [...current.photos, ...uploadedPhotos],
-    }));
+    setAlbum((current) => {
+        const uniquePhotos = withUniqueAlbumPhotoNames(
+            uploadedPhotos,
+            current.photos.map((photo) => photo.name),
+        );
+
+        return {
+            ...current,
+            photos: [...current.photos, ...uniquePhotos],
+        };
+    });
 };
 
 const handlePhotosUpload = (
@@ -744,7 +753,13 @@ const addCategoryPhotos = (categoryId: string, files: File[]) => {
         categories: current.categories.map((category) =>
 
             category.id === categoryId
-                ? {
+                ? (() => {
+                    const uniquePhotos = withUniqueAlbumPhotoNames(
+                        uploadedPhotos,
+                        category.photos.map((photo) => photo.name),
+                    );
+
+                    return {
 
                     ...category,
 
@@ -752,11 +767,12 @@ const addCategoryPhotos = (categoryId: string, files: File[]) => {
 
                         ...category.photos,
 
-                        ...uploadedPhotos,
+                        ...uniquePhotos,
 
                     ],
 
-                }
+                    };
+                })()
                 : category
 
         ),
@@ -1097,9 +1113,7 @@ const handleBack = () => {
                 <PhotoUploadDropZone
                     className="album-form__upload"
                     onFiles={addPhotos}
-                    onExternalImageUrl={async (url) => {
-                        addPhotos([await importExternalImage(url)]);
-                    }}
+                    onExternalImageUrl={importExternalImage}
                 >
 
                     <>
@@ -1133,15 +1147,7 @@ const handleBack = () => {
 
        await initializeGoogleAuth((result) => {
 
-   setAlbum((current) => ({
-
-    ...current,
-
-    photos: [
-
-        ...current.photos,
-
-        {
+   const drivePhoto = {
             id: crypto.randomUUID(),
 
             preview: result.storage.url,
@@ -1155,10 +1161,17 @@ const handleBack = () => {
             storagePath: result.storage.path,
 
             source: "drive",
-        },
+        } as Album["photos"][number];
 
+   setAlbum((current) => ({
+    ...current,
+    photos: [
+        ...current.photos,
+        ...withUniqueAlbumPhotoNames(
+            [drivePhoto],
+            current.photos.map((photo) => photo.name),
+        ),
     ],
-
 }));
 
 });
@@ -1509,12 +1522,7 @@ requestAccessToken();
     <PhotoUploadDropZone
         className="album-form__category-upload"
         onFiles={(files) => addCategoryPhotos(category.id, files)}
-        onExternalImageUrl={async (url) => {
-            addCategoryPhotos(
-                category.id,
-                [await importExternalImage(url)]
-            );
-        }}
+        onExternalImageUrl={importExternalImage}
     >
 
        <input
@@ -1566,7 +1574,18 @@ requestAccessToken();
                         categories: current.categories.map((item) =>
 
                             item.id === category.id
-                                ? {
+                                ? (() => {
+                                    const drivePhoto = {
+                                        id: crypto.randomUUID(),
+                                        preview: result.storage.url,
+                                        name: result.file.name,
+                                        size: Number(result.file.size),
+                                        driveId: result.file.id,
+                                        storagePath: result.storage.path,
+                                        source: "drive",
+                                    } as Album["photos"][number];
+
+                                    return {
 
                                     ...item,
 
@@ -1574,33 +1593,15 @@ requestAccessToken();
 
                                         ...item.photos,
 
-                                        {
-
-                                            id: crypto.randomUUID(),
-
-                                            preview:
-                                                result.storage.url,
-
-                                            name:
-                                                result.file.name,
-
-                                            size: Number(
-                                                result.file.size
-                                            ),
-
-                                            driveId:
-                                                result.file.id,
-
-                                            storagePath:
-                                                result.storage.path,
-
-                                            source: "drive",
-
-                                        },
+                                        ...withUniqueAlbumPhotoNames(
+                                            [drivePhoto],
+                                            item.photos.map((photo) => photo.name),
+                                        ),
 
                                     ],
 
-                                }
+                                    };
+                                })()
                                 : item
 
                         ),

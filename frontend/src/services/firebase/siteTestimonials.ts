@@ -1,5 +1,6 @@
 import {
     doc,
+    getDoc,
     onSnapshot,
 } from "firebase/firestore";
 
@@ -26,6 +27,21 @@ export interface SiteTestimonials {
     testimonials: SiteTestimonial[];
 
 }
+
+export const getValidSiteTestimonialsCount = async (): Promise<number> => {
+    const snapshot = await getDoc(doc(db, "Site", "Testimonials"));
+    const items: unknown = snapshot.data()?.testimonials;
+
+    if (!Array.isArray(items)) return 0;
+
+    return items.filter((item: unknown) => {
+        if (!item || typeof item !== "object") return false;
+        return ["name", "text", "category"].every((field) => {
+            const value = (item as Record<string, unknown>)[field];
+            return typeof value === "string" && value.trim().length > 0;
+        });
+    }).length;
+};
 
 export const subscribeSiteTestimonials = (
     callback: (

@@ -1,10 +1,12 @@
 import {
     addDoc,
     collection,
+    getCountFromServer,
     onSnapshot,
     orderBy,
     query,
     serverTimestamp,
+    where,
 } from "firebase/firestore";
 
 import {
@@ -15,6 +17,20 @@ import {
 
 import db from "./firestore";
 import storage from "./storage";
+import { getValidSiteTestimonialsCount } from "./siteTestimonials";
+
+export const getPublicTestimonialsCount = async (): Promise<number> => {
+    const activeQuery = query(
+        collection(db, "testimonials"),
+        where("status", "==", "active"),
+    );
+    const [activeSnapshot, siteCount] = await Promise.all([
+        getCountFromServer(activeQuery),
+        getValidSiteTestimonialsCount(),
+    ]);
+
+    return activeSnapshot.data().count + siteCount;
+};
 
 
 export interface Testimonial {

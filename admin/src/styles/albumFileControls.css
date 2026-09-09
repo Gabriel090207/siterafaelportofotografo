@@ -1,0 +1,89 @@
+/* Shared sizing constraints for Event and Client Album file controls. */
+.album-form,
+.album-form__card,
+.album-form__field,
+.album-form__upload,
+.album-form__category-card,
+.album-form__category-upload,
+.album-form__photos,
+.album-form__photo,
+.album-form__cover,
+.album-form__cover-preview {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.album-form__grid,
+.album-form__grid--three,
+.album-form__upload,
+.album-form__category-upload {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 100%;
+    min-width: 0;
+}
+
+.album-form__grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.album-form__grid > *,
+.album-form__grid--three > *,
+.album-form__upload > *,
+.album-form__category-upload > *,
+.album-form__photos > * {
+    max-width: 100%;
+    min-width: 0;
+}
+
+.album-form__upload button,
+.album-form__category-upload button {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.album-form__upload button svg,
+.album-form__category-upload button svg,
+.album-form__cover svg {
+    flex-shrink: 0;
+}
+
+.album-form__upload button span,
+.album-form__category-upload button span,
+.album-form__cover-preview span,
+.album-form__photo span {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.album-form__cover-preview {
+    overflow: hidden;
+}
+
+.album-form__cover-preview img {
+    max-width: 100%;
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .album-form__grid,
+    .album-form__upload,
+    .album-form__category-upload {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .album-form__grid--three {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

@@ -7,6 +7,11 @@ import {
 
 import db from "./firestore";
 
+export interface FeedCategoryBannerImage {
+    id: string;
+    url: string;
+}
+
 export interface FeedCategory {
     id?: string;
     slug?: string;
@@ -15,6 +20,7 @@ export interface FeedCategory {
     storagePath: string;
     status: "active" | "hidden";
     order: number;
+    bannerImages?: FeedCategoryBannerImage[];
 }
 
 export interface PublicFeedCategoryResponse {
@@ -23,6 +29,7 @@ export interface PublicFeedCategoryResponse {
     canonicalSlug: string;
     requestedSlug: string;
     isCanonical: boolean;
+    bannerImages: FeedCategoryBannerImage[];
 }
 
 export const getPublicFeedCategory = async (

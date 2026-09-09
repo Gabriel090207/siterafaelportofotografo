@@ -24,6 +24,16 @@ const categoriesRef =
     );
 
 
+export interface CategoryBannerImage {
+
+    id:string;
+
+    url:string;
+
+    storagePath:string;
+
+}
+
 
 
 
@@ -39,6 +49,8 @@ export interface EventCategory {
 
     storagePath:string;
 
+    bannerImages?:CategoryBannerImage[];
+
     status:
         | "active"
         | "hidden";
@@ -53,6 +65,11 @@ export interface ResolvedEventCategory {
     requestedIdentifier: string;
     resolvedBy: "slug" | "legacyId";
     isCanonical: boolean;
+}
+
+export interface UpdateCategoryBannerImagesResponse {
+    categoryId: string;
+    bannerImages: CategoryBannerImage[];
 }
 
 export const resolveEventCategory = async (
@@ -468,4 +485,16 @@ export const updateEventCategory = async (
 
     return response.data;
 
+};
+
+export const updateCategoryBannerImages = async (
+    categoryId: string,
+    bannerImages: CategoryBannerImage[],
+): Promise<UpdateCategoryBannerImagesResponse> => {
+    const response = await api.put<UpdateCategoryBannerImagesResponse>(
+        `/feed-categories/${encodeURIComponent(categoryId)}/banner-images`,
+        { bannerImages },
+    );
+
+    return response.data;
 };

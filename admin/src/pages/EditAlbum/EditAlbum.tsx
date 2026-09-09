@@ -1,4 +1,5 @@
 import "./EditAlbum.css";
+import "../../styles/albumFileControls.css";
 
 import {
     useEffect,

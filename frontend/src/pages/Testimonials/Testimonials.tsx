@@ -14,6 +14,7 @@ import {
 
 import {
     createTestimonial,
+    getPublicTestimonialsCount,
     subscribeTestimonials,
 } from "../../services/firebase/testimonials";
 
@@ -26,6 +27,25 @@ function Testimonials() {
 
     const [testimonials, setTestimonials] =
         useState<Testimonial[]>([]);
+
+    const [publicTotal, setPublicTotal] = useState<number | null>(null);
+    const testimonialMilestone = publicTotal === null
+        ? 0
+        : Math.max(0, Math.floor((publicTotal - 1) / 10) * 10);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        void getPublicTestimonialsCount()
+            .then((total) => {
+                if (!cancelled) setPublicTotal(total);
+            })
+            .catch(() => {
+                // A falha do destaque não interfere na listagem.
+            });
+
+        return () => { cancelled = true; };
+    }, []);
 
     const [name, setName] =
         useState("");
@@ -505,6 +525,12 @@ function Testimonials() {
 
                     </div>
 
+
+                    {testimonialMilestone > 0 && (
+                        <p className="testimonials-page-count">
+                            MAIS DE {testimonialMilestone} DEPOIMENTOS REGISTRADOS
+                        </p>
+                    )}
 
                     {testimonials.length === 0 ? (
 

@@ -260,6 +260,12 @@
     align-items: center;
 
     gap: 28px;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
 }
 
 .edit-testimonial-form__photo {
@@ -326,6 +332,10 @@
     flex-direction: column;
 
     gap: 7px;
+
+    flex: 1;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .edit-testimonial-form__photo-info strong {
@@ -354,6 +364,13 @@
     font-size: .85rem;
 
     font-weight: 600;
+
+    display: block;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 

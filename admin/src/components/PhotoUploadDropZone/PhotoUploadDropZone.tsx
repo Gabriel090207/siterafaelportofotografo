@@ -7,12 +7,14 @@ import {
     type DragEvent,
     type ReactNode,
 } from "react";
+import { extractExternalImageUrls } from "./externalImageUrls";
+import { importExternalImages } from "./importExternalImages";
 
 interface PhotoUploadDropZoneProps {
     children: ReactNode;
     className: string;
     onFiles: (files: File[]) => void;
-    onExternalImageUrl: (url: string) => Promise<void>;
+    onExternalImageUrl: (url: string) => Promise<File>;
 }
 
 const SUPPORTED_DROP_TYPES = [
@@ -27,41 +29,7 @@ const hasSupportedDropData = (event: DragEvent<HTMLElement>) =>
         SUPPORTED_DROP_TYPES.includes(type)
     );
 
-const validHttpUrl = (value: string) => {
-    try {
-        const url = new URL(value.trim());
-        return url.protocol === "http:" || url.protocol === "https:"
-            ? url.href
-            : null;
-    } catch {
-        return null;
-    }
-};
-
-const externalImageUrl = (dataTransfer: DataTransfer) => {
-    const uriList = dataTransfer
-        .getData("text/uri-list")
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .find((line) => line && !line.startsWith("#"));
-    const uriListUrl = uriList ? validHttpUrl(uriList) : null;
-
-    if (uriListUrl) return uriListUrl;
-
-    const html = dataTransfer.getData("text/html");
-    if (html) {
-        const imageSource = new DOMParser()
-            .parseFromString(html, "text/html")
-            .querySelector("img")
-            ?.getAttribute("src");
-        const htmlUrl = imageSource ? validHttpUrl(imageSource) : null;
-
-        if (htmlUrl) return htmlUrl;
-    }
-
-    const plainText = dataTransfer.getData("text/plain").trim();
-    return plainText ? validHttpUrl(plainText) : null;
-};
+const IMPORT_CONCURRENCY = 4;
 
 const PhotoUploadDropZone = ({
     children,
@@ -71,6 +39,7 @@ const PhotoUploadDropZone = ({
 }: PhotoUploadDropZoneProps) => {
     const [isDraggingFiles, setIsDraggingFiles] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
+    const [importProgress, setImportProgress] = useState({ completed: 0, total: 0 });
     const [importError, setImportError] = useState("");
     const dragDepthRef = useRef(0);
     const importingRef = useRef(false);
@@ -98,6 +67,7 @@ const PhotoUploadDropZone = ({
         if (!hasSupportedDropData(event)) return;
 
         event.preventDefault();
+        event.stopPropagation();
         dragDepthRef.current += 1;
         setIsDraggingFiles(true);
     };
@@ -106,6 +76,7 @@ const PhotoUploadDropZone = ({
         if (!hasSupportedDropData(event)) return;
 
         event.preventDefault();
+        event.stopPropagation();
         event.dataTransfer.dropEffect = "copy";
     };
 
@@ -113,6 +84,7 @@ const PhotoUploadDropZone = ({
         if (!hasSupportedDropData(event)) return;
 
         event.preventDefault();
+        event.stopPropagation();
         dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
 
         if (dragDepthRef.current === 0) {
@@ -124,6 +96,7 @@ const PhotoUploadDropZone = ({
         if (!hasSupportedDropData(event)) return;
 
         event.preventDefault();
+        event.stopPropagation();
         dragDepthRef.current = 0;
         setIsDraggingFiles(false);
 
@@ -138,20 +111,44 @@ const PhotoUploadDropZone = ({
             return;
         }
 
-        const imageUrl = externalImageUrl(event.dataTransfer);
-        if (!imageUrl) {
+        importingRef.current = true;
+        let imageUrls: string[];
+        try {
+            imageUrls = await extractExternalImageUrls(event.dataTransfer);
+        } catch {
+            importingRef.current = false;
+            showImportError("Não foi possível identificar uma imagem válida.");
+            return;
+        }
+        if (imageUrls.length === 0) {
+            importingRef.current = false;
             showImportError("Não foi possível identificar uma imagem válida.");
             return;
         }
 
         setImportError("");
-        importingRef.current = true;
         setIsImporting(true);
+        setImportProgress({ completed: 0, total: imageUrls.length });
 
         try {
-            await onExternalImageUrl(imageUrl);
-        } catch {
-            showImportError("Não foi possível importar esta imagem.");
+            const { files: importedFiles, failedCount } = await importExternalImages(
+                imageUrls,
+                onExternalImageUrl,
+                (completed) => setImportProgress({
+                    completed,
+                    total: imageUrls.length,
+                }),
+                IMPORT_CONCURRENCY,
+            );
+            if (importedFiles.length > 0) onFiles(importedFiles);
+
+            if (failedCount > 0) {
+                showImportError(
+                    failedCount === imageUrls.length
+                        ? "Não foi possível importar as imagens."
+                        : `${failedCount} de ${imageUrls.length} imagens não puderam ser importadas.`,
+                );
+            }
         } finally {
             importingRef.current = false;
             setIsImporting(false);
@@ -160,7 +157,9 @@ const PhotoUploadDropZone = ({
 
     const feedbackVisible = isDraggingFiles || isImporting || Boolean(importError);
     const feedbackMessage = isImporting
-        ? "Importando imagem..."
+        ? importProgress.completed === 0
+            ? `Importando ${importProgress.total} ${importProgress.total === 1 ? "imagem" : "imagens"}...`
+            : `Importando ${importProgress.completed} de ${importProgress.total}...`
         : importError || "Solte as fotos aqui";
 
     return (
