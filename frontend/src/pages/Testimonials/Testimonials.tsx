@@ -506,24 +506,6 @@ function Testimonials() {
                 <section className="testimonials-page-list-section">
 
 
-                    <div className="testimonials-page-list-heading">
-
-                        <div className="testimonials-page-list-eyebrow">
-
-                            <span></span>
-
-                            <p>
-                                EXPERIÊNCIAS
-                            </p>
-
-                        </div>
-
-
-                        <h2>
-                            O que os nossos clientes dizem.
-                        </h2>
-
-                    </div>
 
 
                     {testimonialMilestone > 0 && (

@@ -252,6 +252,12 @@ type EventFileItem =
     | Album["photos"][number]
     | Album["videos"][number];
 
+const needsEventFileProcessing = (item: EventFileItem) => Boolean(
+    item.file || (
+        item.source === "drive" && item.storagePath && item.driveId
+    )
+);
+
 const processEventFile = async (
     item: EventFileItem,
     albumToSave: Album,
@@ -551,6 +557,24 @@ const handleUpdateAlbum = async (
 
 };
 
+const totalFiles = Number(Boolean(albumToSave.coverPhoto?.file))
+    + [
+        ...albumToSave.photos,
+        ...albumToSave.videos,
+        ...albumToSave.categories.flatMap((category) => category.photos),
+    ].filter(needsEventFileProcessing).length;
+let completedFiles = 0;
+
+const markFileCompleted = () => {
+    if (totalFiles === 0) return;
+
+    completedFiles += 1;
+    updateLoading(
+        Math.min(95, 35 + 60 * (completedFiles / totalFiles)),
+        `Enviando arquivos — ${completedFiles} de ${totalFiles} concluídos`,
+    );
+};
+
 const mustUpdateIdentity =
     !originalAlbum?.slug ||
     album.name.trim() !== originalAlbum.name.trim();
@@ -617,20 +641,8 @@ const removedCategoryPhotos =
 
 
 
-    console.log(
-    "Fotos removidas:",
-    removedPhotos
-);
 
-console.log(
-    "Vídeos removidos:",
-    removedVideos
-);
 
-console.log(
-    "Fotos das categorias removidas:",
-    removedCategoryPhotos
-);
 
 // Fotos
 
@@ -781,15 +793,8 @@ if (folderChanged) {
 
 }
 
-    console.log(
-        "MOVENDO PASTA:",
-        `AlbumFeed/${originalFolder}`,
-        "=>",
-        `AlbumFeed/${albumFolder}`
-    );
 
 
-    console.log("ANTES DO MOVE");
 
     const oldStoragePath =
     `AlbumFeed/${originalCategoryName}/${originalFolder}`;
@@ -807,7 +812,6 @@ const moveResult = await moveStorageFolder({
 
 });
 
-    console.log("MOVE RESULT:", moveResult);
 
 
     const movedFiles = new Map<string, string>(
@@ -841,7 +845,6 @@ const moveResult = await moveStorageFolder({
 
 );
 
-console.log("albumToSave:", albumToSave);
 
 
 updateLoading(
@@ -867,6 +870,11 @@ if (
     });
 
 }
+
+updateLoading(
+    35,
+    `Enviando arquivos — 0 de ${totalFiles} concluídos`
+);
 
         if (albumToSave.coverPhoto?.file) {
 
@@ -921,19 +929,20 @@ if (!albumToSave.driveFolderId) {
 
     delete albumToSave.coverPhoto.file;
 
+    markFileCompleted();
+
 }
 
 
-updateLoading(
-    45,
-    "Enviando capa..."
-);
+
 
 // =====================
 // Upload das fotos
 // =====================
 
 for (const photo of albumToSave.photos) {
+
+const needsProcessing = needsEventFileProcessing(photo);
 
 await processEventFile(
     photo,
@@ -944,18 +953,19 @@ await processEventFile(
     saveToDrive,
 );
 
+if (needsProcessing) markFileCompleted();
+
 }
 
-updateLoading(
-    65,
-    "Enviando fotos..."
-);
+
 
 // =====================
 // Upload dos vídeos
 // =====================
 
 for (const video of albumToSave.videos) {
+
+const needsProcessing = needsEventFileProcessing(video);
 
 await processEventFile(
     video,
@@ -966,13 +976,12 @@ await processEventFile(
     saveToDrive,
 );
 
+if (needsProcessing) markFileCompleted();
+
 }
 
 
-updateLoading(
-    80,
-    "Enviando vídeos..."
-);
+
 // =====================
 // Upload das fotos das categorias
 // =====================
@@ -984,6 +993,8 @@ for (const category of albumToSave.categories) {
 
     for (const photo of category.photos) {
 
+   const needsProcessing = needsEventFileProcessing(photo);
+
    await processEventFile(
     photo,
     albumToSave,
@@ -993,13 +1004,12 @@ for (const category of albumToSave.categories) {
     saveToDrive,
 );
 
+    if (needsProcessing) markFileCompleted();
+
     }
 
 
-    updateLoading(
-    90,
-    "Enviando categorias..."
-);
+
 
 }
 
@@ -1010,18 +1020,18 @@ updateLoading(
     "Salvando alterações..."
 );
 
-        let canonicalAlbumSlug = resolvedIdentity?.canonicalAlbumSlug;
-
         if (mustUpdateIdentity) {
 
-            const identity = await updateAlbumIdentity(
+            await updateAlbumIdentity(
                 albumId,
                 albumToSave.name,
             );
 
-            canonicalAlbumSlug = identity.slug;
-
         }
+
+        delete albumToSave.eventLocation;
+        delete albumToSave.eventDate;
+        delete albumToSave.eventTime;
 
         await updateAlbumDetails(
             albumId,
@@ -1053,16 +1063,16 @@ setLoadingModal((current) => ({
 }));
 
 await new Promise(resolve =>
-    setTimeout(resolve, 300)
+    setTimeout(resolve, 350)
 );
 
 const canonicalCategorySlug = eventCategories.find(
     category => category.id === albumToSave.category
 )?.slug ?? resolvedIdentity?.canonicalCategorySlug;
 
-if (canonicalCategorySlug && canonicalAlbumSlug) {
+if (canonicalCategorySlug) {
     navigate(
-        `/eventos/${canonicalCategorySlug}/${canonicalAlbumSlug}`,
+        `/eventos/${canonicalCategorySlug}`,
         { replace: true },
     );
 }
@@ -1301,61 +1311,7 @@ const handleCoverUpload = (
 
 </div>
                     
-                    <div className="album-form__grid--three">
 
-    <div className="album-form__field">
-
-        <label>Data</label>
-
-        <input
-            type="date"
-            value={album.eventDate ?? ""}
-            onChange={(event) =>
-                setAlbum(current => ({
-                    ...current,
-                    eventDate: event.target.value,
-                }))
-            }
-        />
-
-    </div>
-
-    <div className="album-form__field">
-
-        <label>Horário</label>
-
-        <input
-            type="time"
-            value={album.eventTime ?? ""}
-            onChange={(event) =>
-                setAlbum(current => ({
-                    ...current,
-                    eventTime: event.target.value,
-                }))
-            }
-        />
-
-    </div>
-
-    <div className="album-form__field">
-
-        <label>Local</label>
-
-        <input
-            type="text"
-            placeholder="Londrina - PR"
-            value={album.eventLocation ?? ""}
-            onChange={(event) =>
-                setAlbum(current => ({
-                    ...current,
-                    eventLocation: event.target.value,
-                }))
-            }
-        />
-
-    </div>
-
-</div>
 
 
                 </div>
@@ -1417,7 +1373,6 @@ const handleCoverUpload = (
     type="button"
     onClick={async () => {
 
-    console.log("0 - clicou");
 
     try {
 
@@ -1452,11 +1407,9 @@ const handleCoverUpload = (
 
 });
 
-console.log("4 - auth inicializada");
 
 requestAccessToken();
 
-        console.log("5 - token solicitado");
 
     } catch (error) {
 
@@ -1487,6 +1440,7 @@ requestAccessToken();
 </div>
 
 {album.photos.length > 0 && (
+    <div className="album-form__photo-scroll album-form__photo-scroll--general">
     <SortablePhotoGrid
         photos={album.photos}
         onReorder={(photos) =>
@@ -1504,6 +1458,7 @@ requestAccessToken();
             }))
         }
     />
+    </div>
 )}
 
             </div>
@@ -1916,6 +1871,7 @@ requestAccessToken();
 </div>
 
 {category.photos.length > 0 && (
+    <div className="album-form__photo-scroll album-form__photo-scroll--category">
     <SortablePhotoGrid
         photos={category.photos}
         onReorder={(photos) =>
@@ -1944,6 +1900,7 @@ requestAccessToken();
             }))
         }
     />
+    </div>
 )}
 
 </div>

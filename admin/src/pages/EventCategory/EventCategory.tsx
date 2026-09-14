@@ -59,10 +59,14 @@ import {
     deleteDriveFolder,
 } from "../../services/api/google";
 
+import { useToast } from "../../contexts/ToastContext";
+
 const EventCategory = () => {
 
 
     const navigate = useNavigate();
+
+    const { showToast } = useToast();
 
 
     const {
@@ -236,6 +240,11 @@ await deleteFolder(
         // Firestore
         await deleteAlbum(
             albumToDelete.id!
+        );
+
+        showToast(
+            "Evento excluído com sucesso!",
+            "success"
         );
 
     } catch (error) {

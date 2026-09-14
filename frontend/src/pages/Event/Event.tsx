@@ -28,16 +28,10 @@ import type {
 
 import {
   FiGrid,
-  FiHeart,
   FiShare2,
   FiDownloadCloud,
-  FiMessageCircle,
   FiArrowLeft,
   FiArrowRight,
-  FiMapPin,
-  FiCalendar,
-  FiClock,
-  FiCamera,
   FiPause,
   FiPlay,
   FiVolume2,
@@ -614,14 +608,6 @@ useEffect(() => {
 ]);
 
 
-const totalPhotos =
-    (album?.photos?.length ?? 0) +
-    (album?.categories ?? []).reduce(
-        (total: number, category: any) =>
-            total + (category.photos?.length ?? 0),
-        0
-    );
-
   const requestedIdentifier = identifier ?? albumSlug ?? null;
 
   if (loadState === "loading" || loadedIdentifier !== requestedIdentifier) {
@@ -660,21 +646,7 @@ const totalPhotos =
 
         <section className="event-hero">
 
-           <button
-    className="event-back-button"
-    onClick={() =>
-
-    navigate(
-        currentCategory?.slug
-            ? `/eventos/${currentCategory.slug}`
-            : "/eventos"
-    )
-
-}
-  >
-    <FiArrowLeft />
-    <span>Voltar</span>
-  </button>
+           
 
 
        
@@ -706,71 +678,7 @@ const totalPhotos =
         </section>
 
 
-        <section className="event-album-info">
 
-  <div className="event-album-info-card">
-
-    <FiMapPin />
-
-    <div>
-      <strong>Local</strong>
-      <span>
-    {album?.eventLocation || "Local não informado"}
-</span>
-    </div>
-
-  </div>
-
-  <div className="event-album-info-card">
-
-    <FiCalendar />
-
-    <div>
-      <strong>Data</strong>
-    <span>
-    {album?.eventDate
-        ? new Date(album.eventDate).toLocaleDateString(
-              "pt-BR",
-              {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-              }
-          )
-        : "Data não informada"}
-</span>
-    </div>
-
-  </div>
-
-  <div className="event-album-info-card">
-
-    <FiClock />
-
-    <div>
-      <strong>Horário</strong>
-      <span>
-    {album?.eventTime || "Horário não informado"}
-</span>
-    </div>
-
-  </div>
-
-  <div className="event-album-info-card">
-
-    <FiCamera />
-
-    <div>
-     <strong>Fotos</strong>
-
-<span>
-    {totalPhotos} registros
-</span>
-    </div>
-
-  </div>
-
-</section>
 
        
         <section className="event-content">
@@ -784,10 +692,7 @@ const totalPhotos =
         <span>Feed</span>
       </button>
 
-       <button className="event-sidebar-item">
-        <FiMessageCircle />
-        <span>Comentários</span>
-      </button>
+       
 
       <button className="event-sidebar-item">
         <FiDownloadCloud />
@@ -796,10 +701,7 @@ const totalPhotos =
 
       
 
-      <button className="event-sidebar-item">
-        <FiHeart />
-        <span>Destacar</span>
-      </button>
+     
 
       <button className="event-sidebar-item">
         <FiShare2 />
@@ -814,21 +716,7 @@ const totalPhotos =
 
   <div className="event-post">
 
-   <div className="event-post-header">
-
-  <div>
-
-   <h3>{currentContent.title}</h3>
-
-<span>
-  {currentContent.description}
-</span>
-
    
-
-  </div>
-
-</div>
 
 {activeContent !== "video" && (
   <>
@@ -1151,6 +1039,22 @@ onLoadedMetadata={() => {
 </section>
 
       </div>
+
+
+      <button
+  type="button"
+  className="event-back-button event-back-button--bottom"
+  onClick={() =>
+    navigate(
+      currentCategory?.slug
+        ? `/eventos/${currentCategory.slug}`
+        : "/eventos"
+    )
+  }
+>
+  <FiArrowLeft />
+  <span>Voltar</span>
+</button>
 
       {viewerImage && (
         <div

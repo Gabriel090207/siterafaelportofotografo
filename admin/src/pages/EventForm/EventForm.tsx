@@ -49,6 +49,7 @@ import {
 import { importExternalImage } from "../../services/api/media";
 
 import LoadingModal from "../../components/LoadingModal/LoadingModal";
+import { useToast } from "../../contexts/ToastContext";
 import PhotoUploadDropZone from "../../components/PhotoUploadDropZone/PhotoUploadDropZone";
 import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
 import SortablePhotoGrid from "../../components/SortablePhotoGrid/SortablePhotoGrid";
@@ -70,6 +71,7 @@ const EventForm = () => {
 
 
 const navigate = useNavigate();
+const { showToast } = useToast();
 
 const { categorySlug } = useParams();
 
@@ -213,6 +215,12 @@ const updateLoading = (
 type EventFileItem =
     | Album["photos"][number]
     | Album["videos"][number];
+
+const needsEventFileProcessing = (item: EventFileItem) => Boolean(
+    item.file || (
+        item.source === "drive" && item.storagePath && item.driveId
+    )
+);
 
 const processEventFile = async (
     item: EventFileItem,
@@ -381,12 +389,70 @@ const handlePhotosUpload = (
     addPhotos(Array.from(event.target.files || []));
 };
 
+const isValidLocalImage = (file: unknown): file is File =>
+    file instanceof File && file.size > 0 && file.type.startsWith("image/");
+
+const hasPersistentImageReference = (item: AlbumPhoto) => {
+    if (
+        typeof item.storagePath !== "string" || !item.storagePath.trim() ||
+        typeof item.preview !== "string" || !item.preview.trim()
+    ) return false;
+
+    try {
+        const url = new URL(item.preview);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+        return false;
+    }
+};
+
+const isValidCoverPhoto = (item: AlbumPhoto | null | undefined): boolean => {
+    if (!item || typeof item !== "object") return false;
+
+    // A supplied file takes precedence in the existing upload flow.
+    if (item.file != null) return isValidLocalImage(item.file);
+
+    return hasPersistentImageReference(item);
+};
+
+const isValidGeneralPhoto = (item: AlbumPhoto | null | undefined): boolean => {
+    if (!isValidCoverPhoto(item) || !item) return false;
+    if (isValidLocalImage(item.file)) return true;
+
+    return item.source !== "drive" || (
+        typeof item.driveId === "string" && item.driveId.trim().length > 0
+    );
+};
+
+const validateEvent = (): boolean => {
+    if (!album.name?.trim()) {
+        showToast("Informe o nome do evento.", "warning");
+        return false;
+    }
+
+    if (!isValidCoverPhoto(album.coverPhoto)) {
+        showToast("Selecione uma capa para o evento.", "warning");
+        return false;
+    }
+
+    if (!Array.isArray(album.photos) || !album.photos.some(isValidGeneralPhoto)) {
+        showToast("Adicione pelo menos uma foto geral.", "warning");
+        return false;
+    }
+
+    return true;
+};
+
 const handleCreateAlbum = () => {
 
     if (
         !resolvedCategory?.id ||
         album.category !== resolvedCategory.id
     ) return;
+
+    if (!validateEvent()) {
+        return;
+    }
 
     setShowSaveToDriveModal(true);
 
@@ -402,6 +468,10 @@ const createAlbum = async (
         !resolvedCategory?.id ||
         album.category !== resolvedCategory.id
     ) return;
+
+    if (!validateEvent()) {
+        return;
+    }
 
     setIsSaving(true);
 
@@ -486,6 +556,24 @@ const createAlbum = async (
         const categoryName =
             resolvedCategory?.name ?? "";
 
+        const totalFiles = Number(Boolean(albumToSave.coverPhoto?.file))
+            + [
+                ...albumToSave.photos,
+                ...albumToSave.videos,
+                ...albumToSave.categories.flatMap((category) => category.photos),
+            ].filter(needsEventFileProcessing).length;
+        let completedFiles = 0;
+
+        const markFileCompleted = () => {
+            if (totalFiles === 0) return;
+
+            completedFiles += 1;
+            updateLoading(
+                Math.min(93, 20 + 73 * (completedFiles / totalFiles)),
+                `Enviando arquivos — ${completedFiles} de ${totalFiles} concluídos`,
+            );
+        };
+
         
             /*
  * 2 - Capa
@@ -493,7 +581,7 @@ const createAlbum = async (
 
 updateLoading(
     20,
-    "Enviando capa..."
+    `Enviando arquivos — 0 de ${totalFiles} concluídos`
 );
 
 if (albumToSave.coverPhoto?.file) {
@@ -556,17 +644,16 @@ albumToSave.coverPhoto!.driveFileId =
 
     delete albumToSave.coverPhoto.file;
 
+    markFileCompleted();
+
 }
         /*
  * 3 - Fotos
  */
 
-updateLoading(
-    30,
-    "Enviando fotos..."
-);
-
 for (const photo of albumToSave.photos) {
+
+    const needsProcessing = needsEventFileProcessing(photo);
 
     await processEventFile(
         photo,
@@ -577,17 +664,16 @@ for (const photo of albumToSave.photos) {
         saveToDrive
     );
 
+    if (needsProcessing) markFileCompleted();
+
 }
         /*
  * 4 - Vídeos
  */
 
-updateLoading(
-    60,
-    "Enviando vídeos..."
-);
-
 for (const video of albumToSave.videos) {
+
+    const needsProcessing = needsEventFileProcessing(video);
 
     await processEventFile(
         video,
@@ -598,16 +684,13 @@ for (const video of albumToSave.videos) {
         saveToDrive
     );
 
+    if (needsProcessing) markFileCompleted();
+
 }
 
 /*
  * 5 - Fotos das categorias
  */
-
-updateLoading(
-    72,
-    "Enviando categorias..."
-);
 
 for (const category of albumToSave.categories) {
 
@@ -617,6 +700,8 @@ for (const category of albumToSave.categories) {
 
     for (const photo of category.photos) {
 
+       const needsProcessing = needsEventFileProcessing(photo);
+
        await processEventFile(
             photo,
             albumToSave,
@@ -625,6 +710,8 @@ for (const category of albumToSave.categories) {
             `Categorias/${categoryName}`,
             saveToDrive
         );
+
+        if (needsProcessing) markFileCompleted();
     }
 
 }
@@ -637,6 +724,10 @@ for (const category of albumToSave.categories) {
             93,
             "Salvando informações do evento..."
         );
+
+        delete albumToSave.eventLocation;
+        delete albumToSave.eventDate;
+        delete albumToSave.eventTime;
 
         await updateAlbum(
             albumId,
@@ -826,98 +917,33 @@ const handleCoverUpload = (
 };
 
 
-
 useEffect(() => {
-
     if (
         !categorySlug ||
         !resolvedCategory?.id ||
         resolvedCategoryPath !== categorySlug
     ) return;
 
-    const albumSaved = localStorage.getItem(
-        STORAGE_KEY
-    );
+    // Remove qualquer rascunho antigo que possa conter
+    // previews sem os arquivos File reais.
+    localStorage.removeItem(STORAGE_KEY);
 
-    if (!albumSaved) {
-        setAlbum((current) => ({
-            ...current,
-            category: resolvedCategory.id!,
-        }));
-        setHydratedCategoryPath(categorySlug);
-        return;
-    }
-
-    try {
-
-        const restoredAlbum = JSON.parse(albumSaved) as Album;
-
-        setAlbum({
-            ...restoredAlbum,
-            category: resolvedCategory.id,
-        });
-
-    } catch {
-
-        localStorage.removeItem(
-            STORAGE_KEY
-        );
-
-        setAlbum((current) => ({
-            ...current,
-            category: resolvedCategory.id!,
-        }));
-
-    }
+    // O formulário de criação sempre começa limpo.
+    setAlbum({
+        name: "",
+        description: "",
+        category: resolvedCategory.id,
+        status: "published",
+        hasVideo: false,
+        coverPhoto: undefined,
+        photos: [],
+        videos: [],
+        categories: [],
+    });
 
     setHydratedCategoryPath(categorySlug);
 
 }, [categorySlug, resolvedCategory, resolvedCategoryPath]);
-
-
-useEffect(() => {
-
-    if (!categorySlug || hydratedCategoryPath !== categorySlug) return;
-
-    const albumToSave = structuredClone(album);
-
-    if (albumToSave.coverPhoto) {
-
-        delete albumToSave.coverPhoto.file;
-
-    }
-
-    albumToSave.photos.forEach(photo => {
-
-        delete photo.file;
-
-    });
-
-    albumToSave.videos.forEach(video => {
-
-        delete video.file;
-
-    });
-
-    albumToSave.categories.forEach(category => {
-
-        category.photos.forEach(photo => {
-
-            delete photo.file;
-
-        });
-
-    });
-
-    localStorage.setItem(
-
-        STORAGE_KEY,
-
-        JSON.stringify(albumToSave)
-
-    );
-
-}, [album, categorySlug, hydratedCategoryPath]);
 
 
 const handleBack = () => {
@@ -1025,61 +1051,7 @@ const handleBack = () => {
 
 </div>
                     
-                    <div className="album-form__grid--three">
 
-    <div className="album-form__field">
-
-        <label>Data</label>
-
-        <input
-            type="date"
-            value={album.eventDate ?? ""}
-            onChange={(event) =>
-                setAlbum(current => ({
-                    ...current,
-                    eventDate: event.target.value,
-                }))
-            }
-        />
-
-    </div>
-
-    <div className="album-form__field">
-
-        <label>Horário</label>
-
-        <input
-            type="time"
-            value={album.eventTime ?? ""}
-            onChange={(event) =>
-                setAlbum(current => ({
-                    ...current,
-                    eventTime: event.target.value,
-                }))
-            }
-        />
-
-    </div>
-
-    <div className="album-form__field">
-
-        <label>Local</label>
-
-        <input
-            type="text"
-            placeholder="Londrina - PR"
-            value={album.eventLocation ?? ""}
-            onChange={(event) =>
-                setAlbum(current => ({
-                    ...current,
-                    eventLocation: event.target.value,
-                }))
-            }
-        />
-
-    </div>
-
-</div>
 
 
                 </div>
@@ -1141,7 +1113,6 @@ const handleBack = () => {
     type="button"
     onClick={async () => {
 
-    console.log("0 - clicou");
 
     try {
 
@@ -1176,11 +1147,9 @@ const handleBack = () => {
 
 });
 
-console.log("4 - auth inicializada");
 
 requestAccessToken();
 
-        console.log("5 - token solicitado");
 
     } catch (error) {
 
@@ -1211,6 +1180,7 @@ requestAccessToken();
 </div>
 
 {album.photos.length > 0 && (
+    <div className="album-form__photo-scroll album-form__photo-scroll--general">
     <SortablePhotoGrid
         photos={album.photos}
         onReorder={(photos) =>
@@ -1228,6 +1198,7 @@ requestAccessToken();
             }))
         }
     />
+    </div>
 )}
 
             </div>
@@ -1640,6 +1611,7 @@ requestAccessToken();
 </div>
 
 {category.photos.length > 0 && (
+    <div className="album-form__photo-scroll album-form__photo-scroll--category">
     <SortablePhotoGrid
         photos={category.photos}
         onReorder={(photos) =>
@@ -1668,6 +1640,7 @@ requestAccessToken();
             }))
         }
     />
+    </div>
 )}
 
 </div>

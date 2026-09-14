@@ -358,20 +358,12 @@ export const copyStorageFile = async (
     blob
 );
 
-console.log(
-    "COPIADO:",
-    newPath
-);
 
 const url =
     await getDownloadURL(
         newRef
     );
 
-console.log(
-    "URL NOVA:",
-    url
-);
 
 
 return {

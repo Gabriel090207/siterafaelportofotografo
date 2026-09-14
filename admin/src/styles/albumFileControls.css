@@ -74,6 +74,32 @@
     flex-shrink: 0;
 }
 
+.album-form__photo-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin-top: 28px;
+    padding: 16px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+}
+
+.album-form__photo-scroll--general {
+    max-height: min(560px, 60dvh);
+}
+
+.album-form__photo-scroll--category {
+    max-height: min(400px, 45dvh);
+}
+
+.album-form__photo-scroll > .album-form__photos {
+    margin-top: 0;
+    grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr));
+}
+
 @media (max-width: 900px) {
     .album-form__grid,
     .album-form__upload,
@@ -83,6 +109,14 @@
 }
 
 @media (max-width: 700px) {
+    .album-form__photo-scroll--general {
+        max-height: min(380px, 55dvh);
+    }
+
+    .album-form__photo-scroll--category {
+        max-height: min(300px, 45dvh);
+    }
+
     .album-form__grid--three {
         grid-template-columns: minmax(0, 1fr);
     }

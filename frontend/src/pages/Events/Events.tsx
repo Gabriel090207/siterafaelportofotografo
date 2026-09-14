@@ -184,7 +184,7 @@ useEffect(() => {
                 index: (currentIndex + 1) % categoryBannerImages.length,
             };
         });
-    }, 5000);
+    }, 7000);
 
     return () => window.clearInterval(intervalId);
 }, [
@@ -267,11 +267,7 @@ useEffect(() => {
     currentCategory,
 ]);
 
-const featuredAlbum = events[0];
-
-const displayedAlbums = hasCategoryBanner
-    ? events
-    : events.slice(1);
+const displayedAlbums = events;
 
 const getAlbumCategorySlug = (album: { category?: string }) =>
     categories.find((category) => category.id === album.category)?.slug;
@@ -356,13 +352,11 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
 
                 </section>
 
-                {(categoryBannerImage || featuredAlbum) && (
-
                     <section className="featured-event">
 
-                        <div className="featured-event-card">
+                        <div className={`featured-event-card${hasCategoryBanner ? "" : " featured-event-card--empty"}`}>
 
-                            {categoryBannerImage ? (
+                            {categoryBannerImage && (
                                 <div className="featured-event-slides">
                                     {categoryBannerImages.map((image, index) => {
                                         const isActive =
@@ -386,53 +380,11 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
                                         );
                                     })}
                                 </div>
-                            ) : (
-                                <img
-                                    src={featuredAlbum?.coverPhoto?.preview}
-                                    alt={featuredAlbum?.name}
-                                />
-                            )}
-
-                            {!categoryBannerImage && (
-                                <div className="featured-event-overlay">
-
-                                    <span className="featured-event-label">
-
-                                        {currentCategory?.name}
-
-                                    </span>
-
-                                    <h2>
-
-                                        {featuredAlbum?.name}
-
-                                    </h2>
-
-                                    <p>
-
-                                        {featuredAlbum?.description}
-
-                                    </p>
-
-                                    {featuredAlbum?.slug && getAlbumCategorySlug(featuredAlbum) && (
-                                        <Link
-                                            to={`/eventos/${getAlbumCategorySlug(featuredAlbum)}/${featuredAlbum.slug}`}
-                                            className="featured-event-button"
-                                        >
-
-                                            Ver Álbum
-
-                                        </Link>
-                                    )}
-
-                                </div>
                             )}
 
                         </div>
 
                     </section>
-
-                )}
 
                 <section className="events-grid-section">
 

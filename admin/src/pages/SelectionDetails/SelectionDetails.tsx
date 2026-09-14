@@ -25,7 +25,7 @@ const [selection, setSelection] = useState<Selection | null>(null);
 
 const [clientName, setClientName] = useState("");
 
-const [album, setAlbum] = useState<any>(null);
+const [, setAlbum] = useState<any>(null);
 
 const [downloading, setDownloading] = useState(false);
 
@@ -52,8 +52,6 @@ useEffect(() => {
 
                 setAlbum(album);
 
-                console.log("Album carregado");
-                console.log(album);
 
             }
 
@@ -64,11 +62,7 @@ useEffect(() => {
 }, [clientId, selectionId]);
 
 
-console.log("Fotos da seleção");
-console.log(selection?.photos);
 
-console.log("Fotos em alta");
-console.log(album?.highQualityPhotos);
 
 
 const handleDownloadSelection = async () => {

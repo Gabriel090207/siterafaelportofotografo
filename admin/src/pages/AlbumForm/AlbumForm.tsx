@@ -174,18 +174,10 @@ const processAlbumFile = async (
 
     if (item.file) {
 
-    console.log("item.file:", item.file);
-    console.log("instanceof File:", item.file instanceof File);
-    console.log("constructor:", item.file.constructor?.name);
 
     if (saveToDrive) {
 
 
-        console.log({
-    clientName: album.clientName,
-    albumName: album.name,
-    category: destinationFolder,
-});
 
         const driveResult =
     await uploadAlbumFileToDrive({

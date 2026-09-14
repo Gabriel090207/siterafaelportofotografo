@@ -263,18 +263,10 @@ const processAlbumFile = async (
 
     if (item.file) {
 
-    console.log("item.file:", item.file);
-    console.log("instanceof File:", item.file instanceof File);
-    console.log("constructor:", item.file.constructor?.name);
 
     if (saveToDrive) {
 
 
-        console.log({
-    clientName: album.clientName,
-    albumName: album.name,
-    category: destinationFolder,
-});
 
        const driveResult =
     await uploadAlbumFileToDrive({
@@ -477,20 +469,8 @@ const removedHighQualityVideos =
         ? originalAlbum.coverPhoto
         : null;
 
-    console.log(
-    "Fotos com marca d'água removidas:",
-    removedWatermarkedPhotos
-);
 
-console.log(
-    "Fotos em alta removidas:",
-    removedHighQualityPhotos
-);
 
-console.log(
-    "Capa removida:",
-    removedCover
-);
 
 
 
@@ -633,11 +613,6 @@ const albumFolder =
     originalFolder !== albumFolder;
 
 
-    console.log({
-    originalFolder,
-    albumFolder,
-    folderRenamed,
-});
 
 let movedFiles = new Map<string, string>();
 
