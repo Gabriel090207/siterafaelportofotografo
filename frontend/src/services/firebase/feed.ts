@@ -8,6 +8,50 @@ import {
 
 import db from "./firestore";
 
+// Keep the category ordering rule identical in admin and public feed services.
+interface CategoryOrderedAlbum {
+    id?: string;
+    order?: unknown;
+    createdAt?: unknown;
+}
+
+const albumCreatedTime = (value: unknown): number => {
+    if (value instanceof Date) {
+        return Number.isFinite(value.getTime()) ? value.getTime() : 0;
+    }
+    if (value && typeof value === "object" && "seconds" in value) {
+        const { seconds } = value;
+        const nanos = "nanoseconds" in value ? value.nanoseconds : 0;
+        if (typeof seconds === "number" && Number.isSafeInteger(seconds)
+            && typeof nanos === "number" && Number.isSafeInteger(nanos)
+            && nanos >= 0 && nanos < 1e9) {
+            const milliseconds = seconds * 1000 + nanos / 1e6;
+            return Number.isFinite(milliseconds) && Math.abs(milliseconds) <= 8.64e15
+                ? milliseconds : 0;
+        }
+    }
+    return 0;
+};
+
+export const sortCategoryAlbums = <T extends CategoryOrderedAlbum>(albums: readonly T[]): T[] => {
+    const validOrder = (value: unknown): value is number =>
+        typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+
+    return [...albums].sort((a, b) => {
+        const aOrdered = validOrder(a.order);
+        const bOrdered = validOrder(b.order);
+        if (aOrdered !== bOrdered) return aOrdered ? 1 : -1;
+        if (validOrder(a.order) && validOrder(b.order) && a.order !== b.order) {
+            return a.order - b.order;
+        }
+        const dateDifference = albumCreatedTime(b.createdAt) - albumCreatedTime(a.createdAt);
+        if (dateDifference) return dateDifference;
+        const aId = a.id ?? "";
+        const bId = b.id ?? "";
+        return aId < bId ? -1 : aId > bId ? 1 : 0;
+    });
+};
+
 export interface PublicAlbumFeedResponse {
     albumId: string;
     canonicalSlug?: string;
@@ -95,7 +139,8 @@ export const subscribeAlbums = (
 
 export const subscribeAlbumsByCategory = (
     category: string,
-    callback: (albums: any[]) => void
+    callback: (albums: any[]) => void,
+    onError?: (error: Error) => void,
 ) => {
 
     const q = query(
@@ -107,26 +152,14 @@ export const subscribeAlbumsByCategory = (
 
         const albums = snapshot.docs.map((doc) => ({
 
-            id: doc.id,
-
             ...doc.data(),
+
+            id: doc.id,
 
         }));
 
-        albums.sort((a: any, b: any) => {
+        callback(sortCategoryAlbums(albums));
 
-            const aTime =
-                a.createdAt?.seconds ?? 0;
-
-            const bTime =
-                b.createdAt?.seconds ?? 0;
-
-            return bTime - aTime;
-
-        });
-
-        callback(albums);
-
-    });
+    }, onError);
 
 };

@@ -12,7 +12,7 @@ import {
     useParams,
 } from "react-router-dom";
 
-import { subscribeAlbums } from "../../services/firebase/feed";
+import { subscribeAlbums, subscribeAlbumsByCategory } from "../../services/firebase/feed";
 
 import {
     getPublicFeedCategory,
@@ -36,9 +36,10 @@ const [albums, setAlbums] = useState<any[]>([]);
 const [categories, setCategories] =
     useState<FeedCategory[]>([]);
 
-const [albumsLoaded, setAlbumsLoaded] = useState(false);
+const [loadedAlbumsScope, setLoadedAlbumsScope] = useState<string | null>(null);
 const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 const [loadError, setLoadError] = useState(false);
+const [albumsErrorScope, setAlbumsErrorScope] = useState<string | null>(null);
 const [bannerPosition, setBannerPosition] = useState({
     key: "",
     index: 0,
@@ -66,6 +67,7 @@ const directCategory =
 const resolvedCategory =
     categories.find(
         (category) =>
+            categoryLookup?.path === categoryPath &&
             category.id === categoryLookup?.categoryId
     );
 
@@ -118,20 +120,27 @@ const activeBannerIndex =
 const categoryBannerImage = categoryBannerImages[activeBannerIndex];
 const hasCategoryBanner = categoryBannerImages.length > 0;
 
+const albumsScope = `${categoryPath ?? ""}:${currentCategory?.id ?? ""}`;
+const albumsLoaded = loadedAlbumsScope === albumsScope;
+
     useEffect(() => {
-
-        const unsubscribe =
-            subscribeAlbums(
-                (data) => {
-                    setAlbums(data);
-                    setAlbumsLoaded(true);
-                },
-                () => setLoadError(true),
-            );
-
-        return unsubscribe;
-
-    }, []);
+        if (categoryPath && !currentCategory?.id) return;
+        let active = true;
+        const onData = (data: typeof albums) => {
+            if (!active) return;
+            setAlbumsErrorScope(null);
+            setAlbums(data);
+            setLoadedAlbumsScope(albumsScope);
+        };
+        const onError = () => { if (active) setAlbumsErrorScope(albumsScope); };
+        const unsubscribe = categoryPath && currentCategory?.id
+            ? subscribeAlbumsByCategory(currentCategory.id, onData, onError)
+            : subscribeAlbums(onData, onError);
+        return () => {
+            active = false;
+            unsubscribe();
+        };
+    }, [categoryPath, currentCategory?.id, albumsScope]);
 
     useEffect(() => {
 
@@ -272,7 +281,7 @@ const displayedAlbums = events;
 const getAlbumCategorySlug = (album: { category?: string }) =>
     categories.find((category) => category.id === album.category)?.slug;
 
-    if (loadError) {
+    if (loadError || albumsErrorScope === albumsScope) {
         return (
             <main className="events">
                 <div className="events-container">
@@ -283,7 +292,7 @@ const getAlbumCategorySlug = (album: { category?: string }) =>
     }
 
     if (
-        !albumsLoaded ||
+        (!albumsLoaded && (!categoryPath || Boolean(currentCategory))) ||
         !categoriesLoaded ||
         (
             categoryPath &&

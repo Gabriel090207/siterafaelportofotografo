@@ -652,3 +652,36 @@
     color: var(--color-orange);
 
 }
+
+/* Manual ordering: only the handle activates dragging. */
+.album-card__actions .album-card__drag-handle {
+    cursor: grab;
+    touch-action: none;
+}
+
+.album-card__actions .album-card__drag-handle:active,
+.album-card--dragging .album-card__drag-handle {
+    cursor: grabbing;
+}
+
+.album-card__actions .album-card__drag-handle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255, 130, 0, .08);
+}
+
+.album-card__actions .album-card__drag-handle:disabled svg {
+    color: var(--color-orange);
+}
+
+.album-card__drag-handle:focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 3px;
+}
+
+.album-card--dragging {
+    position: relative;
+    z-index: 4;
+    opacity: 0.8;
+    box-shadow: var(--shadow-md);
+}

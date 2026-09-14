@@ -4,6 +4,8 @@ import {
     useEffect,
     useMemo,
     useState,
+    useRef,
+    type ReactNode,
 } from "react";
 
 
@@ -11,6 +13,7 @@ import {
     Plus,
     Search,
     Pencil,
+    GripVertical,
     Trash2,
     Images,
     ArrowLeft,
@@ -26,6 +29,7 @@ import {
 
 import {
     subscribeAlbumsByCategory,
+    updateAlbumOrder,
 } from "../../services/firebase/eventAlbum";
 
 
@@ -61,12 +65,70 @@ import {
 
 import { useToast } from "../../contexts/ToastContext";
 
+import {
+    closestCenter,
+    DndContext,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    rectSortingStrategy,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+const SortableAlbumCard = ({ album, disabled, children }: {
+    album: Album;
+    disabled: boolean;
+    children: (handle: ReactNode) => ReactNode;
+}) => {
+    const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+        useSortable({ id: album.id!, disabled });
+    const handle = (
+        <button
+            type="button"
+            ref={setActivatorNodeRef}
+            className="album-card__drag-handle"
+            disabled={disabled}
+            {...attributes}
+            {...listeners}
+            aria-label={`Reordenar evento ${album.name}`}
+            title={disabled ? "Reordenação indisponível durante busca ou salvamento" : "Reordenar evento"}
+        >
+            <GripVertical size={18} aria-hidden="true" />
+        </button>
+    );
+    return (
+        <div ref={setNodeRef}
+            className={`album-card${isDragging ? " album-card--dragging" : ""}`}
+            style={{ transform: CSS.Transform.toString(transform), transition }}>
+            {children(handle)}
+        </div>
+    );
+};
+
 const EventCategory = () => {
 
 
     const navigate = useNavigate();
 
     const { showToast } = useToast();
+    const [savingOrder, setSavingOrder] = useState(false);
+    const savingOrderRef = useRef(false);
+    const confirmedAlbums = useRef<Album[]>([]);
+    const snapshotVersion = useRef(0);
+    const dragVersion = useRef<number | null>(null);
+    const subscriptionScope = useRef(0);
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 7 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    );
 
 
     const {
@@ -112,6 +174,8 @@ const [showBannerModal, setShowBannerModal] =
 
 
 
+        let cancelled = false;
+        setCategory(null);
         const loadCategory =
             async()=>{
 
@@ -126,6 +190,7 @@ const [showBannerModal, setShowBannerModal] =
                     );
 
 
+                if (cancelled) return;
                 setCategory(data);
 
                 if (!identity.isCanonical) {
@@ -139,47 +204,79 @@ const [showBannerModal, setShowBannerModal] =
             };
 
 
-        loadCategory();
+        void loadCategory().catch(() => {
+            if (!cancelled) showToast("Não foi possível carregar a categoria.", "error");
+        });
+        return () => { cancelled = true; };
+
+    },[navigate, requestedCategory, showToast]);
 
 
 
-    },[navigate, requestedCategory]);
 
 
 
 
+    useEffect(() => {
+        const scope = ++subscriptionScope.current;
+        confirmedAlbums.current = [];
+        dragVersion.current = null;
+        savingOrderRef.current = false;
+        setSavingOrder(false);
+        setAlbums([]);
+        if (!category?.id) return;
+        const unsubscribe = subscribeAlbumsByCategory(category.id, (data, confirmed) => {
+            if (scope !== subscriptionScope.current) return;
+            snapshotVersion.current += 1;
+            if (confirmed) confirmedAlbums.current = data;
+            if (!savingOrderRef.current) setAlbums(data);
+        }, () => {
+            showToast("Não foi possível carregar os eventos.", "error");
+        });
+        return () => {
+            unsubscribe();
+            subscriptionScope.current += 1;
+        };
+    }, [category?.id, showToast]);
 
-
-
-    useEffect(()=>{
-
-
-        if(!category)
+    const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+        const startedVersion = dragVersion.current;
+        dragVersion.current = null;
+        if (!category?.id || search.length > 0 || savingOrderRef.current
+            || !over || active.id === over.id || startedVersion === null) return;
+        if (startedVersion !== snapshotVersion.current) {
+            showToast("A lista mudou durante o arraste. Tente novamente.", "warning");
             return;
-
-
-
-        const unsubscribe =
-            subscribeAlbumsByCategory(
-
-                category.id!,
-
-                setAlbums
-
-            );
-
-
-        return unsubscribe;
-
-
-
-    },[category]);
-
-
-
-
-
-
+        }
+        const oldIndex = albums.findIndex((album) => album.id === active.id);
+        const newIndex = albums.findIndex((album) => album.id === over.id);
+        if (oldIndex < 0 || newIndex < 0) return;
+        const ordered = arrayMove(albums, oldIndex, newIndex);
+        const scope = subscriptionScope.current;
+        savingOrderRef.current = true;
+        setSavingOrder(true);
+        setAlbums(ordered);
+        try {
+            await updateAlbumOrder(category.id, ordered);
+            if (scope !== subscriptionScope.current) return;
+            // The promise can settle before the metadata-only snapshot arrives.
+            const confirmed = confirmedAlbums.current;
+            const matchesSavedOrder = ordered.every((album, index) =>
+                confirmed.some((item) => item.id === album.id && item.order === index + 1));
+            setAlbums(matchesSavedOrder ? confirmed : ordered.map((album, index) => ({
+                ...album, order: index + 1,
+            })));
+        } catch (error) {
+            if (scope !== subscriptionScope.current) return;
+            setAlbums(confirmedAlbums.current);
+            showToast(error instanceof Error ? error.message : "Não foi possível salvar a ordem.", "error");
+        } finally {
+            if (scope === subscriptionScope.current) {
+                savingOrderRef.current = false;
+                setSavingOrder(false);
+            }
+        }
+    };
 
     const filteredAlbums = useMemo(()=>{
 
@@ -359,7 +456,12 @@ await deleteFolder(
 
 
 
-            <div className="albums__grid">
+            <DndContext sensors={sensors} collisionDetection={closestCenter}
+                onDragStart={() => { dragVersion.current = snapshotVersion.current; }}
+                onDragCancel={() => { dragVersion.current = null; }}
+                onDragEnd={handleDragEnd}>
+            <SortableContext items={filteredAlbums.map((album) => album.id!)} strategy={rectSortingStrategy}>
+            <div className="albums__grid" aria-busy={savingOrder}>
 
 
 
@@ -386,16 +488,9 @@ await deleteFolder(
 
 
 
-                            <div
-
-                                key={album.id}
-
-                                className="album-card"
-
-
-                            >
-
-
+                            <SortableAlbumCard key={album.id} album={album}
+                                disabled={savingOrder || search.length > 0 || !category?.id}>
+                            {(dragHandle) => <>
 
                                 <div className="album-card__cover">
 
@@ -591,6 +686,7 @@ await deleteFolder(
 
 
                                     <div className="album-card__actions">
+                                        {dragHandle}
 
 
                                         <button
@@ -638,7 +734,8 @@ await deleteFolder(
 
 
 
-                            </div>
+                            </> }
+                            </SortableAlbumCard>
 
 
 
@@ -654,6 +751,9 @@ await deleteFolder(
 
             </div>
 
+
+            </SortableContext>
+            </DndContext>
 
 <DeleteConfirmModal
     open={showDeleteModal}

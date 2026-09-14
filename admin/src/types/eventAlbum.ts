@@ -63,6 +63,8 @@ export interface AlbumCategory {
 
 export interface Album {
 
+    order?: number;
+
     id?: string;
 
     slug?: string;
