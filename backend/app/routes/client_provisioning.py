@@ -22,6 +22,12 @@ from app.services.client_deletion import (
     ClientDeletionReconciliationRequired,
 )
 
+from app.services.client_passwords import (
+    ClientPasswordService,
+    ClientPasswordAbsent,
+    PasswordClientNotFound,
+)
+
 router = APIRouter(prefix="/admin/clients", tags=["Admin Clients"])
 
 
@@ -33,6 +39,10 @@ def get_provisioning_service():
 def get_share_link_service():
     from app.firebase.firestore import db
     return ClientShareLinkService(db)
+
+def get_password_service():
+    from app.firebase.firestore import db
+    return ClientPasswordService(db)
 
 def get_deletion_service():
     from app.firebase.firestore import db
@@ -55,6 +65,58 @@ async def get_client_share_link(
         return JSONResponse(status_code=503, headers=headers,
                             content={"detail": "Não foi possível obter o link de acesso."})
 
+
+@router.get("/{client_id}/password")
+async def reveal_client_password(
+    client_id: str,
+    _admin: Annotated[
+        AuthenticatedAdmin,
+        Depends(get_authenticated_admin),
+    ],
+):
+    headers = {"Cache-Control": "no-store"}
+
+    try:
+        password = await run_in_threadpool(
+            get_password_service().reveal_client_password,
+            client_id,
+        )
+
+        return JSONResponse(
+            headers=headers,
+            content={
+                "hasPassword": True,
+                "password": password,
+            },
+        )
+
+    except ClientPasswordAbsent:
+        return JSONResponse(
+            status_code=404,
+            headers=headers,
+            content={
+                "detail": "Cliente não possui senha.",
+                "hasPassword": False,
+            },
+        )
+
+    except PasswordClientNotFound:
+        return JSONResponse(
+            status_code=404,
+            headers=headers,
+            content={
+                "detail": "Cliente não encontrado.",
+            },
+        )
+
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            headers=headers,
+            content={
+                "detail": "Não foi possível revelar a senha do Cliente.",
+            },
+        )
 
 @router.delete("/{client_id}")
 async def delete_client(

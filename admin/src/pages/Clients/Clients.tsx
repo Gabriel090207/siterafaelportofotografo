@@ -240,19 +240,25 @@ const Clients = () => {
                                     </td>
 
                                     <td>
-
-                                        {client.albumsCount}
-
+                                        <button
+                                            type="button"
+                                            className="clients__insert-album"
+                                            onClick={() => navigate(`/clients/${client.id}/albums/new`)}
+                                        >
+                                            <Plus size={16} />
+                                            <span>Inserir álbum</span>
+                                        </button>
                                     </td>
 
                                     <td>
 
                                         <div className="clients__actions">
 
-                                            <button>
-
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate(`/clients/${client.id}`)}
+                                            >
                                                 <Pencil size={18} />
-
                                             </button>
 
                                             {linkButton(client)}
@@ -307,18 +313,22 @@ const Clients = () => {
 
                 <p>{client.phone}</p>
 
-                <span>
-
-                    Álbuns: {client.albumsCount}
-
-                </span>
+                <button
+                    type="button"
+                    className="clients__insert-album"
+                    onClick={() => navigate(`/clients/${client.id}/albums/new`)}
+                >
+                    <Plus size={16} />
+                    <span>Inserir álbum</span>
+                </button>
 
                 <div className="clients__actions">
 
-                    <button>
-
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/clients/${client.id}`)}
+                    >
                         <Pencil size={18} />
-
                     </button>
 
                     {linkButton(client)}

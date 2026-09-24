@@ -366,3 +366,107 @@
 .client-form__hint { color: var(--color-text-light); font-size: .9rem; margin-top: 12px; }
 .client-form button:disabled, .confirm-client-modal button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 .client-form button:focus-visible, .confirm-client-modal button:focus-visible { outline: 2px solid var(--color-orange); outline-offset: 3px; }
+
+
+.client-form__password-field {
+    position: relative;
+    width: 100%;
+}
+
+.client-form__password-field input {
+    width: 100%;
+    padding-right: 48px;
+}
+
+.client-form__password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+
+    width: 32px;
+    height: 32px;
+
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-text-muted);
+    cursor: pointer;
+
+    transition: var(--transition-default);
+}
+
+.client-form__password-toggle:hover {
+    color: var(--color-orange);
+}
+
+.client-form__password-toggle:disabled {
+    cursor: wait;
+    opacity: 0.5;
+}
+
+.client-form__albums-empty {
+    margin-top: 10px;
+    min-height: 300px;
+    width: 100%;
+    padding: 54px 28px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    background: var(--color-white);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.client-form__albums-empty-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 18px;
+
+    background: rgba(255, 130, 0, 0.08);
+    color: var(--color-orange);
+}
+
+.client-form__albums-empty h3 {
+    margin: 0 0 10px;
+
+    color: var(--color-text);
+    font-family: var(--font-title);
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.client-form__albums-empty p {
+    max-width: 480px;
+    margin: 0;
+
+    color: var(--color-text-light);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.client-form__albums-empty {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.client-form__albums .albums__grid {
+    margin-top: 10px;
+}

@@ -235,6 +235,15 @@
 
 }
 
+.album-form__field select.album-form__select--locked {
+    background-image: none;
+    padding: 0 16px;
+    cursor: default;
+    opacity: 1;
+    color: var(--color-text);
+    -webkit-text-fill-color: var(--color-text);
+}
+
 .album-form__field input{
 
     padding:0 16px;

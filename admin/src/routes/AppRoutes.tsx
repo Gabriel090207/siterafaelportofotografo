@@ -8,6 +8,7 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 
 import Clients from "../pages/Clients/Clients";
 import ClientForm from "../pages/ClientForm/ClientForm";
+import EditClient from "../pages/EditClient/EditClient";
 
 import Albums from "../pages/Albums/Albums";
 import AlbumForm from "../pages/AlbumForm/AlbumForm";
@@ -73,6 +74,24 @@ const AppRoutes = () => {
                 element={
                     <AdminLayout>
                         <ClientForm />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/clients/:clientId"
+                element={
+                    <AdminLayout>
+                        <EditClient />
+                    </AdminLayout>
+                }
+            />
+
+            <Route
+                path="/clients/:clientId/albums/new"
+                element={
+                    <AdminLayout>
+                        <AlbumForm />
                     </AdminLayout>
                 }
             />

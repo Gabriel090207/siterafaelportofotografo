@@ -75,17 +75,14 @@ export const getClient = async (
     const data = snapshot.data();
 
     return {
-
         id: snapshot.id,
 
+        ...(data as Omit<Client, "id">),
+
         name: data.name ?? "",
-
         email: data.email ?? "",
-
         emails: readClientEmails(data),
-
         phone: data.phone ?? "",
-
     };
 
 };

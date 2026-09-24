@@ -1002,7 +1002,7 @@ await new Promise((resolve) =>
 );
 
 navigate(
-    `/albuns/${identity.slug}`,
+    `/clients/${albumToSave.clientId}`,
     { replace: true },
 );
 
@@ -1302,16 +1302,13 @@ useEffect(() => {
 
             <div className="album-form__top">
 
-    <button
-        className="album-form__back"
-        onClick={() => navigate("/albuns")}
-    >
-
-        <ArrowLeft size={18} />
-
-        <span>Voltar</span>
-
-    </button>
+                <button
+                className="album-form__back"
+                onClick={() => navigate(`/clients/${album.clientId}`)}
+            >
+                <ArrowLeft size={18} />
+                <span>Voltar</span>
+            </button>
 
     <div className="album-form__title">
 
@@ -1356,41 +1353,21 @@ useEffect(() => {
 
     <select
         value={album.clientId}
-        onChange={(event) => {
-
-            const client = clients.find(
-                (item) =>
-                    item.id === event.target.value
-            );
-
-            setAlbum((current) => ({
-
-                ...current,
-
-                clientId: client?.id ?? "",
-
-                clientName: client?.name ?? "",
-
-            }));
-
-        }}
+        disabled
+        className="album-form__select--locked"
     >
-
         <option value="">
             Selecione um cliente
         </option>
 
         {clients.map((client) => (
-
             <option
                 key={client.id}
                 value={client.id}
             >
                 {client.name}
             </option>
-
         ))}
-
     </select>
 
 </div>
@@ -2224,7 +2201,7 @@ useEffect(() => {
 
                 <button
                     className="album-form__cancel"
-                    onClick={() => navigate("/albuns")}
+                    onClick={() => navigate(`/clients/${album.clientId}`)}
                 >
 
                     Cancelar

@@ -215,6 +215,48 @@
 
 }
 
+
+.clients__insert-album {
+    height: 38px;
+    padding: 0 16px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--color-orange);
+    color: var(--color-white);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    cursor: pointer;
+
+    font-family: var(--font-ui);
+    font-size: .75rem;
+    font-weight: 600;
+
+    transition: var(--transition-default);
+
+    box-shadow: 0 8px 18px rgba(255,130,0,.16);
+}
+
+.clients__insert-album svg {
+    flex-shrink: 0;
+}
+
+.clients__card .clients__insert-album span {
+    margin: 0;
+    color: var(--color-white);
+    font-weight: 600;
+}
+
+.clients__insert-album:hover {
+    background: var(--color-orange-dark);
+    transform: translateY(-2px);
+}
+
 .clients__actions {
 
     display: flex;
@@ -379,6 +421,11 @@
 
     gap:18px;
 
+}
+
+.clients__insert-album {
+    width: 100%;
+    margin-top: 14px;
 }
 
 }

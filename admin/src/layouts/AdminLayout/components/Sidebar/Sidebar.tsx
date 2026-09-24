@@ -67,23 +67,6 @@ const Sidebar = ({
                 </NavLink>
 
                 <NavLink
-                    to="/albuns"
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                        isActive
-                            ? "sidebar__item sidebar__item--active"
-                            : "sidebar__item"
-                    }
-                >
-
-                    <Images size={20} />
-
-                    <span>Álbuns</span>
-
-                </NavLink>
-
-
-                <NavLink
                     to="/selections"
                     onClick={onClose}
                     className={({ isActive }) =>

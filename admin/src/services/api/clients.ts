@@ -78,3 +78,49 @@ export const deleteClient = async (clientId: string): Promise<void> => {
         );
     }
 };
+
+
+export interface RevealClientPasswordResponse {
+    hasPassword: boolean;
+    password: string;
+}
+
+export const revealClientPassword = async (
+    clientId: string
+): Promise<RevealClientPasswordResponse> => {
+    try {
+        const response =
+            await api.get<RevealClientPasswordResponse>(
+                `/admin/clients/${encodeURIComponent(clientId)}/password`
+            );
+
+        return response.data;
+
+    } catch (error) {
+        const status = (
+            error as {
+                response?: {
+                    status?: number;
+                    data?: {
+                        detail?: string;
+                        hasPassword?: boolean;
+                    };
+                };
+            }
+        )?.response?.status;
+
+        if (status === 404) {
+            throw new Error("Este cliente não possui senha cadastrada.");
+        }
+
+        if (status === 503) {
+            throw new Error(
+                "Não foi possível revelar a senha do cliente."
+            );
+        }
+
+        throw new Error(
+            "Não foi possível obter a senha do cliente."
+        );
+    }
+};

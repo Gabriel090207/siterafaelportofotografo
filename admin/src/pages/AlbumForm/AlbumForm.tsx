@@ -31,7 +31,7 @@ import {
    
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
     initializeGoogleAuth,
@@ -74,8 +74,14 @@ const STORAGE_KEY = "album-form";
 
 const AlbumForm = () => {
 
+const { clientId } = useParams<{ clientId: string }>();
+
 const [clients, setClients] =
     useState<Client[]>([]);
+
+const navigate = useNavigate();
+
+const { showToast } = useToast();
 
 useEffect(() => {
 
@@ -86,10 +92,30 @@ useEffect(() => {
 
 }, []);
 
+useEffect(() => {
+    if (!clientId || clients.length === 0) return;
 
-const navigate = useNavigate();
+    const client = clients.find(
+        (item) => item.id === clientId
+    );
 
-const { showToast } = useToast();
+    if (!client) {
+        showToast(
+            "Cliente não encontrado.",
+            "error"
+        );
+
+        navigate("/clients");
+        return;
+    }
+
+    setAlbum((current) => ({
+        ...current,
+        clientId: client.id,
+        clientName: client.name,
+    }));
+}, [clientId, clients, navigate, showToast]);
+
 
 const [photoPreview, setPhotoPreview] = useState<{
     group: "watermarkedPhotos" | "highQualityPhotos";
@@ -603,7 +629,7 @@ showToast(
     "success"
 );
 
-navigate("/albuns");
+navigate("/clients");
 
        } catch (error) {
 
@@ -970,7 +996,7 @@ useEffect(() => {
 
     <button
         className="album-form__back"
-        onClick={() => navigate("/albuns")}
+        onClick={() => navigate("/clients")}
     >
 
         <ArrowLeft size={18} />
@@ -1021,42 +1047,22 @@ useEffect(() => {
     <label>Cliente</label>
 
     <select
+        className="album-form__select--locked"
         value={album.clientId}
-        onChange={(event) => {
-
-            const client = clients.find(
-                (item) =>
-                    item.id === event.target.value
-            );
-
-            setAlbum((current) => ({
-
-                ...current,
-
-                clientId: client?.id ?? "",
-
-                clientName: client?.name ?? "",
-
-            }));
-
-        }}
+        disabled
     >
-
         <option value="">
             Selecione um cliente
         </option>
 
         {clients.map((client) => (
-
             <option
                 key={client.id}
                 value={client.id}
             >
                 {client.name}
             </option>
-
         ))}
-
     </select>
 
 </div>
