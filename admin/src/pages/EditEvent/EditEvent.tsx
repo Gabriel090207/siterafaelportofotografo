@@ -58,6 +58,7 @@ import { importExternalImage } from "../../services/api/media";
 import LoadingModal from "../../components/LoadingModal/LoadingModal";
 import PhotoUploadDropZone from "../../components/PhotoUploadDropZone/PhotoUploadDropZone";
 import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
+import PhotoViewer from "../../components/PhotoViewer/PhotoViewer";
 import SortablePhotoGrid from "../../components/SortablePhotoGrid/SortablePhotoGrid";
 import createAlbumPhotos from "../../utils/createAlbumPhotos";
 import { withUniqueAlbumPhotoNames } from "../../utils/uniqueFileName";
@@ -191,6 +192,22 @@ const [album, setAlbum] = useState<Album>({
 
 const [originalAlbum, setOriginalAlbum] =
     useState<Album | null>(null);
+
+const [photoPreview, setPhotoPreview] = useState<
+    | { type: "general"; index: number }
+    | { type: "category"; categoryId: string; index: number }
+    | null
+>(null);
+
+const previewPhotos = photoPreview?.type === "general"
+    ? album.photos
+    : photoPreview?.type === "category"
+        ? album.categories.find((category) => category.id === photoPreview.categoryId)?.photos
+        : undefined;
+
+useEffect(() => {
+    if (photoPreview && !previewPhotos?.length) setPhotoPreview(null);
+}, [photoPreview, previewPhotos]);
 
 const maxCategories = album.hasVideo ? 2 : 3;
 
@@ -1443,6 +1460,9 @@ requestAccessToken();
     <div className="album-form__photo-scroll album-form__photo-scroll--general">
     <SortablePhotoGrid
         photos={album.photos}
+        onPreview={(_photo, index) =>
+            setPhotoPreview({ type: "general", index })
+        }
         onReorder={(photos) =>
             setAlbum((current) => ({
                 ...current,
@@ -1874,6 +1894,9 @@ requestAccessToken();
     <div className="album-form__photo-scroll album-form__photo-scroll--category">
     <SortablePhotoGrid
         photos={category.photos}
+        onPreview={(_photo, index) =>
+            setPhotoPreview({ type: "category", categoryId: category.id, index })
+        }
         onReorder={(photos) =>
             setAlbum((current) => ({
                 ...current,
@@ -2055,6 +2078,15 @@ requestAccessToken();
 
     }}
 />
+
+{photoPreview && previewPhotos && previewPhotos.length > 0 && (
+    <PhotoViewer
+        key={JSON.stringify(photoPreview)}
+        photos={previewPhotos}
+        initialIndex={photoPreview.index}
+        onClose={() => setPhotoPreview(null)}
+    />
+)}
 
 <LoadingModal
     open={loadingModal.open}

@@ -1,12 +1,14 @@
 import "./Clients.css";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
     Plus,
     Search,
     Pencil,
     Trash2,
+    Link as LinkIcon,
+    Loader2,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -14,10 +16,51 @@ import { useNavigate } from "react-router-dom";
 import type { Client } from "../../types/client";
 
 import { subscribeClients } from "../../services/firebase/clients";
+import { matchesClientEmail } from "../../utils/clientEmails";
+import { getClientShareLink } from "../../services/api/clients";
+import { useToast } from "../../contexts/ToastContext";
 
 const Clients = () => {
 
     const navigate = useNavigate();
+    const { showToast } = useToast();
+    const copyingRef = useRef(new Set<string>());
+    const [copying, setCopying] = useState(new Set<string>());
+
+    const copyLink = async (clientId: string) => {
+        if (copyingRef.current.has(clientId)) return;
+        copyingRef.current.add(clientId);
+        setCopying(new Set(copyingRef.current));
+        try {
+            let shareLink: string;
+            try {
+                shareLink = await getClientShareLink(clientId);
+            } catch (error) {
+                showToast(error instanceof Error ? error.message : "Não foi possível obter o link de acesso.", "error");
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(shareLink);
+            } catch {
+                showToast("Não foi possível copiar o link. Verifique a permissão da área de transferência e tente novamente.", "error");
+                return;
+            }
+            showToast("Link copiado com sucesso.", "success");
+        } finally {
+            copyingRef.current.delete(clientId);
+            setCopying(new Set(copyingRef.current));
+        }
+    };
+
+    const linkButton = (client: Client) => {
+        const label = client.name.trim()
+            ? `Copiar link de acesso de ${client.name}` : "Copiar link de acesso do cliente";
+        return <button type="button" title={label} aria-label={label}
+            disabled={copying.has(client.id)} aria-busy={copying.has(client.id)}
+            onClick={() => copyLink(client.id)}>
+            {copying.has(client.id) ? <Loader2 size={18} className="clients__link-spinner" /> : <LinkIcon size={18} />}
+        </button>;
+    };
 
     const [clients, setClients] = useState<Client[]>([]);
 
@@ -39,7 +82,7 @@ const Clients = () => {
 
             client.name.toLowerCase().includes(term) ||
 
-            client.email.toLowerCase().includes(term) ||
+            matchesClientEmail(client.emails, term) ||
 
             client.phone.includes(search)
 
@@ -147,7 +190,7 @@ const Clients = () => {
 
                                     <td>
 
-                                        {client.email}
+                                        {client.emails[0] || "Sem e-mail"}
 
                                     </td>
 
@@ -172,6 +215,8 @@ const Clients = () => {
                                                 <Pencil size={18} />
 
                                             </button>
+
+                                            {linkButton(client)}
 
                                             <button>
 
@@ -216,7 +261,7 @@ const Clients = () => {
 
                 <h3>{client.name}</h3>
 
-                <p>{client.email}</p>
+                <p>{client.emails[0] || "Sem e-mail"}</p>
 
                 <p>{client.phone}</p>
 
@@ -233,6 +278,8 @@ const Clients = () => {
                         <Pencil size={18} />
 
                     </button>
+
+                    {linkButton(client)}
 
                     <button>
 

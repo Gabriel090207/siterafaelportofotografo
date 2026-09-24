@@ -115,7 +115,11 @@ def list_client_testimonials(
         Depends(get_authenticated_client),
     ],
 ):
-    email = authenticated_email(authenticated_client)
+    email = normalize_email(authenticated_client.email)
+
+    if not email:
+        return {"testimonials": []}
+
     testimonials: list[tuple[str, dict[str, Any]]] = []
 
     for document in db.collection("testimonials").stream():

@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 
 import db from "../firebase/firestore";
+import { readClientEmails } from "../../utils/clientEmails";
 
 export const getDashboardData = async (): Promise<DashboardData> => {
 
@@ -97,7 +98,7 @@ export const getDashboardData = async (): Promise<DashboardData> => {
 
                 name: data.name,
 
-                email: data.email,
+                email: readClientEmails(data)[0] ?? "",
 
                 createdAt:
                     data.createdAt?.toDate?.() ??

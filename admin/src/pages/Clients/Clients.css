@@ -195,6 +195,14 @@
 
 }
 
+.clients__table th:nth-child(5) {
+    text-align: center;
+}
+
+.clients__table td:nth-child(5) .clients__actions {
+    justify-content: center;
+}
+
 .clients__table tbody tr {
 
     transition: var(--transition-default);
@@ -220,6 +228,7 @@
 
     width: 38px;
     height: 38px;
+    flex-shrink: 0;
 
     display: flex;
     justify-content: center;
@@ -243,16 +252,38 @@
 
 }
 
-.clients__actions button:hover {
+.clients__actions button:hover:not(:disabled) {
 
     background: var(--color-orange);
 
 }
 
-.clients__actions button:hover svg {
+.clients__actions button:hover:not(:disabled) svg {
 
     color: var(--color-white);
 
+}
+
+.clients__actions button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.clients__actions button:focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 2px;
+}
+
+.clients__link-spinner {
+    animation: clients-link-spin 1s linear infinite;
+}
+
+@keyframes clients-link-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .clients__link-spinner { animation: none; }
 }
 
 
@@ -351,6 +382,5 @@
 }
 
 }
-
 
 

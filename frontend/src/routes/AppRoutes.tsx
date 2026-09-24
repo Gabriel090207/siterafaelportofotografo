@@ -17,6 +17,7 @@ import Testimonials from "../pages/Testimonials/Testimonials";
 import Promocoes from "../pages/Promocoes/Promocoes";
 
 import ClientLogin from "../pages/ClientLogin/ClientLogin";
+import ClientLinkAccess from "../pages/ClientLinkAccess/ClientLinkAccess";
 import ClientDashboard from "../pages/ClientDashboard/ClientDashboard";
 import ClientAlbum from "../pages/ClientAlbum/ClientAlbum";
 import ClientDownloads from "../pages/ClientDownloads/ClientDownloads";
@@ -97,6 +98,8 @@ export function AppRoutes() {
           </ClientGuestRoute>
         }
       />
+
+      <Route path="/cliente/acesso" element={<ClientLinkAccess />} />
 
       <Route element={<ClientProtectedRoute />}>
         <Route

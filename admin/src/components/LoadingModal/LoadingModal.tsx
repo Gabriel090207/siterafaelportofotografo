@@ -17,6 +17,8 @@ interface LoadingModalProps {
 
     success?: boolean;
 
+    successHint?: string;
+
 }
 
 const LoadingModal = ({
@@ -25,6 +27,7 @@ const LoadingModal = ({
     title,
     message,
     success = false,
+    successHint = "Redirecionando para os álbuns...",
 }: LoadingModalProps) => {
 
     const [mounted, setMounted] = useState(open);
@@ -202,7 +205,7 @@ const LoadingModal = ({
                 <span className="loading-modal__hint">
 
                     {success
-                        ? "Redirecionando para os álbuns..."
+                        ? successHint
                         : "Não feche esta página durante o processo."
                     }
 

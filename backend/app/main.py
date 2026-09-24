@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import app.firebase.firebase
 
 from app.routes.auth import router as auth_router
+from app.routes.client_login import router as client_login_router
+from app.routes.client_link_login import router as client_link_login_router
+from app.routes.client_provisioning import router as client_provisioning_router
 from app.routes.album import router as album_router
 from app.routes.album_client import router as album_client_router
 from app.routes.album_feed import (
@@ -36,6 +39,9 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(client_login_router)
+app.include_router(client_link_login_router)
+app.include_router(client_provisioning_router)
 app.include_router(album_router)
 app.include_router(album_client_router)
 app.include_router(album_feed_router)

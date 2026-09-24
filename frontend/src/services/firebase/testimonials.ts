@@ -3,7 +3,6 @@ import {
     collection,
     getCountFromServer,
     onSnapshot,
-    orderBy,
     query,
     serverTimestamp,
     where,
@@ -33,7 +32,52 @@ export const getPublicTestimonialsCount = async (): Promise<number> => {
 };
 
 
+// Keep this ordering rule identical in the admin and public testimonial services.
+interface OrderedTestimonial {
+    id?: string;
+    order?: unknown;
+    createdAt?: unknown;
+}
+
+const testimonialCreatedTime = (value: unknown): number => {
+    if (value instanceof Date) {
+        return Number.isFinite(value.getTime()) ? value.getTime() : 0;
+    }
+    if (value && typeof value === "object" && "seconds" in value) {
+        const { seconds } = value;
+        const nanos = "nanoseconds" in value ? value.nanoseconds : 0;
+        if (typeof seconds === "number" && Number.isSafeInteger(seconds)
+            && typeof nanos === "number" && Number.isSafeInteger(nanos)
+            && nanos >= 0 && nanos < 1e9) {
+            const milliseconds = seconds * 1000 + nanos / 1e6;
+            return Number.isFinite(milliseconds) && Math.abs(milliseconds) <= 8.64e15
+                ? milliseconds : 0;
+        }
+    }
+    return 0;
+};
+
+export const sortTestimonials = <T extends OrderedTestimonial>(testimonials: readonly T[]): T[] => {
+    const validOrder = (value: unknown): value is number =>
+        typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+
+    return [...testimonials].sort((a, b) => {
+        const aOrdered = validOrder(a.order);
+        const bOrdered = validOrder(b.order);
+        if (aOrdered !== bOrdered) return aOrdered ? 1 : -1;
+        if (validOrder(a.order) && validOrder(b.order) && a.order !== b.order) {
+            return a.order - b.order;
+        }
+        const dateDifference = testimonialCreatedTime(b.createdAt) - testimonialCreatedTime(a.createdAt);
+        if (dateDifference) return dateDifference;
+        const aId = a.id ?? "";
+        const bId = b.id ?? "";
+        return aId < bId ? -1 : aId > bId ? 1 : 0;
+    });
+};
+
 export interface Testimonial {
+    order?: number;
     id?: string;
 
     name: string;
@@ -151,48 +195,20 @@ export const createTestimonial = async (
 =================================== */
 
 export const subscribeTestimonials = (
-    callback: (
-        data: Testimonial[]
-    ) => void
+    callback: (data: Testimonial[]) => void,
+    onError?: (error: Error) => void,
 ) => {
-
-    const q =
-        query(
-            collection(
-                db,
-                "testimonials"
-            ),
-            orderBy(
-                "createdAt",
-                "desc"
-            )
-        );
-
     return onSnapshot(
-        q,
+        collection(db, "testimonials"),
         (snapshot) => {
-
-            const testimonials =
-                snapshot.docs
-                    .map(
-                        (document) => ({
-                            id:
-                                document.id,
-
-                            ...document.data(),
-                        })
-                    )
-                    .filter(
-                        (testimonial: any) =>
-                            testimonial.status ===
-                            "active"
-                    ) as Testimonial[];
-
+            const testimonials = snapshot.docs.map((document) => ({
+                ...document.data(),
+                id: document.id,
+            })) as Testimonial[];
             callback(
-                testimonials
+                sortTestimonials(testimonials.filter((testimonial) => testimonial.status === "active")),
             );
-
-        }
+        },
+        onError,
     );
-
 };

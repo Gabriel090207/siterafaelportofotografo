@@ -62,6 +62,13 @@ import {
     deleteDriveFile,
 } from "../../services/api/google";
 
+import PhotoViewer from "../../components/PhotoViewer/PhotoViewer";
+import SortablePhotoGrid from "../../components/SortablePhotoGrid/SortablePhotoGrid";
+import PhotoUploadDropZone from "../../components/PhotoUploadDropZone/PhotoUploadDropZone";
+import createAlbumPhotos from "../../utils/createAlbumPhotos";
+import { withUniqueAlbumPhotoNames } from "../../utils/uniqueFileName";
+import { importExternalImage } from "../../services/api/media";
+
 import LoadingModal from "../../components/LoadingModal/LoadingModal";
 import SaveToDriveModal from "../../components/SaveToDriveModal/SaveToDriveModal";
 
@@ -103,6 +110,11 @@ const [loadState, setLoadState] = useState<
 
 const albumId = resolvedAlbum?.albumId;
 
+
+const [photoPreview, setPhotoPreview] = useState<{
+    group: "watermarkedPhotos" | "highQualityPhotos";
+    index: number;
+} | null>(null);
 
 const [album, setAlbum] = useState<AlbumClient>({
 
@@ -244,6 +256,18 @@ const updateLoading = (
 
     }));
 
+};
+
+const needsAlbumFileProcessing = (
+    item: AlbumClientPhoto | AlbumClientVideo,
+) => {
+    if (!item.file && item.storagePath && item.driveFileId) return false;
+
+    return Boolean(
+        item.file || (
+            item.source === "drive" && item.storagePath && item.driveId
+        )
+    );
 };
 
 const processAlbumFile = async (
@@ -394,7 +418,7 @@ updateLoading(
 
             updateLoading(
     15,
-    "Documento criado."
+    "Preparando remoções e alterações de pastas..."
 );
 
         const albumToSave: AlbumClient = {
@@ -766,6 +790,30 @@ video.preview =
 
 }
 
+        const totalFiles = Number(Boolean(albumToSave.coverPhoto?.file))
+            + [
+                ...albumToSave.watermarkedPhotos,
+                ...albumToSave.highQualityPhotos,
+                ...albumToSave.watermarkedVideos,
+                ...albumToSave.highQualityVideos,
+            ].filter(needsAlbumFileProcessing).length;
+        let completedFiles = 0;
+
+        const markFileCompleted = () => {
+            if (totalFiles === 0) return;
+
+            completedFiles += 1;
+            updateLoading(
+                Math.min(95, 35 + 60 * (completedFiles / totalFiles)),
+                `Enviando arquivos — ${completedFiles} de ${totalFiles} concluídos`,
+            );
+        };
+
+        updateLoading(
+            35,
+            `Enviando arquivos — 0 de ${totalFiles} concluídos`,
+        );
+
         // 2 - capa
 
         if (
@@ -813,23 +861,19 @@ video.preview =
 
             delete albumToSave.coverPhoto.file;
 
+            markFileCompleted();
+
         }
 
-        updateLoading(
-    25,
-    "Capa enviada."
-);
 
 
         // 3 - Fotos com marca d'água
 
 
-        updateLoading(
-    35,
-    "Enviando fotos com marca d'água..."
-);
 
 for (const photo of albumToSave.watermarkedPhotos) {
+
+    const needsProcessing = needsAlbumFileProcessing(photo);
 
    await processAlbumFile(
     photo,
@@ -838,17 +882,17 @@ for (const photo of albumToSave.watermarkedPhotos) {
     saveToDrive
 );
 
+    if (needsProcessing) markFileCompleted();
+
 }
 
 
-updateLoading(
-    55,
-    "Enviando fotos em alta qualidade..."
-);
 
 // 4 - Fotos em alta qualidade
 
 for (const photo of albumToSave.highQualityPhotos) {
+
+    const needsProcessing = needsAlbumFileProcessing(photo);
 
     await processAlbumFile(
         photo,
@@ -857,18 +901,18 @@ for (const photo of albumToSave.highQualityPhotos) {
          saveToDrive
     );
 
+    if (needsProcessing) markFileCompleted();
+
 }
 
 
 
 
 
-updateLoading(
-    70,
-    "Enviando vídeos com marca d'água..."
-);
 // 5 - Vídeos com marca d'água
 for (const video of albumToSave.watermarkedVideos) {
+
+    const needsProcessing = needsAlbumFileProcessing(video);
 
     await processAlbumFile(
         video,
@@ -877,16 +921,16 @@ for (const video of albumToSave.watermarkedVideos) {
          saveToDrive
     );
 
+    if (needsProcessing) markFileCompleted();
+
 }
 
-updateLoading(
-    85,
-    "Enviando vídeos em alta qualidade..."
-);
 
 // 6 - Vídeos em alta qualidade
 
 for (const video of albumToSave.highQualityVideos) {
+
+    const needsProcessing = needsAlbumFileProcessing(video);
 
     await processAlbumFile(
         video,
@@ -895,6 +939,8 @@ for (const video of albumToSave.highQualityVideos) {
          saveToDrive
     );
 
+    if (needsProcessing) markFileCompleted();
+
 }
 
         // 7 - salva documento final
@@ -902,6 +948,11 @@ for (const video of albumToSave.highQualityVideos) {
         if (!albumId) {
     throw new Error("Álbum não encontrado.");
 }
+
+updateLoading(
+    95,
+    "Salvando alterações e identidade do álbum...",
+);
 
 await updateAlbumDetails(
     albumId,
@@ -1008,89 +1059,51 @@ const handleCoverUpload = (
 
 };
 
+const addWatermarkedPhotos = (files: File[]) => {
+    const photos = createAlbumPhotos(files);
+
+    if (photos.length === 0) return;
+
+    setAlbum((current) => ({
+        ...current,
+        watermarkedPhotos: [
+            ...current.watermarkedPhotos,
+            ...withUniqueAlbumPhotoNames(
+                photos,
+                current.watermarkedPhotos.map((photo) => photo.name),
+            ),
+        ],
+    }));
+};
+
 const handleWatermarkedPhotosUpload = (
     event: React.ChangeEvent<HTMLInputElement>
 ) => {
-
-    const files = Array.from(
-        event.target.files || []
-    );
-
-    const uploadedPhotos: AlbumClientPhoto[] =
-        files.map((file) => ({
-
-            id: crypto.randomUUID(),
-
-            file,
-
-            preview: URL.createObjectURL(file),
-
-            name: file.name,
-
-            size: file.size,
-
-            source: "computer",
-
-        }));
-
-    setAlbum((current) => ({
-
-        ...current,
-
-        watermarkedPhotos: [
-
-            ...current.watermarkedPhotos,
-
-            ...uploadedPhotos,
-
-        ],
-
-    }));
-
+    addWatermarkedPhotos(Array.from(event.target.files || []));
 };
 
+const addHighQualityPhotos = (files: File[]) => {
+    const photos = createAlbumPhotos(files);
+
+    if (photos.length === 0) return;
+
+    setAlbum((current) => ({
+        ...current,
+        highQualityPhotos: [
+            ...current.highQualityPhotos,
+            ...withUniqueAlbumPhotoNames(
+                photos,
+                current.highQualityPhotos.map((photo) => photo.name),
+            ),
+        ],
+    }));
+};
 
 const handleHighQualityPhotosUpload = (
     event: React.ChangeEvent<HTMLInputElement>
 ) => {
-
-    const files = Array.from(
-        event.target.files || []
-    );
-
-    const uploadedPhotos: AlbumClientPhoto[] =
-        files.map((file) => ({
-
-            id: crypto.randomUUID(),
-
-            file,
-
-            preview: URL.createObjectURL(file),
-
-            name: file.name,
-
-            size: file.size,
-
-            source: "computer",
-
-        }));
-
-    setAlbum((current) => ({
-
-        ...current,
-
-        highQualityPhotos: [
-
-            ...current.highQualityPhotos,
-
-            ...uploadedPhotos,
-
-        ],
-
-    }));
-
+    addHighQualityPhotos(Array.from(event.target.files || []));
 };
-
 
 
 const handleWatermarkedVideoUpload = (
@@ -1469,7 +1482,11 @@ useEffect(() => {
 
     <h3>Fotos com marca d'água</h3>
 
-    <div className="album-form__upload">
+    <PhotoUploadDropZone
+        className="album-form__upload"
+        onFiles={addWatermarkedPhotos}
+        onExternalImageUrl={importExternalImage}
+    >
 
         <input
             ref={watermarkedPhotosInputRef}
@@ -1510,7 +1527,7 @@ useEffect(() => {
 
                                     ...current.watermarkedPhotos,
 
-                                    {
+                                    ...withUniqueAlbumPhotoNames([{
 
                                         id: crypto.randomUUID(),
 
@@ -1532,7 +1549,7 @@ useEffect(() => {
 
                                         source: "drive",
 
-                                    },
+                                    }], current.watermarkedPhotos.map((photo) => photo.name)),
 
                                 ],
 
@@ -1558,7 +1575,7 @@ useEffect(() => {
 
         </button>
 
-    </div>
+    </PhotoUploadDropZone>
 
     <div className="album-form__upload-info">
 
@@ -1573,58 +1590,28 @@ useEffect(() => {
     </div>
 
     {album.watermarkedPhotos.length > 0 && (
-
-        <div className="album-form__photos">
-
-            {album.watermarkedPhotos.map((photo) => (
-
-                <div
-                    key={photo.id}
-                    className="album-form__photo"
-                >
-
-                    <button
-                        type="button"
-                        className="album-form__photo-remove"
-                        onClick={() =>
-
-                            setAlbum((current) => ({
-
-                                ...current,
-
-                                watermarkedPhotos:
-
-                                    current.watermarkedPhotos.filter(
-                                        (item) =>
-                                            item.id !== photo.id
-                                    ),
-
-                            }))
-
-                        }
-                    >
-
-                        ×
-
-                    </button>
-
-                    <img
-                        src={photo.preview}
-                        alt={photo.name}
-                    />
-
-                    <span>
-
-                        {photo.name}
-
-                    </span>
-
-                </div>
-
-            ))}
-
+        <div className="album-form__photo-scroll album-form__photo-scroll--general">
+            <SortablePhotoGrid
+                photos={album.watermarkedPhotos}
+                onPreview={(_photo, index) =>
+                    setPhotoPreview({ group: "watermarkedPhotos", index })
+                }
+                onReorder={(photos) =>
+                    setAlbum((current) => ({
+                        ...current,
+                        watermarkedPhotos: photos,
+                    }))
+                }
+                onRemove={(photoId) =>
+                    setAlbum((current) => ({
+                        ...current,
+                        watermarkedPhotos: current.watermarkedPhotos.filter(
+                            (photo) => photo.id !== photoId
+                        ),
+                    }))
+                }
+            />
         </div>
-
     )}
 
 </div>
@@ -1634,7 +1621,11 @@ useEffect(() => {
 
     <h3>Fotos em alta qualidade</h3>
 
-    <div className="album-form__upload">
+    <PhotoUploadDropZone
+        className="album-form__upload"
+        onFiles={addHighQualityPhotos}
+        onExternalImageUrl={importExternalImage}
+    >
 
         <input
             ref={highQualityPhotosInputRef}
@@ -1675,7 +1666,7 @@ useEffect(() => {
 
                                     ...current.highQualityPhotos,
 
-                                    {
+                                    ...withUniqueAlbumPhotoNames([{
 
                                         id: crypto.randomUUID(),
 
@@ -1697,7 +1688,7 @@ useEffect(() => {
 
                                         source: "drive",
 
-                                    },
+                                    }], current.highQualityPhotos.map((photo) => photo.name)),
 
                                 ],
 
@@ -1723,7 +1714,7 @@ useEffect(() => {
 
         </button>
 
-    </div>
+    </PhotoUploadDropZone>
 
     <div className="album-form__upload-info">
 
@@ -1738,57 +1729,28 @@ useEffect(() => {
     </div>
 
     {album.highQualityPhotos.length > 0 && (
-
-        <div className="album-form__photos">
-
-            {album.highQualityPhotos.map((photo) => (
-
-                <div
-                    key={photo.id}
-                    className="album-form__photo"
-                >
-
-                    <button
-                        type="button"
-                        className="album-form__photo-remove"
-                        onClick={() =>
-
-                            setAlbum((current) => ({
-
-                                ...current,
-
-                                highQualityPhotos:
-                                    current.highQualityPhotos.filter(
-                                        (item) =>
-                                            item.id !== photo.id
-                                    ),
-
-                            }))
-
-                        }
-                    >
-
-                        ×
-
-                    </button>
-
-                    <img
-                        src={photo.preview}
-                        alt={photo.name}
-                    />
-
-                    <span>
-
-                        {photo.name}
-
-                    </span>
-
-                </div>
-
-            ))}
-
+        <div className="album-form__photo-scroll album-form__photo-scroll--general">
+            <SortablePhotoGrid
+                photos={album.highQualityPhotos}
+                onPreview={(_photo, index) =>
+                    setPhotoPreview({ group: "highQualityPhotos", index })
+                }
+                onReorder={(photos) =>
+                    setAlbum((current) => ({
+                        ...current,
+                        highQualityPhotos: photos,
+                    }))
+                }
+                onRemove={(photoId) =>
+                    setAlbum((current) => ({
+                        ...current,
+                        highQualityPhotos: current.highQualityPhotos.filter(
+                            (photo) => photo.id !== photoId
+                        ),
+                    }))
+                }
+            />
         </div>
-
     )}
 
 </div>
@@ -2308,6 +2270,15 @@ Salvar Alterações
     }}
 />
         
+        {photoPreview && (
+            <PhotoViewer
+                key={`${photoPreview.group}-${photoPreview.index}`}
+                photos={album[photoPreview.group]}
+                initialIndex={photoPreview.index}
+                onClose={() => setPhotoPreview(null)}
+            />
+        )}
+
         <LoadingModal
     open={loadingModal.open}
     progress={loadingModal.progress}

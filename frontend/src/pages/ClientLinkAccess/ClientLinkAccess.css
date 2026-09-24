@@ -1,0 +1,12 @@
+.client-link-access__actions {
+    display: flex;
+    justify-content: center;
+}
+
+.client-link-access__actions > a {
+    max-width: 100%;
+    min-width: 0;
+    text-align: center;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}

@@ -8,6 +8,8 @@ export interface Client {
 
     email: string;
 
+    emails: string[];
+
     phone: string;
 
     albumsCount: number;

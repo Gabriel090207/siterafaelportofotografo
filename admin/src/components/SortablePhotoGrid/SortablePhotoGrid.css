@@ -53,3 +53,19 @@
         transform: none;
     }
 }
+
+.sortable-photo-grid__preview {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: zoom-in;
+}
+
+.sortable-photo-grid__preview:focus-visible {
+    outline: 3px solid var(--color-orange);
+    outline-offset: -3px;
+}

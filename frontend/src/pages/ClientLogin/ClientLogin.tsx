@@ -59,7 +59,7 @@ function ClientLogin() {
 
         const normalizedEmail = email.trim();
 
-        if (!normalizedEmail || !password.trim()) {
+        if (!normalizedEmail || !password) {
             showToast("Preencha o e-mail e a senha.", "warning");
             return;
         }
@@ -92,7 +92,6 @@ function ClientLogin() {
             showToast("Login realizado com sucesso!", "success");
             navigate("/cliente/dashboard");
         } catch (error) {
-            console.error(error);
             showToast(getAuthErrorMessage(error), "error");
         } finally {
             loginInProgress.current = false;

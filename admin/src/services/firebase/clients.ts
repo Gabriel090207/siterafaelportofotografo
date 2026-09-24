@@ -12,12 +12,13 @@ import { doc, getDoc } from "firebase/firestore";
 import db from "./firestore";
 
 import type { Client } from "../../types/client";
+import { readClientEmails } from "../../utils/clientEmails";
 
 export const createClient = async (
     client: Omit<
         Client,
-        "id" | "createdAt" | "updatedAt"
-    >
+        "id" | "createdAt" | "updatedAt" | "emails"
+    > & { emails?: string[] }
 ) => {
 
     await addDoc(
@@ -47,6 +48,8 @@ export const subscribeClients = (
             id: doc.id,
 
             ...(doc.data() as Omit<Client, "id">),
+
+            emails: readClientEmails(doc.data()),
 
         }));
 
@@ -78,6 +81,8 @@ export const getClient = async (
         name: data.name ?? "",
 
         email: data.email ?? "",
+
+        emails: readClientEmails(data),
 
         phone: data.phone ?? "",
 

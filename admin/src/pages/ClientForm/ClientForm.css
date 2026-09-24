@@ -311,3 +311,58 @@
     }
 
 }
+.client-form__fields { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.client-form__emails { display: flex; flex-direction: column; gap: 16px; }
+.client-form__email-row { display: flex; align-items: center; gap: 10px; }
+.client-form__email-row input { min-width: 0; flex: 1; }
+/* Same controls as album-form__add-category / album-form__remove-category. */
+.client-form__add-email {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    align-self: flex-start;
+    height: 46px;
+    padding: 0 22px;
+    border: none;
+    border-radius: 14px;
+    background: var(--color-orange);
+    color: var(--color-white);
+    font-family: var(--font-ui);
+    font-size: .92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-default);
+    box-shadow: 0 10px 24px rgba(255,130,0,.18);
+}
+.client-form__add-email:hover:not(:disabled) {
+    background: var(--color-orange-dark);
+    transform: translateY(-2px);
+}
+.client-form .client-form__add-email:disabled {
+    opacity: .45;
+    box-shadow: none;
+}
+.client-form__remove-email {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background: rgba(220,38,38,.08);
+    cursor: pointer;
+    transition: var(--transition-default);
+}
+.client-form__remove-email svg {
+    color: #DC2626;
+    transition: var(--transition-default);
+}
+.client-form__remove-email:hover:not(:disabled) { background: #DC2626; }
+.client-form__remove-email:hover:not(:disabled) svg { color: #fff; }
+.client-form__hint { color: var(--color-text-light); font-size: .9rem; margin-top: 12px; }
+.client-form button:disabled, .confirm-client-modal button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.client-form button:focus-visible, .confirm-client-modal button:focus-visible { outline: 2px solid var(--color-orange); outline-offset: 3px; }

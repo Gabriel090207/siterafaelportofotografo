@@ -512,3 +512,35 @@
     }
 
 }
+/* Manual ordering: only the handle activates dragging. */
+.admin-testimonial-item__actions .admin-testimonial-item__drag-handle {
+    cursor: grab;
+    touch-action: none;
+}
+
+.admin-testimonial-item__actions .admin-testimonial-item__drag-handle:active,
+.admin-testimonial-item--dragging .admin-testimonial-item__drag-handle {
+    cursor: grabbing;
+}
+
+.admin-testimonial-item__actions .admin-testimonial-item__drag-handle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255, 130, 0, .08);
+}
+
+.admin-testimonial-item__actions .admin-testimonial-item__drag-handle:disabled svg {
+    color: var(--color-orange);
+}
+
+.admin-testimonial-item__drag-handle:focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 3px;
+}
+
+.admin-testimonial-item--dragging {
+    position: relative;
+    z-index: 4;
+    opacity: 0.8;
+    box-shadow: var(--shadow-md);
+}

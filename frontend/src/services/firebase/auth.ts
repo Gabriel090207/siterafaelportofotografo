@@ -1,14 +1,17 @@
 import {
     getAuth,
     signInWithEmailAndPassword,
+    signInWithCustomToken,
     signOut,
 } from "firebase/auth";
 
 import app from "./firebase";
+import { requestClientLoginToken } from "../api/clientLogin";
 
 const auth = getAuth(app);
 
-export const loginClient = async (
+// Retained for the transition; the login page never falls back to this function.
+export const loginLegacyClient = async (
     email: string,
     password: string
 ) => {
@@ -21,6 +24,16 @@ export const loginClient = async (
 
     return result.user;
 
+};
+
+export const loginClient = async (email: string, password: string) => {
+    const token = await requestClientLoginToken(email, password);
+    return loginClientWithCustomToken(token);
+};
+
+export const loginClientWithCustomToken = async (token: string) => {
+    const result = await signInWithCustomToken(auth, token);
+    return result.user;
 };
 
 export const logoutClient = async () => {

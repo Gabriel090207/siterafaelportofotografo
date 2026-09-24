@@ -25,14 +25,17 @@ interface SortablePhotoGridProps {
     photos: AlbumPhoto[];
     onReorder: (photos: AlbumPhoto[]) => void;
     onRemove: (photoId: string) => void;
+    onPreview?: (photo: AlbumPhoto, index: number) => void;
 }
 
 interface PhotoCardProps {
     photo: AlbumPhoto;
+    index: number;
     onRemove: (photoId: string) => void;
+    onPreview?: (photo: AlbumPhoto, index: number) => void;
 }
 
-const PhotoContent = ({ photo, onRemove }: PhotoCardProps) => (
+const PhotoContent = ({ photo, index, onRemove, onPreview }: PhotoCardProps) => (
     <>
         <button
             type="button"
@@ -43,18 +46,29 @@ const PhotoContent = ({ photo, onRemove }: PhotoCardProps) => (
             ×
         </button>
 
-        <img src={photo.preview} alt={photo.name} />
+        {onPreview ? (
+            <button
+                type="button"
+                className="sortable-photo-grid__preview"
+                aria-label={photo.name ? `Ampliar foto ${photo.name}` : "Ampliar foto"}
+                onClick={() => onPreview(photo, index)}
+            >
+                <img src={photo.preview} alt={photo.name} draggable={false} />
+            </button>
+        ) : (
+            <img src={photo.preview} alt={photo.name} />
+        )}
         <span>{photo.name}</span>
     </>
 );
 
-const StaticPhotoItem = ({ photo, onRemove }: PhotoCardProps) => (
+const StaticPhotoItem = ({ photo, index, onRemove, onPreview }: PhotoCardProps) => (
     <div className="album-form__photo">
-        <PhotoContent photo={photo} onRemove={onRemove} />
+        <PhotoContent photo={photo} index={index} onRemove={onRemove} onPreview={onPreview} />
     </div>
 );
 
-const SortablePhotoItem = ({ photo, onRemove }: PhotoCardProps) => {
+const SortablePhotoItem = ({ photo, index, onRemove, onPreview }: PhotoCardProps) => {
     const {
         attributes,
         listeners,
@@ -87,7 +101,7 @@ const SortablePhotoItem = ({ photo, onRemove }: PhotoCardProps) => {
                 <GripVertical size={18} aria-hidden="true" />
             </button>
 
-            <PhotoContent photo={photo} onRemove={onRemove} />
+            <PhotoContent photo={photo} index={index} onRemove={onRemove} onPreview={onPreview} />
         </div>
     );
 };
@@ -96,6 +110,7 @@ const SortablePhotoGrid = ({
     photos,
     onReorder,
     onRemove,
+    onPreview,
 }: SortablePhotoGridProps) => {
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -137,6 +152,8 @@ const SortablePhotoGrid = ({
                     <StaticPhotoItem
                         key={`${photo.id || "photo-without-id"}-${index}`}
                         photo={photo}
+                        index={index}
+                        onPreview={onPreview}
                         onRemove={onRemove}
                     />
                 ))}
@@ -155,10 +172,12 @@ const SortablePhotoGrid = ({
                 strategy={rectSortingStrategy}
             >
                 <div className="album-form__photos">
-                    {photos.map((photo) => (
+                    {photos.map((photo, index) => (
                         <SortablePhotoItem
                             key={photo.id}
                             photo={photo}
+                            index={index}
+                            onPreview={onPreview}
                             onRemove={onRemove}
                         />
                     ))}
