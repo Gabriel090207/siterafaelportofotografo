@@ -124,3 +124,48 @@ export const revealClientPassword = async (
         );
     }
 };
+
+export interface UpdateClientRequest {
+    name: string;
+    phone: string;
+    emails: string[];
+    password?: string;
+    active: boolean;
+}
+
+export interface UpdateClientResponse {
+    clientId: string;
+    name: string;
+    phone: string;
+    emails: string[];
+    active: boolean;
+    passwordChanged: boolean;
+}
+
+export const updateClient = async (
+    clientId: string,
+    data: UpdateClientRequest
+): Promise<UpdateClientResponse> => {
+    try {
+        const response = await api.patch<UpdateClientResponse>(
+            `/admin/clients/${encodeURIComponent(clientId)}`,
+            data
+        );
+
+        return response.data;
+    } catch (error) {
+        const detail = (
+            error as {
+                response?: {
+                    data?: {
+                        detail?: string;
+                    };
+                };
+            }
+        )?.response?.data?.detail;
+
+        throw new Error(
+            detail || "Não foi possível atualizar o cliente."
+        );
+    }
+};

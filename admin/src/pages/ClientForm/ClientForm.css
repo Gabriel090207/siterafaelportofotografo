@@ -470,3 +470,7 @@
 .client-form__albums .albums__grid {
     margin-top: 10px;
 }
+
+.client-form__card > .client-form__field + .client-form__grid {
+    margin-top: 20px;
+}

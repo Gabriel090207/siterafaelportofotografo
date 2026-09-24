@@ -6,7 +6,10 @@ from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 
 from app.dependencies.admin_auth import AuthenticatedAdmin, get_authenticated_admin
-from app.models.client_provisioning import ProvisionClientRequest
+from app.models.client_provisioning import (
+    ProvisionClientRequest,
+    UpdateClientRequest,
+)
 from app.services.client_emails import ClientEmailConflict, ClientEmailError
 from app.services.client_password_crypto import InvalidPassword
 from app.services.client_links import ClientLinkRevoked
@@ -28,6 +31,12 @@ from app.services.client_passwords import (
     PasswordClientNotFound,
 )
 
+from app.services.client_update import (
+    ClientUpdateService,
+    ClientUpdateNotFound,
+    InvalidClientUpdate,
+)
+
 router = APIRouter(prefix="/admin/clients", tags=["Admin Clients"])
 
 
@@ -43,6 +52,10 @@ def get_share_link_service():
 def get_password_service():
     from app.firebase.firestore import db
     return ClientPasswordService(db)
+
+def get_update_service():
+    from app.firebase.firestore import db
+    return ClientUpdateService(db)
 
 def get_deletion_service():
     from app.firebase.firestore import db
@@ -118,6 +131,79 @@ async def reveal_client_password(
             },
         )
 
+@router.patch("/{client_id}")
+async def update_client(
+    client_id: str,
+    request: Request,
+    _admin: Annotated[
+        AuthenticatedAdmin,
+        Depends(get_authenticated_admin),
+    ],
+):
+    headers = {"Cache-Control": "no-store"}
+
+    try:
+        data = UpdateClientRequest.model_validate(
+            await request.json()
+        )
+    except (ValidationError, ValueError, UnicodeDecodeError):
+        return JSONResponse(
+            status_code=422,
+            headers=headers,
+            content={"detail": "Dados de Cliente inválidos."},
+        )
+
+    try:
+        result = await run_in_threadpool(
+            get_update_service().update,
+            client_id,
+            data,
+        )
+
+        return JSONResponse(
+            status_code=200,
+            headers=headers,
+            content=result,
+        )
+
+    except ClientUpdateNotFound:
+        return JSONResponse(
+            status_code=404,
+            headers=headers,
+            content={"detail": "Cliente não encontrado."},
+        )
+
+    except ClientEmailConflict:
+        return JSONResponse(
+            status_code=409,
+            headers=headers,
+            content={
+                "detail": "E-mail já reservado para outro Cliente."
+            },
+        )
+
+    except (
+        ClientEmailError,
+        InvalidClientUpdate,
+        InvalidPassword,
+    ):
+        return JSONResponse(
+            status_code=422,
+            headers=headers,
+            content={
+                "detail": "Dados de Cliente inválidos."
+            },
+        )
+
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            headers=headers,
+            content={
+                "detail": "Não foi possível atualizar o Cliente."
+            },
+        )
+        
 @router.delete("/{client_id}")
 async def delete_client(
     client_id: str,
