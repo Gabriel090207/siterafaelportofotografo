@@ -682,6 +682,7 @@ const EditClient = () => {
                     type="button"
                     className="client-form__save"
                     onClick={handleSave}
+                    disabled={saving}
                 >
                     <Save size={18} />
                     <span>Salvar alterações</span>

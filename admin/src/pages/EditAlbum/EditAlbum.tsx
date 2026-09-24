@@ -963,11 +963,12 @@ const mustUpdateIdentity =
     !originalAlbum?.slug ||
     albumToSave.name.trim() !== originalAlbum.name.trim();
 
-const identity = mustUpdateIdentity
-    ? await updateAlbumIdentity(albumId, albumToSave.name)
-    : {
-        slug: originalAlbum.slug!,
-    };
+if (mustUpdateIdentity) {
+    await updateAlbumIdentity(
+        albumId,
+        albumToSave.name
+    );
+}
 
         setLoadingModal((current) => ({
 
