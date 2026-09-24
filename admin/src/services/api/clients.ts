@@ -46,3 +46,35 @@ export const getClientShareLink = async (clientId: string): Promise<string> => {
             : "Não foi possível obter o link de acesso. Tente novamente.");
     }
 };
+
+export const deleteClient = async (clientId: string): Promise<void> => {
+    try {
+        await api.delete(
+            `/admin/clients/${encodeURIComponent(clientId)}`
+        );
+    } catch (error) {
+        const status = (
+            error as { response?: { status?: number } }
+        )?.response?.status;
+
+        if (status === 404) {
+            throw new Error("Cliente não encontrado.");
+        }
+
+        if (status === 409) {
+            throw new Error(
+                "Os dados deste cliente estão inconsistentes e a exclusão não foi realizada."
+            );
+        }
+
+        if (status === 503) {
+            throw new Error(
+                "Não foi possível concluir a exclusão do cliente. Tente novamente ou verifique o servidor."
+            );
+        }
+
+        throw new Error(
+            "Não foi possível excluir o cliente. Tente novamente."
+        );
+    }
+};

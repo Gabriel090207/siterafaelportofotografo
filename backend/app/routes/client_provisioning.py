@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
@@ -15,7 +15,12 @@ from app.services.client_provisioning import (
     ClientProvisioningService, InvalidClientProvisioning,
     ClientProvisioningReconciliationRequired,
 )
-
+from app.services.client_deletion import (
+    ClientDeletionService,
+    ClientDeletionNotFound,
+    InvalidClientDeletion,
+    ClientDeletionReconciliationRequired,
+)
 
 router = APIRouter(prefix="/admin/clients", tags=["Admin Clients"])
 
@@ -29,6 +34,9 @@ def get_share_link_service():
     from app.firebase.firestore import db
     return ClientShareLinkService(db)
 
+def get_deletion_service():
+    from app.firebase.firestore import db
+    return ClientDeletionService(db)
 
 @router.post("/{client_id}/link")
 async def get_client_share_link(
@@ -46,6 +54,61 @@ async def get_client_share_link(
     except Exception:
         return JSONResponse(status_code=503, headers=headers,
                             content={"detail": "Não foi possível obter o link de acesso."})
+
+
+@router.delete("/{client_id}")
+async def delete_client(
+    client_id: str,
+    _admin: Annotated[
+        AuthenticatedAdmin,
+        Depends(get_authenticated_admin),
+    ],
+):
+    headers = {"Cache-Control": "no-store"}
+
+    try:
+        await run_in_threadpool(
+            get_deletion_service().delete,
+            client_id,
+        )
+
+        return Response(
+            status_code=204,
+            headers=headers,
+        )
+
+    except ClientDeletionNotFound:
+        return JSONResponse(
+            status_code=404,
+            headers=headers,
+            content={"detail": "Cliente não encontrado."},
+        )
+
+    except InvalidClientDeletion:
+        return JSONResponse(
+            status_code=409,
+            headers=headers,
+            content={
+                "detail": "Os dados do Cliente estão inconsistentes e a exclusão não foi realizada."
+            },
+        )
+
+    except ClientDeletionReconciliationRequired:
+        return JSONResponse(
+            status_code=503,
+            headers=headers,
+            content={
+                "detail": "A exclusão do Cliente requer verificação operacional.",
+                "code": "client_deletion_reconciliation_required",
+            },
+        )
+
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            headers=headers,
+            content={"detail": "Não foi possível excluir o Cliente."},
+        )
 
 
 @router.post("")

@@ -17,8 +17,13 @@ import type { Client } from "../../types/client";
 
 import { subscribeClients } from "../../services/firebase/clients";
 import { matchesClientEmail } from "../../utils/clientEmails";
-import { getClientShareLink } from "../../services/api/clients";
+import {
+    deleteClient,
+    getClientShareLink,
+} from "../../services/api/clients";
 import { useToast } from "../../contexts/ToastContext";
+
+import DeleteConfirmModal from "../../components/DeleteConfirmModal/DeleteConfirmModal";
 
 const Clients = () => {
 
@@ -26,6 +31,8 @@ const Clients = () => {
     const { showToast } = useToast();
     const copyingRef = useRef(new Set<string>());
     const [copying, setCopying] = useState(new Set<string>());
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
 
     const copyLink = async (clientId: string) => {
         if (copyingRef.current.has(clientId)) return;
@@ -49,6 +56,38 @@ const Clients = () => {
         } finally {
             copyingRef.current.delete(clientId);
             setCopying(new Set(copyingRef.current));
+        }
+    };
+
+    const openDeleteModal = (client: Client) => {
+        setClientToDelete(client);
+        setShowDeleteModal(true);
+    };
+
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+        setClientToDelete(null);
+    };
+
+    const handleDeleteClient = async () => {
+        if (!clientToDelete) return;
+
+        try {
+            await deleteClient(clientToDelete.id);
+
+            showToast(
+                "Cliente excluído com sucesso.",
+                "success"
+            );
+        } catch (error) {
+            showToast(
+                error instanceof Error
+                    ? error.message
+                    : "Não foi possível excluir o cliente.",
+                "error"
+            );
+        } finally {
+            closeDeleteModal();
         }
     };
 
@@ -218,10 +257,13 @@ const Clients = () => {
 
                                             {linkButton(client)}
 
-                                            <button>
-
+                                            <button
+                                                type="button"
+                                                title="Excluir cliente"
+                                                aria-label="Excluir cliente"
+                                                onClick={() => openDeleteModal(client)}
+                                            >
                                                 <Trash2 size={18} />
-
                                             </button>
 
                                         </div>
@@ -281,10 +323,13 @@ const Clients = () => {
 
                     {linkButton(client)}
 
-                    <button>
-
+                    <button
+                        type="button"
+                        title="Excluir cliente"
+                        aria-label="Excluir cliente"
+                        onClick={() => openDeleteModal(client)}
+                    >
                         <Trash2 size={18} />
-
                     </button>
 
                 </div>
@@ -296,6 +341,17 @@ const Clients = () => {
     )}
 
 </div>
+
+
+<DeleteConfirmModal
+    open={showDeleteModal}
+    title="Excluir cliente"
+    message={`Deseja realmente excluir "${
+        clientToDelete?.name.trim() || "Cliente sem nome"
+    }"? Esta ação não poderá ser desfeita.`}
+    onCancel={closeDeleteModal}
+    onConfirm={handleDeleteClient}
+/>
  
         </section>
 

@@ -833,7 +833,7 @@ onLoadedMetadata={() => {
 }}
     >
       <source
-        src="https://www.w3schools.com/html/mov_bbb.mp4"
+        src={album?.videos?.[0]?.preview}
         type="video/mp4"
       />
     </video>
@@ -951,9 +951,11 @@ onLoadedMetadata={() => {
       className="video-preview-card"
       onClick={() => changeActiveContent("video")}
     >
-      <img
-        src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc"
-        alt="Filme"
+      <video
+        src={album?.videos?.[0]?.preview}
+        muted
+        playsInline
+        preload="metadata"
       />
 
       <div className="video-play">
